@@ -54,19 +54,19 @@ func (hapi *HungryAPI) RegisterAppService(
 	bridge string,
 	req ReqRegisterAppService,
 ) (resp appservice.Registration, err error) {
-	url := hapi.BuildURL(mautrix.BaseURLPath{"_matrix", "asmux", "appservice", hapi.Username, bridge})
+	url := hapi.BuildURL(mautrix.BaseURLPath{"_matrix", "asmux", "mxauth", "appservice", hapi.Username, bridge})
 	_, err = hapi.MakeRequest(http.MethodPut, url, &req, &resp)
 	return
 }
 
 func (hapi *HungryAPI) GetAppService(bridge string) (resp appservice.Registration, err error) {
-	url := hapi.BuildURL(mautrix.BaseURLPath{"_matrix", "asmux", "appservice", hapi.Username, bridge})
+	url := hapi.BuildURL(mautrix.BaseURLPath{"_matrix", "asmux", "mxauth", "appservice", hapi.Username, bridge})
 	_, err = hapi.MakeRequest(http.MethodGet, url, nil, &resp)
 	return
 }
 
 func (hapi *HungryAPI) DeleteAppService(bridge string) (err error) {
-	url := hapi.BuildURL(mautrix.BaseURLPath{"_matrix", "asmux", "appservice", hapi.Username, bridge})
+	url := hapi.BuildURL(mautrix.BaseURLPath{"_matrix", "asmux", "mxauth", "appservice", hapi.Username, bridge})
 	_, err = hapi.MakeRequest(http.MethodDelete, url, nil, nil)
 	return
 }
