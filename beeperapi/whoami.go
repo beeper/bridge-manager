@@ -1,6 +1,10 @@
 package beeperapi
 
 import (
+	"encoding/json"
+	"fmt"
+	"net/http"
+	"net/url"
 	"time"
 
 	"maunium.net/go/mautrix/bridge/status"
@@ -61,5 +65,34 @@ type RespWhoami struct {
 }
 
 func Whoami(baseDomain, accessToken string) (resp *RespWhoami, err error) {
-	return nil, nil
+	whoamiURL := url.URL{
+		Scheme: "https",
+		Host:   fmt.Sprintf("api.%s", baseDomain),
+		Path:   "/whoami",
+	}
+
+	req := &http.Request{
+		Method: http.MethodGet,
+		URL:    &whoamiURL,
+		Header: http.Header{
+			"Authorization": []string{fmt.Sprintf("Bearer %s", accessToken)},
+		},
+	}
+
+	r, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return nil, fmt.Errorf("error making request: %w", err)
+	}
+	defer r.Body.Close()
+
+	if r.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("unexpected status code: %d", r.StatusCode)
+	}
+
+	err = json.NewDecoder(r.Body).Decode(&resp)
+	if err != nil {
+		return nil, fmt.Errorf("error decoding response: %w", err)
+	}
+
+	return resp, nil
 }
