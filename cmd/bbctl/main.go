@@ -1,10 +1,13 @@
-package bbctl
+package main
 
 import (
 	"fmt"
+	"log"
 	"net/http"
+	"os"
 	"time"
 
+	"github.com/urfave/cli/v2"
 	"maunium.net/go/mautrix"
 	"maunium.net/go/mautrix/appservice"
 	"maunium.net/go/mautrix/id"
@@ -12,6 +15,30 @@ import (
 )
 
 func main() {
+	app := &cli.App{
+		Name:  "bbctl",
+		Usage: "Manage self-hosted bridges for Beeper",
+		Flags: []cli.Flag{
+			&cli.StringFlag{
+				Name:    "server",
+				Aliases: []string{"s"},
+				Usage:   "Use `SERVER` as the homeserver",
+			},
+			&cli.StringFlag{
+				Name:    "username",
+				Aliases: []string{"u"},
+				Usage:   "`USERNAME` to authenticate as",
+			},
+			&cli.StringFlag{
+				Name:    "token",
+				Aliases: []string{"t"},
+				Usage:   "`ACCESS_TOKEN` from the Beeper app",
+			},
+		},
+	}
+	if err := app.Run(os.Args); err != nil {
+		log.Fatal(err)
+	}
 }
 
 type HungryAPI struct {
