@@ -35,6 +35,9 @@ func main() {
 				Usage:   "`ACCESS_TOKEN` from the Beeper app",
 			},
 		},
+		Commands: []*cli.Command{
+			registerCommandFactory(),
+		},
 	}
 	if err := app.Run(os.Args); err != nil {
 		log.Fatal(err)
