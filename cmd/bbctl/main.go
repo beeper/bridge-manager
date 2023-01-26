@@ -2,16 +2,16 @@ package bbctl
 
 import (
 	"fmt"
+	"net/http"
+	"time"
+
 	"maunium.net/go/mautrix"
 	"maunium.net/go/mautrix/appservice"
 	"maunium.net/go/mautrix/id"
 	"maunium.net/go/mautrix/util/jsontime"
-	"net/http"
-	"time"
 )
 
 func main() {
-
 }
 
 type HungryAPI struct {
@@ -50,7 +50,10 @@ type ReqRegisterAppService struct {
 	Push    bool   `json:"push,omitempty"`
 }
 
-func (hapi *HungryAPI) RegisterAppService(bridge string, req ReqRegisterAppService) (resp appservice.Registration, err error) {
+func (hapi *HungryAPI) RegisterAppService(
+	bridge string,
+	req ReqRegisterAppService,
+) (resp appservice.Registration, err error) {
 	url := hapi.BuildURL(mautrix.BaseURLPath{"_matrix", "asmux", "appservice", hapi.Username, bridge})
 	_, err = hapi.MakeRequest(http.MethodPut, url, &req, &resp)
 	return
