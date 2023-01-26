@@ -1,9 +1,10 @@
 package beeperapi
 
 import (
+	"time"
+
 	"maunium.net/go/mautrix/bridge/status"
 	"maunium.net/go/mautrix/id"
-	"time"
 )
 
 type BridgeState struct {
@@ -60,5 +61,5 @@ type RespWhoami struct {
 }
 
 func Whoami(baseDomain, accessToken string) (resp *RespWhoami, err error) {
-
+	return nil, nil
 }
