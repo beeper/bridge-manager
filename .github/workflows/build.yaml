@@ -1,0 +1,36 @@
+name: Build
+
+on: [push, pull_request]
+
+env:
+  GO_VERSION: 1.20
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up Go ${{ env.GO_VERSION }}
+        uses: actions/setup-go@v3
+        with:
+          go-version: ${{ env.GO_VERSION }}
+          cache: true
+
+      - name: Install dependencies
+        run: |
+          go install golang.org/x/tools/cmd/goimports@latest
+          go install honnef.co/go/tools/cmd/staticcheck@latest
+          export PATH="$HOME/go/bin:$PATH"
+
+      - name: Run pre-commit
+        uses: pre-commit/action@v3.0.0
+
+      - name: Build binary
+        run: ./build.sh
+
+      - uses: actions/upload-artifact@v3
+        with:
+          name: bbctl
+          path: bbctl
+          if-no-files-found: error
