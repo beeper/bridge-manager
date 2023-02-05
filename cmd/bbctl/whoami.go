@@ -185,7 +185,7 @@ func whoamiFunction(ctx *cli.Context) error {
 	internal := homeserver != "beeper.com" || whoami.UserInfo.Channel == "INTERNAL"
 	fmt.Println(" ", formatBridge("hungryserv", whoami.User.Hungryserv, internal))
 	keys := maps.Keys(whoami.User.Bridges)
-	sort.Sort(sort.StringSlice(keys))
+	sort.Strings(keys)
 	for _, name := range keys {
 		fmt.Println(" ", formatBridge(name, whoami.User.Bridges[name], internal))
 	}

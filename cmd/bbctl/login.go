@@ -58,7 +58,6 @@ func beeperLogin(ctx *cli.Context) error {
 		return fmt.Errorf("failed to log in: %w", err)
 	}
 	fmt.Printf("Successfully logged in as %s\n", resp.UserID)
-	username, homeserver, _ = resp.UserID.Parse()
 	whoami, err := beeperapi.Whoami(homeserver, resp.AccessToken)
 	if err != nil {
 		_, _ = api.Logout()
