@@ -13,7 +13,6 @@ import (
 	"maunium.net/go/mautrix/id"
 
 	"github.com/beeper/bridge-manager/hungryapi"
-	"github.com/beeper/bridge-manager/hyper"
 )
 
 type UserError struct {
@@ -109,13 +108,14 @@ var app = &cli.App{
 			Usage:   "Enable or disable all colors and hyperlinks in output (valid values: always/never/auto)",
 			Value:   "auto",
 			Action: func(ctx *cli.Context, val string) error {
-				if val == "never" {
-					hyper.Disable = true
+				switch val {
+				case "never":
 					color.NoColor = true
-				} else if val == "always" {
-					hyper.Disable = false
+				case "always":
 					color.NoColor = false
-				} else if val != "auto" {
+				case "auto":
+					// The color package auto-detects by default
+				default:
 					return fmt.Errorf("invalid value for --color: %q", val)
 				}
 				return nil

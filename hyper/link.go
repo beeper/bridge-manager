@@ -2,10 +2,9 @@ package hyper
 
 import (
 	"fmt"
-	"os"
-)
 
-var Disable = os.Getenv("TERM") == "dumb"
+	"github.com/fatih/color"
+)
 
 const OSC = "\x1b]"
 const OSC8 = OSC + "8"
@@ -13,7 +12,7 @@ const ST = "\x07" // or "\x1b\\"
 const URLTemplate = OSC8 + ";%s;%s" + ST + "%s" + OSC8 + ";;" + ST
 
 func Link(text string, url string, important bool) string {
-	if Disable {
+	if color.NoColor {
 		if !important {
 			return text
 		}
