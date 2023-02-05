@@ -49,10 +49,13 @@ var bridgeCommand = &cli.Command{
 }
 
 func deleteBridge(ctx *cli.Context) error {
-	bridge := ctx.Args().Get(0)
-	if bridge == "" {
+	if ctx.NArg() == 0 {
 		return UserError{"You must specify a bridge to delete"}
-	} else if !allowedBridgeRegex.MatchString(bridge) {
+	} else if ctx.NArg() > 1 {
+		return UserError{"Too many arguments specified (flags must come before arguments)"}
+	}
+	bridge := ctx.Args().Get(0)
+	if !allowedBridgeRegex.MatchString(bridge) {
 		return UserError{"Invalid bridge name"}
 	}
 	var confirmation bool
@@ -73,10 +76,13 @@ func deleteBridge(ctx *cli.Context) error {
 var allowedBridgeRegex = regexp.MustCompile("[a-z0-9]{1,32}")
 
 func registerBridge(ctx *cli.Context) error {
-	bridge := ctx.Args().Get(0)
-	if bridge == "" {
+	if ctx.NArg() == 0 {
 		return UserError{"You must specify a bridge to register"}
-	} else if !allowedBridgeRegex.MatchString(bridge) {
+	} else if ctx.NArg() > 1 {
+		return UserError{"Too many arguments specified (flags must come before arguments)"}
+	}
+	bridge := ctx.Args().Get(0)
+	if !allowedBridgeRegex.MatchString(bridge) {
 		return UserError{"Invalid bridge name. Names must consist of 1-32 lowercase ASCII letters and digits."}
 	}
 	hungryAPI := GetHungryClient(ctx)
@@ -99,12 +105,13 @@ func registerBridge(ctx *cli.Context) error {
 	}
 	output := ctx.String("output")
 	if output == "-" {
-		fmt.Println(yaml)
+		fmt.Print(yaml)
 	} else {
 		err = os.WriteFile(output, []byte(yaml), 0600)
 		if err != nil {
 			return fmt.Errorf("failed to write registration to %s: %w", output, err)
 		}
+		fmt.Println("Wrote registration file to", output)
 	}
 	err = beeperapi.PostBridgeState(ctx.String("homeserver"), GetEnvConfig(ctx).Username, bridge, resp.AppToken, beeperapi.ReqPostBridgeState{
 		StateEvent: status.StateRunning,
