@@ -1,8 +1,10 @@
 package beeperapi
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
 	"net/url"
 	"time"
@@ -64,35 +66,74 @@ type RespWhoami struct {
 	UserInfo WhoamiUserInfo `json:"userInfo"`
 }
 
-func Whoami(baseDomain, accessToken string) (resp *RespWhoami, err error) {
-	whoamiURL := url.URL{
-		Scheme: "https",
-		Host:   fmt.Sprintf("api.%s", baseDomain),
-		Path:   "/whoami",
-	}
+type Client struct {
+	http        *http.Client
+	URL         url.URL
+	Username    string
+	AccessToken string
+}
 
-	req := &http.Request{
-		Method: http.MethodGet,
-		URL:    &whoamiURL,
+func NewClient(baseDomain, username, accessToken string) *Client {
+	return &Client{
+		http: &http.Client{Timeout: 30 * time.Second},
+		URL: url.URL{
+			Scheme: "https",
+			Host:   fmt.Sprintf("api.%s", baseDomain),
+		},
+		Username:    username,
+		AccessToken: accessToken,
+	}
+}
+
+func (cli *Client) newRequest(method, path string) *http.Request {
+	reqURL := cli.URL
+	reqURL.Path = path
+	return &http.Request{
+		URL:    &reqURL,
+		Method: method,
 		Header: http.Header{
-			"Authorization": []string{fmt.Sprintf("Bearer %s", accessToken)},
+			"Authorization": {fmt.Sprintf("Bearer %s", cli.AccessToken)},
 		},
 	}
+}
 
-	r, err := http.DefaultClient.Do(req)
+type ReqPostBridgeState struct {
+	StateEvent status.BridgeStateEvent `json:"stateEvent"`
+	Reason     string                  `json:"reason"`
+	Info       map[string]any          `json:"info"`
+}
+
+func (cli *Client) PostBridgeState(bridgeName string, data ReqPostBridgeState) error {
+	req := cli.newRequest(http.MethodPost, fmt.Sprintf("/bridgebox/%s/bridge/%s/bridge_state", cli.Username, bridgeName))
+	var buf bytes.Buffer
+	err := json.NewEncoder(&buf).Encode(&data)
 	if err != nil {
-		return nil, fmt.Errorf("error making request: %w", err)
+		return fmt.Errorf("failed to encode request: %w", err)
+	}
+	req.Body = io.NopCloser(&buf)
+	r, err := cli.http.Do(req)
+	if err != nil {
+		return fmt.Errorf("failed to send request: %w", err)
 	}
 	defer r.Body.Close()
-
-	if r.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("unexpected status code: %d", r.StatusCode)
+	if r.StatusCode < 200 || r.StatusCode >= 300 {
+		return fmt.Errorf("unexpected status code %d", r.StatusCode)
 	}
+	return nil
+}
 
+func (cli *Client) Whoami() (resp *RespWhoami, err error) {
+	r, err := cli.http.Do(cli.newRequest(http.MethodGet, "/whoami"))
+	if err != nil {
+		return nil, fmt.Errorf("failed to send request: %w", err)
+	}
+	defer r.Body.Close()
+	if r.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("unexpected status code %d", r.StatusCode)
+	}
 	err = json.NewDecoder(r.Body).Decode(&resp)
 	if err != nil {
 		return nil, fmt.Errorf("error decoding response: %w", err)
 	}
-
 	return resp, nil
 }
