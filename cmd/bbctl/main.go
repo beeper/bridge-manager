@@ -103,14 +103,20 @@ var app = &cli.App{
 			Usage:   "Path to the config file where access tokens are saved",
 			Value:   getDefaultConfigPath(),
 		},
-		&cli.BoolFlag{
-			Name:    "no-color",
-			EnvVars: []string{"BBCTL_NO_COLOR"},
-			Usage:   "Disable all colors and hyperlinks in output",
-			Action: func(ctx *cli.Context, val bool) error {
-				if val {
+		&cli.StringFlag{
+			Name:    "color",
+			EnvVars: []string{"BBCTL_COLOR"},
+			Usage:   "Enable or disable all colors and hyperlinks in output (valid values: always/never/auto)",
+			Value:   "auto",
+			Action: func(ctx *cli.Context, val string) error {
+				if val == "never" {
 					hyper.Disable = true
 					color.NoColor = true
+				} else if val == "always" {
+					hyper.Disable = false
+					color.NoColor = false
+				} else if val != "auto" {
+					return fmt.Errorf("invalid value for --color: %q", val)
 				}
 				return nil
 			},
