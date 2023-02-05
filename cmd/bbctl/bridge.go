@@ -10,8 +10,8 @@ import (
 	"github.com/urfave/cli/v2"
 	"maunium.net/go/mautrix/bridge/status"
 
-	"github.com/beeper/bridge-manager/beeperapi"
-	"github.com/beeper/bridge-manager/hungryapi"
+	"github.com/beeper/bridge-manager/api/beeperapi"
+	"github.com/beeper/bridge-manager/api/hungryapi"
 )
 
 var bridgeCommand = &cli.Command{

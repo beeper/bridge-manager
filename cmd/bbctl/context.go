@@ -4,7 +4,7 @@ import (
 	"github.com/urfave/cli/v2"
 	"maunium.net/go/mautrix"
 
-	"github.com/beeper/bridge-manager/hungryapi"
+	"github.com/beeper/bridge-manager/api/hungryapi"
 )
 
 type contextKey int

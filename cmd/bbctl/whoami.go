@@ -11,8 +11,8 @@ import (
 	"golang.org/x/exp/maps"
 	"maunium.net/go/mautrix/bridge/status"
 
-	"github.com/beeper/bridge-manager/beeperapi"
-	"github.com/beeper/bridge-manager/hyper"
+	"github.com/beeper/bridge-manager/api/beeperapi"
+	"github.com/beeper/bridge-manager/cli/hyper"
 )
 
 var whoamiCommand = &cli.Command{

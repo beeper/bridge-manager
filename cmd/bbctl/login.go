@@ -7,8 +7,8 @@ import (
 	"github.com/urfave/cli/v2"
 	"maunium.net/go/mautrix"
 
-	"github.com/beeper/bridge-manager/beeperapi"
-	"github.com/beeper/bridge-manager/interactive"
+	"github.com/beeper/bridge-manager/api/beeperapi"
+	"github.com/beeper/bridge-manager/cli/interactive"
 )
 
 var loginCommand = &cli.Command{

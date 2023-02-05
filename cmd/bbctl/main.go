@@ -12,7 +12,7 @@ import (
 	"maunium.net/go/mautrix"
 	"maunium.net/go/mautrix/id"
 
-	"github.com/beeper/bridge-manager/hungryapi"
+	"github.com/beeper/bridge-manager/api/hungryapi"
 )
 
 type UserError struct {
