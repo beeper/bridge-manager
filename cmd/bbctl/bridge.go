@@ -3,7 +3,9 @@ package main
 import (
 	"fmt"
 	"os"
+	"regexp"
 
+	"github.com/AlecAivazis/survey/v2"
 	"github.com/urfave/cli/v2"
 	"maunium.net/go/mautrix/bridge/status"
 
@@ -37,11 +39,46 @@ var bridgeCommand = &cli.Command{
 				},
 			},
 		},
+		{
+			Name:      "delete",
+			Usage:     "Delete a bridge and all associated rooms on the Beeper servers",
+			ArgsUsage: "BRIDGE",
+			Action:    deleteBridge,
+		},
 	},
 }
 
+func deleteBridge(ctx *cli.Context) error {
+	bridge := ctx.Args().Get(0)
+	if bridge == "" {
+		return UserError{"You must specify a bridge to delete"}
+	} else if !allowedBridgeRegex.MatchString(bridge) {
+		return UserError{"Invalid bridge name"}
+	}
+	var confirmation bool
+	err := survey.AskOne(&survey.Confirm{Message: fmt.Sprintf("Are you sure you want to permanently delete %s?", bridge)}, &confirmation)
+	if err != nil {
+		return err
+	} else if !confirmation {
+		return fmt.Errorf("bridge delete cancelled")
+	}
+	err = beeperapi.DeleteBridge(ctx.String("homeserver"), bridge, GetEnvConfig(ctx).AccessToken)
+	if err != nil {
+		return fmt.Errorf("error deleting bridge: %w", err)
+	}
+	fmt.Println("Started deleting bridge")
+	return nil
+}
+
+var allowedBridgeRegex = regexp.MustCompile("[a-z0-9]{1,32}")
+
 func registerBridge(ctx *cli.Context) error {
 	bridge := ctx.Args().Get(0)
+	if bridge == "" {
+		return UserError{"You must specify a bridge to register"}
+	} else if !allowedBridgeRegex.MatchString(bridge) {
+		return UserError{"Invalid bridge name. Names must consist of 1-32 lowercase ASCII letters and digits."}
+	}
 	hungryAPI := GetHungryClient(ctx)
 
 	req := hungryapi.ReqRegisterAppService{

@@ -94,6 +94,27 @@ type ReqPostBridgeState struct {
 	Info       map[string]any          `json:"info"`
 }
 
+func DeleteBridge(domain, bridgeName, token string) error {
+	req := newRequest(domain, token, http.MethodDelete, fmt.Sprintf("/bridge/%s", bridgeName))
+	r, err := cli.Do(req)
+	if err != nil {
+		return fmt.Errorf("failed to send request: %w", err)
+	}
+	defer r.Body.Close()
+	var body map[string]any
+	_ = json.NewDecoder(r.Body).Decode(&body)
+	if r.StatusCode < 200 || r.StatusCode >= 300 {
+		if body != nil {
+			errorMsg, ok := body["error"].(string)
+			if ok {
+				return fmt.Errorf("server returned error (HTTP %d): %s", r.StatusCode, errorMsg)
+			}
+		}
+		return fmt.Errorf("unexpected status code %d", r.StatusCode)
+	}
+	return nil
+}
+
 func PostBridgeState(domain, username, bridgeName, asToken string, data ReqPostBridgeState) error {
 	req := newRequest(domain, asToken, http.MethodPost, fmt.Sprintf("/bridgebox/%s/bridge/%s/bridge_state", username, bridgeName))
 	var buf bytes.Buffer
