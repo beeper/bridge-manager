@@ -39,6 +39,11 @@ var bridgeCommand = &cli.Command{
 					EnvVars: []string{"BEEPER_BRIDGE_REGISTRATION_FILE"},
 					Usage:   "Path to save generated registration file to.",
 				},
+				&cli.BoolFlag{
+					Name:    "force",
+					Aliases: []string{"f"},
+					Usage:   "Force register an official bridge, which is not currently supported.",
+				},
 			},
 		},
 		{
@@ -102,6 +107,23 @@ func deleteBridge(ctx *cli.Context) error {
 }
 
 var allowedBridgeRegex = regexp.MustCompile("[a-z0-9]{1,32}")
+var officialBridges = map[string]struct{}{
+	"discord":       {},
+	"discordgo":     {},
+	"facebook":      {},
+	"googlechat":    {},
+	"imessagecloud": {},
+	"imessage":      {},
+	"instagram":     {},
+	"linkedin":      {},
+	"signal":        {},
+	"slack":         {},
+	"slackgo":       {},
+	"telegram":      {},
+	"twitter":       {},
+	"whatsapp":      {},
+	"androidsms":    {},
+}
 
 func registerBridge(ctx *cli.Context) error {
 	if ctx.NArg() == 0 {
@@ -112,6 +134,26 @@ func registerBridge(ctx *cli.Context) error {
 	bridge := ctx.Args().Get(0)
 	if !allowedBridgeRegex.MatchString(bridge) {
 		return UserError{"Invalid bridge name. Names must consist of 1-32 lowercase ASCII letters and digits."}
+	}
+	if _, isOfficial := officialBridges[bridge]; isOfficial {
+		_, _ = fmt.Fprintf(os.Stderr, "%s is an official bridge name.\n", color.CyanString(bridge))
+		if !ctx.Bool("force") {
+			return UserError{"Self-hosting the official Beeper bridges is not currently supported, as it requires configuring the bridges in a specific way. You may still run official bridges using a different bridge name."}
+		}
+	}
+	homeserver := ctx.String("homeserver")
+	accessToken := GetEnvConfig(ctx).AccessToken
+	whoami, err := beeperapi.Whoami(homeserver, accessToken)
+	if err != nil {
+		return fmt.Errorf("failed to get whoami: %w", err)
+	}
+	bridgeInfo, ok := whoami.User.Bridges[bridge]
+	if ok {
+		selfHosted, _ := bridgeInfo.BridgeState.Info["isSelfHosted"].(bool)
+		if !selfHosted {
+			return UserError{fmt.Sprintf("Your %s bridge is not self-hosted.", color.CyanString(bridge))}
+		}
+		_, _ = fmt.Fprintf(os.Stderr, "You already have a %s bridge, returning existing registration file\n", color.CyanString(bridge))
 	}
 	hungryAPI := GetHungryClient(ctx)
 
