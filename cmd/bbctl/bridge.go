@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"os"
 
 	"github.com/urfave/cli/v2"
 	"maunium.net/go/mautrix/bridge/status"
@@ -33,14 +34,18 @@ var bridgeCommand = &cli.Command{
 					EnvVars: []string{"BEEPER_BRIDGE_ADDRESS"},
 					Usage:   "Optionally, a https address where the Beeper server can push events.\nWhen omitted, the server will expect the bridge to connect with a websocket to receive events.",
 				},
+				&cli.StringFlag{
+					Name:    "output",
+					Aliases: []string{"o"},
+					Value:   "-",
+					Usage:   "Path to save generated registration file to.",
+				},
 			},
 		},
 		{
 			Name: "whoami",
 			Action: func(ctx *cli.Context) error {
-				api := GetAPIClient(ctx)
-
-				whoami, err := api.Whoami()
+				whoami, err := beeperapi.Whoami(ctx.String("homeserver"), GetEnvConfig(ctx).AccessToken)
 				if err != nil {
 					return fmt.Errorf("failed to get whoami: %w", err)
 				}
@@ -55,7 +60,6 @@ var bridgeCommand = &cli.Command{
 func registerBridge(ctx *cli.Context) error {
 	bridge := ctx.Args().Get(0)
 	hungryAPI := GetHungryClient(ctx)
-	beeperAPI := GetAPIClient(ctx)
 
 	req := hungryapi.ReqRegisterAppService{
 		Push: false,
@@ -73,13 +77,21 @@ func registerBridge(ctx *cli.Context) error {
 	if err != nil {
 		return fmt.Errorf("failed to get yaml: %w", err)
 	}
-	fmt.Println(yaml)
-	err = beeperAPI.PostBridgeState(bridge, beeperapi.ReqPostBridgeState{
-		StateEvent: status.StateStarting,
+	output := ctx.String("output")
+	if output == "-" {
+		fmt.Println(yaml)
+	} else {
+		err = os.WriteFile(output, []byte(yaml), 0600)
+		if err != nil {
+			return fmt.Errorf("failed to write registration to %s: %w", output, err)
+		}
+	}
+	err = beeperapi.PostBridgeState(ctx.String("homeserver"), GetEnvConfig(ctx).Username, bridge, resp.AppToken, beeperapi.ReqPostBridgeState{
+		StateEvent: status.StateRunning,
 		Reason:     "SELF_HOST_REGISTERED",
 		Info: map[string]any{
-			"isHungry":   true,
-			"isSelfHost": true,
+			"isHungry":     true,
+			"isSelfHosted": true,
 		},
 	})
 	if err != nil {

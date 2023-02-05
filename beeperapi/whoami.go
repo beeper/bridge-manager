@@ -9,6 +9,7 @@ import (
 	"net/url"
 	"time"
 
+	"maunium.net/go/mautrix"
 	"maunium.net/go/mautrix/bridge/status"
 	"maunium.net/go/mautrix/id"
 )
@@ -66,35 +67,25 @@ type RespWhoami struct {
 	UserInfo WhoamiUserInfo `json:"userInfo"`
 }
 
-type Client struct {
-	http        *http.Client
-	URL         url.URL
-	Username    string
-	AccessToken string
-}
+var cli = &http.Client{Timeout: 30 * time.Second}
 
-func NewClient(baseDomain, username, accessToken string) *Client {
-	return &Client{
-		http: &http.Client{Timeout: 30 * time.Second},
-		URL: url.URL{
+func newRequest(baseDomain, token, method, path string) *http.Request {
+	req := &http.Request{
+		URL: &url.URL{
 			Scheme: "https",
 			Host:   fmt.Sprintf("api.%s", baseDomain),
+			Path:   path,
 		},
-		Username:    username,
-		AccessToken: accessToken,
-	}
-}
-
-func (cli *Client) newRequest(method, path string) *http.Request {
-	reqURL := cli.URL
-	reqURL.Path = path
-	return &http.Request{
-		URL:    &reqURL,
 		Method: method,
 		Header: http.Header{
-			"Authorization": {fmt.Sprintf("Bearer %s", cli.AccessToken)},
+			"Authorization": {fmt.Sprintf("Bearer %s", token)},
+			"User-Agent":    {mautrix.DefaultUserAgent},
 		},
 	}
+	if method == http.MethodPut || method == http.MethodPost {
+		req.Header.Set("Content-Type", "application/json")
+	}
+	return req
 }
 
 type ReqPostBridgeState struct {
@@ -103,15 +94,15 @@ type ReqPostBridgeState struct {
 	Info       map[string]any          `json:"info"`
 }
 
-func (cli *Client) PostBridgeState(bridgeName string, data ReqPostBridgeState) error {
-	req := cli.newRequest(http.MethodPost, fmt.Sprintf("/bridgebox/%s/bridge/%s/bridge_state", cli.Username, bridgeName))
+func PostBridgeState(domain, username, bridgeName, asToken string, data ReqPostBridgeState) error {
+	req := newRequest(domain, asToken, http.MethodPost, fmt.Sprintf("/bridgebox/%s/bridge/%s/bridge_state", username, bridgeName))
 	var buf bytes.Buffer
 	err := json.NewEncoder(&buf).Encode(&data)
 	if err != nil {
 		return fmt.Errorf("failed to encode request: %w", err)
 	}
 	req.Body = io.NopCloser(&buf)
-	r, err := cli.http.Do(req)
+	r, err := cli.Do(req)
 	if err != nil {
 		return fmt.Errorf("failed to send request: %w", err)
 	}
@@ -122,8 +113,8 @@ func (cli *Client) PostBridgeState(bridgeName string, data ReqPostBridgeState) e
 	return nil
 }
 
-func (cli *Client) Whoami() (resp *RespWhoami, err error) {
-	r, err := cli.http.Do(cli.newRequest(http.MethodGet, "/whoami"))
+func Whoami(baseDomain, token string) (resp *RespWhoami, err error) {
+	r, err := cli.Do(newRequest(baseDomain, token, http.MethodGet, "/whoami"))
 	if err != nil {
 		return nil, fmt.Errorf("failed to send request: %w", err)
 	}

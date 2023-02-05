@@ -11,7 +11,6 @@ import (
 	"maunium.net/go/mautrix"
 	"maunium.net/go/mautrix/id"
 
-	"github.com/beeper/bridge-manager/beeperapi"
 	"github.com/beeper/bridge-manager/hungryapi"
 )
 
@@ -30,7 +29,6 @@ const (
 	contextKeyEnvConfig
 	contextKeyMatrixClient
 	contextKeyHungryClient
-	contextKeyAPIClient
 )
 
 func GetConfig(ctx *cli.Context) *Config {
@@ -57,26 +55,22 @@ func GetHungryClient(ctx *cli.Context) *hungryapi.Client {
 	return val.(*hungryapi.Client)
 }
 
-func GetAPIClient(ctx *cli.Context) *beeperapi.Client {
-	val := ctx.Context.Value(contextKeyAPIClient)
-	if val == nil {
-		return nil
-	}
-	return val.(*beeperapi.Client)
-}
-
 var (
 	Tag       string
 	Commit    string
 	BuildTime string
 
 	ParsedBuildTime time.Time
-	Version         string
+
+	Version = "v0.1.0"
 )
 
 func init() {
 	ParsedBuildTime, _ = time.Parse("Jan _2 2006, 15:04:05 MST", BuildTime)
-
+	if Tag != Version {
+		Version = fmt.Sprintf("%s+dev.%s", Version, Commit[:8])
+	}
+	mautrix.DefaultUserAgent = fmt.Sprintf("bbctl/%s %s", Version, mautrix.DefaultUserAgent)
 }
 
 func getDefaultConfigPath() string {
@@ -106,7 +100,6 @@ func prepareApp(ctx *cli.Context) error {
 		homeserver := ctx.String("homeserver")
 		ctx.Context = context.WithValue(ctx.Context, contextKeyMatrixClient, NewMatrixAPI(homeserver, envConfig.Username, envConfig.AccessToken))
 		ctx.Context = context.WithValue(ctx.Context, contextKeyHungryClient, hungryapi.NewClient(homeserver, envConfig.ClusterID, envConfig.Username, envConfig.AccessToken))
-		ctx.Context = context.WithValue(ctx.Context, contextKeyAPIClient, beeperapi.NewClient(homeserver, envConfig.Username, envConfig.AccessToken))
 	}
 	return nil
 }
