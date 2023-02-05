@@ -110,7 +110,7 @@ func parseBridgeImage(bridge, image string, internal bool) string {
 
 func formatBridgeRemotes(name string, bridge beeperapi.WhoamiBridge, isSelfHosted bool) string {
 	switch {
-	case name == "hungryserv", name == "androidsms":
+	case name == "hungryserv", name == "androidsms", name == "imessage":
 		return ""
 	case len(bridge.RemoteState) == 0:
 		if isSelfHosted {
@@ -119,7 +119,7 @@ func formatBridgeRemotes(name string, bridge beeperapi.WhoamiBridge, isSelfHoste
 		return color.YellowString("not logged in")
 	case len(bridge.RemoteState) == 1:
 		remoteState := maps.Values(bridge.RemoteState)[0]
-		return fmt.Sprintf("remote: %s (ID: %s)", coloredBridgeState(remoteState.StateEvent), color.CyanString(remoteState.RemoteID))
+		return fmt.Sprintf("remote: %s (%s / %s)", coloredBridgeState(remoteState.StateEvent), color.CyanString(remoteState.RemoteName), color.CyanString(remoteState.RemoteID))
 	case len(bridge.RemoteState) > 1:
 		return "multiple remotes"
 	}
@@ -167,14 +167,14 @@ func whoamiFunction(ctx *cli.Context) error {
 			fmt.Printf("Noticed cluster ID changed from %s to %s and saved to config\n", oldID, whoami.UserInfo.BridgeClusterID)
 		}
 	}
-	fmt.Printf("User: @%s:%s\n", color.GreenString(whoami.UserInfo.Username), coloredHomeserver(homeserver))
+	fmt.Printf("User ID: @%s:%s\n", color.GreenString(whoami.UserInfo.Username), coloredHomeserver(homeserver))
 	if whoami.UserInfo.Admin {
 		fmt.Printf("Admin: %s\n", color.RedString("true"))
 	}
 	if whoami.UserInfo.Free {
 		fmt.Printf("Free: %s\n", color.GreenString("true"))
 	}
-	fmt.Printf("Full name: %s\n", color.CyanString(whoami.UserInfo.FullName))
+	fmt.Printf("Name: %s\n", color.CyanString(whoami.UserInfo.FullName))
 	fmt.Printf("Email: %s\n", color.CyanString(whoami.UserInfo.Email))
 	fmt.Printf("Support room ID: %s\n", color.CyanString(whoami.UserInfo.SupportRoomID.String()))
 	fmt.Printf("Registered at: %s\n", color.CyanString(whoami.UserInfo.CreatedAt.Local().Format(BuildTimeFormat)))
