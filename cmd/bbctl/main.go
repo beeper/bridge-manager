@@ -42,9 +42,15 @@ func init() {
 		panic(err)
 	}
 	if Tag != Version {
-		Version = fmt.Sprintf("%s+dev.%s", Version, Commit[:8])
+		if Commit == "" {
+			Version = fmt.Sprintf("%s+dev.unknown", Version)
+		} else {
+			Version = fmt.Sprintf("%s+dev.%s", Version, Commit[:8])
+		}
 	}
-	app.Version = fmt.Sprintf("%s (built at %s)", Version, ParsedBuildTime.Format(BuildTimeFormat))
+	if BuildTime != "" {
+		app.Version = fmt.Sprintf("%s (built at %s)", Version, ParsedBuildTime.Format(BuildTimeFormat))
+	}
 	app.Compiled = ParsedBuildTime
 	mautrix.DefaultUserAgent = fmt.Sprintf("bbctl/%s %s", Version, mautrix.DefaultUserAgent)
 }
