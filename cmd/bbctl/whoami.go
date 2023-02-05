@@ -10,8 +10,9 @@ import (
 )
 
 var whoamiCommand = &cli.Command{
-	Name:  "whoami",
-	Usage: "Get info about yourself",
+	Name:    "whoami",
+	Aliases: []string{"w"},
+	Usage:   "Get info about yourself",
 	Flags: []cli.Flag{
 		&cli.BoolFlag{
 			Name:    "raw",

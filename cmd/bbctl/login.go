@@ -12,10 +12,11 @@ import (
 )
 
 var loginCommand = &cli.Command{
-	Name:   "login",
-	Usage:  "Log into the Beeper server",
-	Before: interactive.Ask,
-	Action: beeperLogin,
+	Name:    "login",
+	Aliases: []string{"l"},
+	Usage:   "Log into the Beeper server",
+	Before:  interactive.Ask,
+	Action:  beeperLogin,
 	Flags: []cli.Flag{
 		interactive.Flag{Flag: &cli.StringFlag{
 			Name:    "username",
