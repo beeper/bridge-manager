@@ -7,11 +7,13 @@ import (
 	"path"
 	"time"
 
+	"github.com/fatih/color"
 	"github.com/urfave/cli/v2"
 	"maunium.net/go/mautrix"
 	"maunium.net/go/mautrix/id"
 
 	"github.com/beeper/bridge-manager/hungryapi"
+	"github.com/beeper/bridge-manager/hyper"
 )
 
 type UserError struct {
@@ -20,39 +22,6 @@ type UserError struct {
 
 func (ue UserError) Error() string {
 	return ue.Message
-}
-
-type contextKey int
-
-const (
-	contextKeyConfig contextKey = iota
-	contextKeyEnvConfig
-	contextKeyMatrixClient
-	contextKeyHungryClient
-)
-
-func GetConfig(ctx *cli.Context) *Config {
-	return ctx.Context.Value(contextKeyConfig).(*Config)
-}
-
-func GetEnvConfig(ctx *cli.Context) *EnvConfig {
-	return ctx.Context.Value(contextKeyEnvConfig).(*EnvConfig)
-}
-
-func GetMatrixClient(ctx *cli.Context) *mautrix.Client {
-	val := ctx.Context.Value(contextKeyMatrixClient)
-	if val == nil {
-		return nil
-	}
-	return val.(*mautrix.Client)
-}
-
-func GetHungryClient(ctx *cli.Context) *hungryapi.Client {
-	val := ctx.Context.Value(contextKeyHungryClient)
-	if val == nil {
-		return nil
-	}
-	return val.(*hungryapi.Client)
 }
 
 var (
@@ -65,11 +34,19 @@ var (
 	Version = "v0.1.0"
 )
 
+const BuildTimeFormat = "Jan _2 2006, 15:04:05 MST"
+
 func init() {
-	ParsedBuildTime, _ = time.Parse("Jan _2 2006, 15:04:05 MST", BuildTime)
+	var err error
+	ParsedBuildTime, err = time.Parse(BuildTimeFormat, BuildTime)
+	if err != nil {
+		panic(err)
+	}
 	if Tag != Version {
 		Version = fmt.Sprintf("%s+dev.%s", Version, Commit[:8])
 	}
+	app.Version = fmt.Sprintf("%s (built at %s)", Version, ParsedBuildTime.Format(BuildTimeFormat))
+	app.Compiled = ParsedBuildTime
 	mautrix.DefaultUserAgent = fmt.Sprintf("bbctl/%s %s", Version, mautrix.DefaultUserAgent)
 }
 
@@ -105,10 +82,8 @@ func prepareApp(ctx *cli.Context) error {
 }
 
 var app = &cli.App{
-	Name:     "bbctl",
-	Usage:    "Manage self-hosted bridges for Beeper",
-	Compiled: ParsedBuildTime,
-	Version:  Version,
+	Name:  "bbctl",
+	Usage: "Manage self-hosted bridges for Beeper",
 	Flags: []cli.Flag{
 		&cli.StringFlag{
 			Name:   "homeserver",
@@ -125,7 +100,20 @@ var app = &cli.App{
 			Name:    "config",
 			Aliases: []string{"c"},
 			EnvVars: []string{"BBCTL_CONFIG"},
+			Usage:   "Path to the config file where access tokens are saved",
 			Value:   getDefaultConfigPath(),
+		},
+		&cli.BoolFlag{
+			Name:    "no-color",
+			EnvVars: []string{"BBCTL_NO_COLOR"},
+			Usage:   "Disable all colors and hyperlinks in output",
+			Action: func(ctx *cli.Context, val bool) error {
+				if val {
+					hyper.Disable = true
+					color.NoColor = true
+				}
+				return nil
+			},
 		},
 	},
 	Before: prepareApp,
@@ -133,6 +121,7 @@ var app = &cli.App{
 		loginCommand,
 		logoutCommand,
 		bridgeCommand,
+		whoamiCommand,
 	},
 }
 

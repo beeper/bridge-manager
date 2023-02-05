@@ -1,7 +1,6 @@
 package main
 
 import (
-	"encoding/json"
 	"fmt"
 	"os"
 
@@ -40,18 +39,6 @@ var bridgeCommand = &cli.Command{
 					Value:   "-",
 					Usage:   "Path to save generated registration file to.",
 				},
-			},
-		},
-		{
-			Name: "whoami",
-			Action: func(ctx *cli.Context) error {
-				whoami, err := beeperapi.Whoami(ctx.String("homeserver"), GetEnvConfig(ctx).AccessToken)
-				if err != nil {
-					return fmt.Errorf("failed to get whoami: %w", err)
-				}
-				data, _ := json.MarshalIndent(whoami, "", "  ")
-				fmt.Println(string(data))
-				return nil
 			},
 		},
 	},
