@@ -6,6 +6,7 @@ import (
 	"regexp"
 
 	"github.com/AlecAivazis/survey/v2"
+	"github.com/fatih/color"
 	"github.com/urfave/cli/v2"
 	"maunium.net/go/mautrix/bridge/status"
 
@@ -35,6 +36,7 @@ var bridgeCommand = &cli.Command{
 					Name:    "output",
 					Aliases: []string{"o"},
 					Value:   "-",
+					EnvVars: []string{"BEEPER_BRIDGE_REGISTRATION_FILE"},
 					Usage:   "Path to save generated registration file to.",
 				},
 			},
@@ -44,6 +46,13 @@ var bridgeCommand = &cli.Command{
 			Usage:     "Delete a bridge and all associated rooms on the Beeper servers",
 			ArgsUsage: "BRIDGE",
 			Action:    deleteBridge,
+			Flags: []cli.Flag{
+				&cli.BoolFlag{
+					Name:    "force",
+					Aliases: []string{"f"},
+					Usage:   "Force delete the bridge, even if it's not self-hosted or doesn't seem to exist.",
+				},
+			},
 		},
 	},
 }
@@ -57,7 +66,26 @@ func deleteBridge(ctx *cli.Context) error {
 	bridge := ctx.Args().Get(0)
 	if !allowedBridgeRegex.MatchString(bridge) {
 		return UserError{"Invalid bridge name"}
+	} else if bridge == "hungryserv" {
+		return UserError{"You really shouldn't do that"}
 	}
+	homeserver := ctx.String("homeserver")
+	accessToken := GetEnvConfig(ctx).AccessToken
+	if !ctx.Bool("force") {
+		whoami, err := beeperapi.Whoami(homeserver, accessToken)
+		if err != nil {
+			return fmt.Errorf("failed to get whoami: %w", err)
+		}
+		bridgeInfo, ok := whoami.User.Bridges[bridge]
+		if !ok {
+			return UserError{fmt.Sprintf("You don't have a %s bridge.", color.CyanString(bridge))}
+		}
+		selfHosted, _ := bridgeInfo.BridgeState.Info["isSelfHosted"].(bool)
+		if !selfHosted {
+			return UserError{fmt.Sprintf("Your %s bridge is not self-hosted.", color.CyanString(bridge))}
+		}
+	}
+
 	var confirmation bool
 	err := survey.AskOne(&survey.Confirm{Message: fmt.Sprintf("Are you sure you want to permanently delete %s?", bridge)}, &confirmation)
 	if err != nil {
@@ -65,7 +93,7 @@ func deleteBridge(ctx *cli.Context) error {
 	} else if !confirmation {
 		return fmt.Errorf("bridge delete cancelled")
 	}
-	err = beeperapi.DeleteBridge(ctx.String("homeserver"), bridge, GetEnvConfig(ctx).AccessToken)
+	err = beeperapi.DeleteBridge(homeserver, bridge, accessToken)
 	if err != nil {
 		return fmt.Errorf("error deleting bridge: %w", err)
 	}
