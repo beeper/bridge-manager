@@ -15,3 +15,14 @@ this tool, please join [#self-hosting:beeper.com] instead of asking in your
 support room.
 
 [#self-hosting:beeper.com]: https://matrix.to/#/#self-hosting:beeper.com
+
+## Usage
+1. Build the binary with `./build.sh` (Go 1.19+ required) or download a binary
+   from GitHub releases or actions.
+2. Log into your Beeper account with `bbctl login`.
+3. Run `bbctl bridge register -a <address> <name>` to generate an appservice
+   registration file.
+   * `<address>` should be a publicly reachable https address where the Beeper
+     server will push new events.
+   * `<name>` is a short name for the bridge (a-z, 0-9). The bridge user ID
+     namespace will be `@<name>_.+:beeper.local`.
