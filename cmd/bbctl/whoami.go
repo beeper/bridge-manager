@@ -78,14 +78,14 @@ var bridgeImageRegex = regexp.MustCompile(`^docker\.beeper-tools\.com/(?:bridge/
 
 var dockerToGitRepo = map[string]string{
 	"hungryserv":  "https://github.com/beeper/hungryserv/commit/%s",
-	"discord":     "https://github.com/mautrix/discord/commit/%s",
+	"discordgo":   "https://github.com/mautrix/discord/commit/%s",
 	"dummybridge": "https://github.com/beeper/dummybridge/commit/%s",
 	"facebook":    "https://github.com/mautrix/facebook/commit/%s",
 	"googlechat":  "https://github.com/mautrix/googlechat/commit/%s",
 	"instagram":   "https://github.com/mautrix/instagram/commit/%s",
 	"linkedin":    "https://github.com/beeper/linkedin/commit/%s",
 	"signal":      "https://github.com/mautrix/signal/commit/%s",
-	"slack":       "https://github.com/mautrix/slackgo/commit/%s",
+	"slackgo":     "https://github.com/mautrix/slack/commit/%s",
 	"telegram":    "https://github.com/mautrix/telegram/commit/%s",
 	"twitter":     "https://github.com/mautrix/twitter/commit/%s",
 	"whatsapp":    "https://github.com/mautrix/whatsapp/commit/%s",
