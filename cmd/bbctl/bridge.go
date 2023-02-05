@@ -15,12 +15,7 @@ var bridgeCommand = &cli.Command{
 	Name:    "bridge",
 	Aliases: []string{"b"},
 	Usage:   "Manage your bridges",
-	Before: func(ctx *cli.Context) error {
-		if !GetEnvConfig(ctx).HasCredentials() {
-			return UserError{"You're not logged in"}
-		}
-		return nil
-	},
+	Before:  RequiresAuth,
 	Subcommands: []*cli.Command{
 		{
 			Name:      "register",

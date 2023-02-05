@@ -21,6 +21,7 @@ var whoamiCommand = &cli.Command{
 			Usage:   "Get raw JSON output instead of pretty-printed bridge status",
 		},
 	},
+	Before: RequiresAuth,
 	Action: whoamiFunction,
 }
 

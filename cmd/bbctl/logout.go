@@ -7,8 +7,9 @@ import (
 )
 
 var logoutCommand = &cli.Command{
-	Name:  "logout",
-	Usage: "Log out from the Beeper server",
+	Name:   "logout",
+	Usage:  "Log out from the Beeper server",
+	Before: RequiresAuth,
 	Flags: []cli.Flag{
 		&cli.BoolFlag{
 			Name:    "force",
@@ -21,11 +22,7 @@ var logoutCommand = &cli.Command{
 }
 
 func beeperLogout(ctx *cli.Context) error {
-	client := GetMatrixClient(ctx)
-	if client == nil {
-		return UserError{"You're not logged in"}
-	}
-	_, err := client.Logout()
+	_, err := GetMatrixClient(ctx).Logout()
 	if err != nil && !ctx.Bool("force") {
 		return fmt.Errorf("error logging out: %w", err)
 	}

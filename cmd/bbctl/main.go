@@ -145,3 +145,10 @@ func NewMatrixAPI(baseDomain string, username, accessToken string) *mautrix.Clie
 	}
 	return client
 }
+
+func RequiresAuth(ctx *cli.Context) error {
+	if !GetEnvConfig(ctx).HasCredentials() {
+		return UserError{"You're not logged in"}
+	}
+	return nil
+}
