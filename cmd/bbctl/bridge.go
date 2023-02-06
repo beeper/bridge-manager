@@ -136,7 +136,7 @@ func deleteBridge(ctx *cli.Context) error {
 	return nil
 }
 
-var allowedBridgeRegex = regexp.MustCompile("[a-z0-9]{1,32}")
+var allowedBridgeRegex = regexp.MustCompile("^[a-z0-9-]{1,32}$")
 var officialBridges = map[string]struct{}{
 	"discord":       {},
 	"discordgo":     {},
