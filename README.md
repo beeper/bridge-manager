@@ -25,4 +25,11 @@ support room.
    * `<address>` should be a publicly reachable https address where the Beeper
      server will push new events.
    * `<name>` is a short name for the bridge (a-z, 0-9). The bridge user ID
-     namespace will be `@<name>_.+:beeper.local`.
+     namespace will be `@<name>_.+:beeper.local` and the bridge bot will be
+     `@<name>bot:beeper.local`.
+4. Now you can configure and run the bridge by following the bridge's own
+   documentation.
+
+If you don't want a self-hosted bridge anymore, you can delete it using `bbctl bridge delete <name>`.
+Deleting a bridge will permanently erase all traces of it from the Beeper servers
+(e.g. any rooms and ghost users it created).
