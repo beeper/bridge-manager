@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"os"
 	"regexp"
@@ -8,7 +9,9 @@ import (
 	"github.com/AlecAivazis/survey/v2"
 	"github.com/fatih/color"
 	"github.com/urfave/cli/v2"
+	"maunium.net/go/mautrix/appservice"
 	"maunium.net/go/mautrix/bridge/status"
+	"maunium.net/go/mautrix/id"
 
 	"github.com/beeper/bridge-manager/api/beeperapi"
 	"github.com/beeper/bridge-manager/api/hungryapi"
@@ -40,9 +43,36 @@ var bridgeCommand = &cli.Command{
 					Usage:   "Path to save generated registration file to.",
 				},
 				&cli.BoolFlag{
+					Name:    "json",
+					Aliases: []string{"j"},
+					EnvVars: []string{"BEEPER_BRIDGE_REGISTRATION_JSON"},
+					Usage:   "Return all data as JSON instead of registration YAML and pretty-printed metadata",
+				},
+				&cli.BoolFlag{
 					Name:    "force",
 					Aliases: []string{"f"},
 					Usage:   "Force register an official bridge, which is not currently supported.",
+				},
+			},
+		},
+		{
+			Name:      "get",
+			Usage:     "Get the registration of an existing bridge",
+			ArgsUsage: "BRIDGE",
+			Action:    registerBridge,
+			Flags: []cli.Flag{
+				&cli.StringFlag{
+					Name:    "output",
+					Aliases: []string{"o"},
+					Value:   "-",
+					EnvVars: []string{"BEEPER_BRIDGE_REGISTRATION_FILE"},
+					Usage:   "Path to save generated registration file to.",
+				},
+				&cli.BoolFlag{
+					Name:    "json",
+					Aliases: []string{"j"},
+					EnvVars: []string{"BEEPER_BRIDGE_REGISTRATION_JSON"},
+					Usage:   "Return all data as JSON instead of registration YAML and pretty-printed metadata",
 				},
 			},
 		},
@@ -125,6 +155,13 @@ var officialBridges = map[string]struct{}{
 	"androidsms":    {},
 }
 
+type RegisterJSON struct {
+	Registration     *appservice.Registration `json:"registration"`
+	HomeserverURL    string                   `json:"homeserver_url"`
+	HomeserverDomain string                   `json:"homeserver_domain"`
+	YourUserID       id.UserID                `json:"your_user_id"`
+}
+
 func registerBridge(ctx *cli.Context) error {
 	if ctx.NArg() == 0 {
 		return UserError{"You must specify a bridge to register"}
@@ -141,14 +178,16 @@ func registerBridge(ctx *cli.Context) error {
 			return UserError{"Self-hosting the official Beeper bridges is not currently supported, as it requires configuring the bridges in a specific way. You may still run official bridges using a different bridge name."}
 		}
 	}
+	onlyGet := ctx.Command.Name == "get"
 	homeserver := ctx.String("homeserver")
-	accessToken := GetEnvConfig(ctx).AccessToken
+	envConfig := GetEnvConfig(ctx)
+	accessToken := envConfig.AccessToken
 	whoami, err := beeperapi.Whoami(homeserver, accessToken)
 	if err != nil {
 		return fmt.Errorf("failed to get whoami: %w", err)
 	}
 	bridgeInfo, ok := whoami.User.Bridges[bridge]
-	if ok {
+	if ok && !onlyGet {
 		selfHosted, _ := bridgeInfo.BridgeState.Info["isSelfHosted"].(bool)
 		if !selfHosted {
 			return UserError{fmt.Sprintf("Your %s bridge is not self-hosted.", color.CyanString(bridge))}
@@ -165,7 +204,15 @@ func registerBridge(ctx *cli.Context) error {
 		req.Address = addr
 	}
 
-	resp, err := hungryAPI.RegisterAppService(bridge, req)
+	var resp appservice.Registration
+	if onlyGet {
+		if req.Address != "" {
+			return UserError{"You can't use --get with --address"}
+		}
+		resp, err = hungryAPI.GetAppService(bridge)
+	} else {
+		resp, err = hungryAPI.RegisterAppService(bridge, req)
+	}
 	if err != nil {
 		return fmt.Errorf("failed to register appservice: %w", err)
 	}
@@ -175,25 +222,6 @@ func registerBridge(ctx *cli.Context) error {
 	// Remove the explicit bot user namespace (same as sender_localpart)
 	resp.Namespaces.UserIDs = resp.Namespaces.UserIDs[0:1]
 
-	yaml, err := resp.YAML()
-	if err != nil {
-		return fmt.Errorf("failed to get yaml: %w", err)
-	}
-	output := ctx.String("output")
-	if output == "-" {
-		_, _ = fmt.Fprintln(os.Stderr, color.YellowString("Registration file:"))
-		fmt.Print(yaml)
-	} else {
-		err = os.WriteFile(output, []byte(yaml), 0600)
-		if err != nil {
-			return fmt.Errorf("failed to write registration to %s: %w", output, err)
-		}
-		_, _ = fmt.Fprintln(os.Stderr, color.YellowString("Wrote registration file to"), color.CyanString(output))
-	}
-	_, _ = fmt.Fprintln(os.Stderr, color.YellowString("\nAdditional bridge configuration details:"))
-	_, _ = fmt.Fprintf(os.Stderr, "* Homeserver domain: %s\n", color.CyanString("beeper.local"))
-	_, _ = fmt.Fprintf(os.Stderr, "* Homeserver URL: %s\n", color.CyanString(hungryAPI.HomeserverURL.String()))
-	_, _ = fmt.Fprintf(os.Stderr, "* Your user ID: %s\n", color.CyanString(hungryAPI.UserID.String()))
 	err = beeperapi.PostBridgeState(ctx.String("homeserver"), GetEnvConfig(ctx).Username, bridge, resp.AppToken, beeperapi.ReqPostBridgeState{
 		StateEvent: status.StateRunning,
 		Reason:     "SELF_HOST_REGISTERED",
@@ -203,8 +231,44 @@ func registerBridge(ctx *cli.Context) error {
 		},
 	})
 	if err != nil {
-		return fmt.Errorf("failed to mark bridge as STARTING: %w", err)
+		return fmt.Errorf("failed to mark bridge as RUNNING: %w", err)
 	}
+
+	output := &RegisterJSON{
+		Registration:     &resp,
+		HomeserverURL:    hungryAPI.HomeserverURL.String(),
+		HomeserverDomain: "beeper.local",
+		YourUserID:       hungryAPI.UserID,
+	}
+	if homeserver == "beeper.com" || homeserver == "beeper-staging.com" {
+		nodeName := whoami.User.Hungryserv.RemoteState[hungryAPI.UserID.String()].Info["node"].(string)
+		output.HomeserverURL = fmt.Sprintf(hungryapi.HungryDirectURLTemplate, nodeName, envConfig.ClusterID, homeserver, envConfig.Username)
+	}
+	if ctx.Bool("json") {
+		enc := json.NewEncoder(os.Stdout)
+		enc.SetIndent("", "  ")
+		return enc.Encode(output)
+	}
+
+	yaml, err := output.Registration.YAML()
+	if err != nil {
+		return fmt.Errorf("failed to get yaml: %w", err)
+	}
+	outputPath := ctx.String("output")
+	if outputPath == "-" {
+		_, _ = fmt.Fprintln(os.Stderr, color.YellowString("Registration file:"))
+		fmt.Print(yaml)
+	} else {
+		err = os.WriteFile(outputPath, []byte(yaml), 0600)
+		if err != nil {
+			return fmt.Errorf("failed to write registration to %s: %w", outputPath, err)
+		}
+		_, _ = fmt.Fprintln(os.Stderr, color.YellowString("Wrote registration file to"), color.CyanString(outputPath))
+	}
+	_, _ = fmt.Fprintln(os.Stderr, color.YellowString("\nAdditional bridge configuration details:"))
+	_, _ = fmt.Fprintf(os.Stderr, "* Homeserver domain: %s\n", color.CyanString(output.HomeserverDomain))
+	_, _ = fmt.Fprintf(os.Stderr, "* Homeserver URL: %s\n", color.CyanString(output.HomeserverURL))
+	_, _ = fmt.Fprintf(os.Stderr, "* Your user ID: %s\n", color.CyanString(output.YourUserID.String()))
 
 	return nil
 }
