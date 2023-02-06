@@ -2,12 +2,21 @@
 A tool for running self-hosted bridges with the Beeper Matrix server.
 
 The primary use case is running custom/3rd-party bridges with Beeper. You can
-connect any standard Matrix application service to your Beeper account without
-having to self-host a whole Matrix homeserver.
+connect any† standard Matrix application service to your Beeper account without
+having to self-host a whole Matrix homeserver. Note that if you run 3rd party
+bridges that don't support end-to-bridge encryption, message contents will be
+visible to Beeper servers.
+
+<sub>†caveat: hungryserv does not implement the entire Matrix client-server API, so
+it's possible some bridges won't work - you can report such cases in the
+self-hosting support room linked below or in GitHub issues here</sub>
 
 In the future, we may also support self-hosting the official bridges for
 maximum security using this tool (so that message re-encryption happens on a
-machine you control rather than on Beeper servers).
+machine you control rather than on Beeper servers). This tool can technically
+already be used for the official bridges, but they also need specific
+configuration to work optimally, so you shouldn't do it yet. If you really want
+to, use a different bridge name (e.g. `whatsapp2` instead of `whatsapp`).
 
 Please note that self-hosted bridges are not entitled to the usual level of
 customer support on Beeper. If you need help with self-hosting bridges using
