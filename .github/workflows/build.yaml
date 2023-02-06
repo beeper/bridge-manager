@@ -6,7 +6,7 @@ env:
   GO_VERSION: "1.20"
 
 jobs:
-  build:
+  lint:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -26,11 +26,34 @@ jobs:
       - name: Run pre-commit
         uses: pre-commit/action@v3.0.0
 
-      - name: Build binary
-        run: ./build.sh
+  build:
+    runs-on: ubuntu-latest
+    env:
+      CGO_ENABLED: "0"
+    steps:
+      - name: Build binaries
+        run: ./ci-build-all.sh
 
       - uses: actions/upload-artifact@v3
         with:
-          name: bbctl
-          path: bbctl
+          name: bbctl-linux-amd64
+          path: bbctl-linux-amd64
+          if-no-files-found: error
+
+      - uses: actions/upload-artifact@v3
+        with:
+          name: bbctl-linux-arm64
+          path: bbctl-linux-arm64
+          if-no-files-found: error
+
+      - uses: actions/upload-artifact@v3
+        with:
+          name: bbctl-macos-amd64
+          path: bbctl-macos-amd64
+          if-no-files-found: error
+
+      - uses: actions/upload-artifact@v3
+        with:
+          name: bbctl-macos-arm64
+          path: bbctl-macos-arm64
           if-no-files-found: error
