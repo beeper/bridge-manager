@@ -40,7 +40,7 @@ support room.
    documentation.
 
 Note that the homeserver URL may change if the node your hungryserv is running
-dies. In general, that shouldn't happen, but it's not impossible.
+on dies. In general, that shouldn't happen, but it's not impossible.
 
 If you want to get the registration again later, you can use `get` instead of
 `register`. Just re-running `register` is allowed too, but you need to provide
