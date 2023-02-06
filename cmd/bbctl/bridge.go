@@ -170,7 +170,11 @@ func registerBridge(ctx *cli.Context) error {
 		return fmt.Errorf("failed to register appservice: %w", err)
 	}
 	resp.EphemeralEvents = true
-	resp.SoruEphemeralEvents = true
+	// Hungryserv doesn't actually support aliases right now
+	resp.Namespaces.RoomAliases = nil
+	// Remove the explicit bot user namespace (same as sender_localpart)
+	resp.Namespaces.UserIDs = resp.Namespaces.UserIDs[0:1]
+
 	yaml, err := resp.YAML()
 	if err != nil {
 		return fmt.Errorf("failed to get yaml: %w", err)
