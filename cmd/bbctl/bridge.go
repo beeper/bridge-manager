@@ -153,7 +153,7 @@ func registerBridge(ctx *cli.Context) error {
 		if !selfHosted {
 			return UserError{fmt.Sprintf("Your %s bridge is not self-hosted.", color.CyanString(bridge))}
 		}
-		_, _ = fmt.Fprintf(os.Stderr, "You already have a %s bridge, returning existing registration file\n", color.CyanString(bridge))
+		_, _ = fmt.Fprintf(os.Stderr, "You already have a %s bridge, returning existing registration file\n\n", color.CyanString(bridge))
 	}
 	hungryAPI := GetHungryClient(ctx)
 
@@ -169,20 +169,27 @@ func registerBridge(ctx *cli.Context) error {
 	if err != nil {
 		return fmt.Errorf("failed to register appservice: %w", err)
 	}
+	resp.EphemeralEvents = true
+	resp.SoruEphemeralEvents = true
 	yaml, err := resp.YAML()
 	if err != nil {
 		return fmt.Errorf("failed to get yaml: %w", err)
 	}
 	output := ctx.String("output")
 	if output == "-" {
+		_, _ = fmt.Fprintln(os.Stderr, color.YellowString("Registration file:"))
 		fmt.Print(yaml)
 	} else {
 		err = os.WriteFile(output, []byte(yaml), 0600)
 		if err != nil {
 			return fmt.Errorf("failed to write registration to %s: %w", output, err)
 		}
-		fmt.Println("Wrote registration file to", output)
+		_, _ = fmt.Fprintln(os.Stderr, color.YellowString("Wrote registration file to"), color.CyanString(output))
 	}
+	_, _ = fmt.Fprintln(os.Stderr, color.YellowString("\nAdditional bridge configuration details:"))
+	_, _ = fmt.Fprintf(os.Stderr, "* Homeserver domain: %s\n", color.CyanString("beeper.local"))
+	_, _ = fmt.Fprintf(os.Stderr, "* Homeserver URL: %s\n", color.CyanString(hungryAPI.HomeserverURL.String()))
+	_, _ = fmt.Fprintf(os.Stderr, "* Your user ID: %s\n", color.CyanString(hungryAPI.UserID.String()))
 	err = beeperapi.PostBridgeState(ctx.String("homeserver"), GetEnvConfig(ctx).Username, bridge, resp.AppToken, beeperapi.ReqPostBridgeState{
 		StateEvent: status.StateRunning,
 		Reason:     "SELF_HOST_REGISTERED",
