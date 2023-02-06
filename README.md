@@ -30,6 +30,18 @@ support room.
 4. Now you can configure and run the bridge by following the bridge's own
    documentation.
 
+Note that the homeserver URL may change if the node your hungryserv is running
+dies. In general, that shouldn't happen, but it's not impossible.
+
+If you want to get the registration again later, you can use `get` instead of
+`register`. Just re-running `register` is allowed too, but you need to provide
+the address again if you do that (which also means if you want to change the
+address, just re-run register with the new address).
+
+You can use `--json` with `register` and `get` to get the whole response as
+JSON instead of registration YAML and pretty-printed extra details. This may be
+useful if you want to automate fetching the homeserver URL.
+
 If you don't want a self-hosted bridge anymore, you can delete it using `bbctl bridge delete <name>`.
 Deleting a bridge will permanently erase all traces of it from the Beeper servers
 (e.g. any rooms and ghost users it created).
