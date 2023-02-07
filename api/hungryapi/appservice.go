@@ -30,7 +30,7 @@ func NewClient(baseDomain, clusterID, username, accessToken string) *Client {
 
 type ReqRegisterAppService struct {
 	Address string `json:"address,omitempty"`
-	Push    bool   `json:"push,omitempty"`
+	Push    bool   `json:"push"`
 }
 
 func (cli *Client) RegisterAppService(
