@@ -219,8 +219,13 @@ func registerBridge(ctx *cli.Context) error {
 	// Remove the explicit bot user namespace (same as sender_localpart)
 	resp.Namespaces.UserIDs = resp.Namespaces.UserIDs[0:1]
 
+	state := status.StateRunning
+	if bridge == "androidsms" || bridge == "imessagecloud" {
+		state = status.StateStarting
+	}
+
 	err = beeperapi.PostBridgeState(ctx.String("homeserver"), GetEnvConfig(ctx).Username, bridge, resp.AppToken, beeperapi.ReqPostBridgeState{
-		StateEvent: status.StateRunning,
+		StateEvent: state,
 		Reason:     "SELF_HOST_REGISTERED",
 		Info: map[string]any{
 			"isHungry":     true,
