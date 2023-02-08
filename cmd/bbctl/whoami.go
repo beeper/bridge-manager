@@ -92,11 +92,11 @@ var dockerToGitRepo = map[string]string{
 }
 
 func parseBridgeImage(bridge, image string, internal bool) string {
-	if bridge == "imessagecloud" {
-		return image[:8]
-	} else if image == "" || image == "?" {
+	if image == "" || image == "?" {
 		// Self-hosted bridges don't have a version in whoami
 		return ""
+	} else if bridge == "imessagecloud" {
+		return image[:8]
 	}
 	match := bridgeImageRegex.FindStringSubmatch(image)
 	if match == nil {
