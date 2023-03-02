@@ -197,7 +197,8 @@ func registerBridge(ctx *cli.Context) error {
 	hungryAPI := GetHungryClient(ctx)
 
 	req := hungryapi.ReqRegisterAppService{
-		Push: false,
+		Push:       false,
+		SelfHosted: true,
 	}
 	if addr := ctx.String("address"); addr != "" {
 		req.Push = true
