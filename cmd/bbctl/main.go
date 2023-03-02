@@ -38,8 +38,8 @@ const BuildTimeFormat = "Jan _2 2006, 15:04:05 MST"
 func init() {
 	var err error
 	ParsedBuildTime, err = time.Parse(BuildTimeFormat, BuildTime)
-	if err != nil {
-		panic(err)
+	if BuildTime != "" && err != nil {
+		panic(fmt.Errorf("program compiled with malformed build time: %w", err))
 	}
 	if Tag != Version {
 		if Commit == "" {
@@ -50,8 +50,10 @@ func init() {
 	}
 	if BuildTime != "" {
 		app.Version = fmt.Sprintf("%s (built at %s)", Version, ParsedBuildTime.Format(BuildTimeFormat))
+		app.Compiled = ParsedBuildTime
+	} else {
+		app.Version = Version
 	}
-	app.Compiled = ParsedBuildTime
 	mautrix.DefaultUserAgent = fmt.Sprintf("bbctl/%s %s", Version, mautrix.DefaultUserAgent)
 }
 
