@@ -6,6 +6,7 @@ repos:
         exclude_types: [markdown]
       - id: end-of-file-fixer
       - id: check-yaml
+        exclude: ^.+\.tpl\.yaml$
       - id: check-added-large-files
 
   - repo: https://github.com/tekwizely/pre-commit-golang

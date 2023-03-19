@@ -136,6 +136,7 @@ var app = &cli.App{
 		logoutCommand,
 		bridgeCommand,
 		whoamiCommand,
+		configCommand,
 	},
 }
 

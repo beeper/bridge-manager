@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"regexp"
+	"strings"
 
 	"github.com/AlecAivazis/survey/v2"
 	"github.com/fatih/color"
@@ -25,6 +26,7 @@ var bridgeCommand = &cli.Command{
 	Subcommands: []*cli.Command{
 		{
 			Name:      "register",
+			Aliases:   []string{"r"},
 			Usage:     "Register a new bridge and print the appservice registration file",
 			ArgsUsage: "BRIDGE",
 			Action:    registerBridge,
@@ -57,6 +59,7 @@ var bridgeCommand = &cli.Command{
 		},
 		{
 			Name:      "get",
+			Aliases:   []string{"g"},
 			Usage:     "Get the registration of an existing bridge",
 			ArgsUsage: "BRIDGE",
 			Action:    registerBridge,
@@ -78,6 +81,7 @@ var bridgeCommand = &cli.Command{
 		},
 		{
 			Name:      "delete",
+			Aliases:   []string{"d"},
 			Usage:     "Delete a bridge and all associated rooms on the Beeper servers",
 			ArgsUsage: "BRIDGE",
 			Action:    deleteBridge,
@@ -137,22 +141,22 @@ func deleteBridge(ctx *cli.Context) error {
 }
 
 var allowedBridgeRegex = regexp.MustCompile("^[a-z0-9-]{1,32}$")
-var officialBridges = map[string]struct{}{
-	"discord":       {},
-	"discordgo":     {},
-	"facebook":      {},
-	"googlechat":    {},
-	"imessagecloud": {},
-	"imessage":      {},
-	"instagram":     {},
-	"linkedin":      {},
-	"signal":        {},
-	"slack":         {},
-	"slackgo":       {},
-	"telegram":      {},
-	"twitter":       {},
-	"whatsapp":      {},
-	"androidsms":    {},
+var officialBridges = map[string]string{
+	"discord":       "discord",
+	"discordgo":     "discord",
+	"facebook":      "facebook",
+	"googlechat":    "googlechat",
+	"imessagecloud": "imessage",
+	"imessage":      "imessage",
+	"instagram":     "instagram",
+	"linkedin":      "linkedin",
+	"signal":        "signal",
+	"slack":         "slack",
+	"slackgo":       "slack",
+	"telegram":      "telegram",
+	"twitter":       "twitter",
+	"whatsapp":      "whatsapp",
+	"androidsms":    "androidsms",
 }
 
 type RegisterJSON struct {
@@ -160,6 +164,92 @@ type RegisterJSON struct {
 	HomeserverURL    string                   `json:"homeserver_url"`
 	HomeserverDomain string                   `json:"homeserver_domain"`
 	YourUserID       id.UserID                `json:"your_user_id"`
+}
+
+func doRegisterBridge(ctx *cli.Context, bridge string, onlyGet bool) (*RegisterJSON, error) {
+	homeserver := ctx.String("homeserver")
+	envConfig := GetEnvConfig(ctx)
+	accessToken := envConfig.AccessToken
+	whoami, err := beeperapi.Whoami(homeserver, accessToken)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get whoami: %w", err)
+	}
+	bridgeInfo, ok := whoami.User.Bridges[bridge]
+	if ok && !onlyGet {
+		selfHosted, _ := bridgeInfo.BridgeState.Info["isSelfHosted"].(bool)
+		if !selfHosted {
+			return nil, UserError{fmt.Sprintf("Your %s bridge is not self-hosted.", color.CyanString(bridge))}
+		}
+		_, _ = fmt.Fprintf(os.Stderr, "You already have a %s bridge, returning existing registration file\n\n", color.CyanString(bridge))
+	}
+	hungryAPI := GetHungryClient(ctx)
+
+	req := hungryapi.ReqRegisterAppService{
+		Push:       false,
+		SelfHosted: true,
+	}
+	if addr := ctx.String("address"); addr != "" {
+		req.Push = true
+		req.Address = addr
+	}
+
+	var resp appservice.Registration
+	if onlyGet {
+		if req.Address != "" {
+			return nil, UserError{"You can't use --get with --address"}
+		}
+		resp, err = hungryAPI.GetAppService(bridge)
+	} else {
+		resp, err = hungryAPI.RegisterAppService(bridge, req)
+	}
+	if err != nil {
+		return nil, fmt.Errorf("failed to register appservice: %w", err)
+	}
+	// Remove the explicit bot user namespace (same as sender_localpart)
+	resp.Namespaces.UserIDs = resp.Namespaces.UserIDs[0:1]
+
+	state := status.StateRunning
+	if bridge == "androidsms" || bridge == "imessagecloud" {
+		state = status.StateStarting
+	}
+
+	err = beeperapi.PostBridgeState(ctx.String("homeserver"), GetEnvConfig(ctx).Username, bridge, resp.AppToken, beeperapi.ReqPostBridgeState{
+		StateEvent: state,
+		Reason:     "SELF_HOST_REGISTERED",
+		Info: map[string]any{
+			"isHungry":     true,
+			"isSelfHosted": true,
+		},
+	})
+	if err != nil {
+		return nil, fmt.Errorf("failed to mark bridge as RUNNING: %w", err)
+	}
+	output := &RegisterJSON{
+		Registration:     &resp,
+		HomeserverURL:    hungryAPI.HomeserverURL.String(),
+		HomeserverDomain: "beeper.local",
+		YourUserID:       hungryAPI.UserID,
+	}
+	if homeserver == "beeper.com" || homeserver == "beeper-staging.com" {
+		nodeName := whoami.User.Hungryserv.RemoteState[hungryAPI.UserID.String()].Info["node"].(string)
+		output.HomeserverURL = fmt.Sprintf(hungryapi.HungryDirectURLTemplate, nodeName, envConfig.ClusterID, homeserver, envConfig.Username)
+	}
+	return output, nil
+}
+
+func doOutputFile(ctx *cli.Context, name, data string) error {
+	outputPath := ctx.String("output")
+	if outputPath == "-" {
+		_, _ = fmt.Fprintln(os.Stderr, color.YellowString(name+" file:"))
+		fmt.Println(strings.TrimRight(data, "\n"))
+	} else {
+		err := os.WriteFile(outputPath, []byte(data), 0600)
+		if err != nil {
+			return fmt.Errorf("failed to write %s to %s: %w", strings.ToLower(name), outputPath, err)
+		}
+		_, _ = fmt.Fprintln(os.Stderr, color.YellowString("Wrote "+strings.ToLower(name)+" file to"), color.CyanString(outputPath))
+	}
+	return nil
 }
 
 func registerBridge(ctx *cli.Context) error {
@@ -179,73 +269,9 @@ func registerBridge(ctx *cli.Context) error {
 		}
 	}
 	onlyGet := ctx.Command.Name == "get"
-	homeserver := ctx.String("homeserver")
-	envConfig := GetEnvConfig(ctx)
-	accessToken := envConfig.AccessToken
-	whoami, err := beeperapi.Whoami(homeserver, accessToken)
+	output, err := doRegisterBridge(ctx, bridge, onlyGet)
 	if err != nil {
-		return fmt.Errorf("failed to get whoami: %w", err)
-	}
-	bridgeInfo, ok := whoami.User.Bridges[bridge]
-	if ok && !onlyGet {
-		selfHosted, _ := bridgeInfo.BridgeState.Info["isSelfHosted"].(bool)
-		if !selfHosted {
-			return UserError{fmt.Sprintf("Your %s bridge is not self-hosted.", color.CyanString(bridge))}
-		}
-		_, _ = fmt.Fprintf(os.Stderr, "You already have a %s bridge, returning existing registration file\n\n", color.CyanString(bridge))
-	}
-	hungryAPI := GetHungryClient(ctx)
-
-	req := hungryapi.ReqRegisterAppService{
-		Push:       false,
-		SelfHosted: true,
-	}
-	if addr := ctx.String("address"); addr != "" {
-		req.Push = true
-		req.Address = addr
-	}
-
-	var resp appservice.Registration
-	if onlyGet {
-		if req.Address != "" {
-			return UserError{"You can't use --get with --address"}
-		}
-		resp, err = hungryAPI.GetAppService(bridge)
-	} else {
-		resp, err = hungryAPI.RegisterAppService(bridge, req)
-	}
-	if err != nil {
-		return fmt.Errorf("failed to register appservice: %w", err)
-	}
-	// Remove the explicit bot user namespace (same as sender_localpart)
-	resp.Namespaces.UserIDs = resp.Namespaces.UserIDs[0:1]
-
-	state := status.StateRunning
-	if bridge == "androidsms" || bridge == "imessagecloud" {
-		state = status.StateStarting
-	}
-
-	err = beeperapi.PostBridgeState(ctx.String("homeserver"), GetEnvConfig(ctx).Username, bridge, resp.AppToken, beeperapi.ReqPostBridgeState{
-		StateEvent: state,
-		Reason:     "SELF_HOST_REGISTERED",
-		Info: map[string]any{
-			"isHungry":     true,
-			"isSelfHosted": true,
-		},
-	})
-	if err != nil {
-		return fmt.Errorf("failed to mark bridge as RUNNING: %w", err)
-	}
-
-	output := &RegisterJSON{
-		Registration:     &resp,
-		HomeserverURL:    hungryAPI.HomeserverURL.String(),
-		HomeserverDomain: "beeper.local",
-		YourUserID:       hungryAPI.UserID,
-	}
-	if homeserver == "beeper.com" || homeserver == "beeper-staging.com" {
-		nodeName := whoami.User.Hungryserv.RemoteState[hungryAPI.UserID.String()].Info["node"].(string)
-		output.HomeserverURL = fmt.Sprintf(hungryapi.HungryDirectURLTemplate, nodeName, envConfig.ClusterID, homeserver, envConfig.Username)
+		return err
 	}
 	if ctx.Bool("json") {
 		enc := json.NewEncoder(os.Stdout)
@@ -256,17 +282,8 @@ func registerBridge(ctx *cli.Context) error {
 	yaml, err := output.Registration.YAML()
 	if err != nil {
 		return fmt.Errorf("failed to get yaml: %w", err)
-	}
-	outputPath := ctx.String("output")
-	if outputPath == "-" {
-		_, _ = fmt.Fprintln(os.Stderr, color.YellowString("Registration file:"))
-		fmt.Print(yaml)
-	} else {
-		err = os.WriteFile(outputPath, []byte(yaml), 0600)
-		if err != nil {
-			return fmt.Errorf("failed to write registration to %s: %w", outputPath, err)
-		}
-		_, _ = fmt.Fprintln(os.Stderr, color.YellowString("Wrote registration file to"), color.CyanString(outputPath))
+	} else if err = doOutputFile(ctx, "Registration", yaml); err != nil {
+		return err
 	}
 	_, _ = fmt.Fprintln(os.Stderr, color.YellowString("\nAdditional bridge configuration details:"))
 	_, _ = fmt.Fprintf(os.Stderr, "* Homeserver domain: %s\n", color.CyanString(output.HomeserverDomain))
