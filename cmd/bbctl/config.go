@@ -51,6 +51,45 @@ var websocketBridges = map[string]bool{
 	"imessage": true,
 }
 
+func simpleDescriptions(descs map[string]string) func(string, int) string {
+	return func(s string, i int) string {
+		return descs[s]
+	}
+}
+
+var askParams = map[string]func(map[string]any) error{
+	"imessage": func(extraParams map[string]any) error {
+		platform, _ := extraParams["imessage_platform"].(string)
+		barcelonaPath, _ := extraParams["barcelona_path"].(string)
+		if platform == "" {
+			err := survey.AskOne(&survey.Select{
+				Message: "Select iMessage connector:",
+				Options: []string{"mac", "mac-nosip"},
+				Description: simpleDescriptions(map[string]string{
+					"mac":       "Use AppleScript to send messages and read chat.db for incoming data - only requires Full Disk Access (from system settings)",
+					"mac-nosip": "Use Barcelona to interact with private APIs - requires disabling SIP and AMFI",
+				}),
+				Default: "mac",
+			}, &platform)
+			if err != nil {
+				return err
+			}
+			extraParams["imessage_platform"] = platform
+		}
+		if platform == "mac-nosip" && barcelonaPath == "" {
+			err := survey.AskOne(&survey.Input{
+				Message: "Enter Barcelona executable path:",
+				Default: "darwin-barcelona-mautrix",
+			}, &barcelonaPath)
+			if err != nil {
+				return err
+			}
+			extraParams["barcelona_path"] = barcelonaPath
+		}
+		return nil
+	},
+}
+
 func generateBridgeConfig(ctx *cli.Context) error {
 	if ctx.NArg() == 0 {
 		return UserError{"You must specify a bridge to generate a config for"}
@@ -84,6 +123,15 @@ func generateBridgeConfig(ctx *cli.Context) error {
 	} else if isWebsocket && !websocketBridges[bridgeType] {
 		return UserError{fmt.Sprintf("%s doesn't support websockets yet, please provide --address and --listen", bridgeType)}
 	}
+	extraParamAsker := askParams[bridgeType]
+	extraParams := make(map[string]any)
+	var err error
+	if extraParamAsker != nil {
+		err = extraParamAsker(extraParams)
+		if err != nil {
+			return err
+		}
+	}
 	reg, err := doRegisterBridge(ctx, bridge, false)
 	if err != nil {
 		return err
@@ -108,7 +156,7 @@ func generateBridgeConfig(ctx *cli.Context) error {
 		HSToken:       reg.Registration.ServerToken,
 		BridgeName:    bridge,
 		UserID:        reg.YourUserID,
-		Params:        nil,
+		Params:        extraParams,
 	})
 	if err != nil {
 		return err
