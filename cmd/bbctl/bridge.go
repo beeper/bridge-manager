@@ -77,6 +77,11 @@ var bridgeCommand = &cli.Command{
 					EnvVars: []string{"BEEPER_BRIDGE_REGISTRATION_JSON"},
 					Usage:   "Return all data as JSON instead of registration YAML and pretty-printed metadata",
 				},
+				&cli.BoolFlag{
+					Name:    "force",
+					Aliases: []string{"f"},
+					Usage:   "Force get an official bridge, which is not currently supported.",
+				},
 			},
 		},
 		{
