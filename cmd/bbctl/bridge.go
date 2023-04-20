@@ -265,13 +265,13 @@ func registerBridge(ctx *cli.Context) error {
 	}
 	bridge := ctx.Args().Get(0)
 	if !allowedBridgeRegex.MatchString(bridge) {
-		return UserError{"Invalid bridge name. Names must consist of 1-32 lowercase ASCII letters and digits."}
+		return UserError{"Invalid bridge name. Names must consist of 1-32 lowercase ASCII letters, digits and -."}
 	}
-	if _, isOfficial := officialBridges[bridge]; isOfficial {
-		_, _ = fmt.Fprintf(os.Stderr, "%s is an official bridge name.\n", color.CyanString(bridge))
+	if !strings.HasPrefix(bridge, "sh-") {
 		if !ctx.Bool("force") {
-			return UserError{"Self-hosting the official Beeper bridges is not currently supported, as it requires configuring the bridges in a specific way. You may still run official bridges using a different bridge name."}
+			return UserError{"Self-hosted bridge names should start with sh-"}
 		}
+		_, _ = fmt.Fprintln(os.Stderr, "Self-hosted bridge names should start with sh-")
 	}
 	onlyGet := ctx.Command.Name == "get"
 	output, err := doRegisterBridge(ctx, bridge, onlyGet)

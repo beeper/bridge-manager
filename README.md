@@ -35,9 +35,9 @@ support room.
      server will push new events.
      * Some bridges may support our custom websocket event API, in which case
        the address parameter can be omitted.
-   * `<name>` is a short name for the bridge (a-z, 0-9). The bridge user ID
-     namespace will be `@<name>_.+:beeper.local` and the bridge bot will be
-     `@<name>bot:beeper.local`.
+   * `<name>` is a short name for the bridge (a-z, 0-9, -). The name should
+     start with `sh-`. The bridge user ID namespace will be `@<name>_.+:beeper.local`
+     and the bridge bot will be `@<name>bot:beeper.local`.
 4. Now you can configure and run the bridge by following the bridge's own
    documentation.
 
