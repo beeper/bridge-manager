@@ -11,5 +11,3 @@ push_ephemeral: true
 heisenbridge:
   media_url: https://matrix.{{ .BeeperDomain }}
   displayname: Heisenbridge
-  owner_user_id: {{ .UserID }}
-  homeserver_url: {{ .HungryAddress }}

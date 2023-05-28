@@ -165,5 +165,28 @@ func generateBridgeConfig(ctx *cli.Context) error {
 	if err != nil {
 		return err
 	}
-	return doOutputFile(ctx, "Config", cfg)
+	err = doOutputFile(ctx, "Config", cfg)
+	if err != nil {
+		return err
+	}
+	outputPath := ctx.String("output")
+	if outputPath == "-" || outputPath == "" {
+		outputPath = "<config file>"
+	}
+	var startupCommand string
+	switch bridgeType {
+	case "imessage", "whatsapp", "discord", "slack":
+		startupCommand = fmt.Sprintf("mautrix-%s", bridgeType)
+		if outputPath != "config.yaml" && outputPath != "<config file>" {
+			startupCommand += " -c " + outputPath
+		}
+	case "heisenbridge":
+		heisenHomeserverURL := reg.HomeserverURL
+		if reg.Registration.URL == "websocket" {
+			heisenHomeserverURL = strings.Replace(heisenHomeserverURL, "https://", "wss://", 1)
+		}
+		startupCommand = fmt.Sprintf("python -m heisenbridge -c %s -o %s %s", outputPath, reg.YourUserID, heisenHomeserverURL)
+	}
+	_, _ = fmt.Fprintf(os.Stderr, "\n%s: %s\n", color.YellowString("Startup command"), color.CyanString(startupCommand))
+	return nil
 }
