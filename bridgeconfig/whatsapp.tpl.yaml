@@ -253,7 +253,7 @@ bridge:
         {{ .BeeperDomain }}: appservice
     # Should the bridge explicitly set the avatar and room name for private chat portal rooms?
     # This is implicitly enabled in encrypted rooms.
-    private_chat_portal_meta: true
+    private_chat_portal_meta: never
     # Should group members be synced in parallel? This makes member sync faster
     parallel_member_sync: true
     # Should Matrix m.notice-type messages be bridged?
@@ -311,6 +311,9 @@ bridge:
     send_whatsapp_edits: true
     # Should cross-chat replies from WhatsApp be bridged? Most servers and clients don't support this.
     cross_room_replies: true
+    # Disable generating reply fallbacks? Some extremely bad clients still rely on them,
+    # but they're being phased out and will be completely removed in the future.
+    disable_reply_fallbacks: true
     # Maximum time for handling Matrix events. Duration strings formatted for https://pkg.go.dev/time#ParseDuration
     # Null means there's no enforced timeout.
     message_handling_timeout:
@@ -355,6 +358,23 @@ bridge:
         allow_key_sharing: true
         # Should users mentions be in the event wire content to enable the server to send push notifications?
         plaintext_mentions: true
+        # Options for deleting megolm sessions from the bridge.
+        delete_keys:
+            # Beeper-specific: delete outbound sessions when hungryserv confirms
+            # that the user has uploaded the key to key backup.
+            delete_outbound_on_ack: true
+            # Don't store outbound sessions in the inbound table.
+            dont_store_outbound: false
+            # Ratchet megolm sessions forward after decrypting messages.
+            ratchet_on_decrypt: true
+            # Delete fully used keys (index >= max_messages) after decrypting messages.
+            delete_fully_used_on_decrypt: true
+            # Delete previous megolm sessions from same device when receiving a new one.
+            delete_prev_on_new_session: true
+            # Delete megolm sessions received from a device when the device is deleted.
+            delete_on_device_delete: true
+            # Periodically delete megolm sessions when 2x max_age has passed since receiving the session.
+            periodically_delete_expired: true
         # What level of device verification should be required from users?
         #
         # Valid levels:
