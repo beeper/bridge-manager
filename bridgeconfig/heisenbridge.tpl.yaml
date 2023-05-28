@@ -1,0 +1,15 @@
+id: {{ .AppserviceID }}
+url: {{ if .Websocket }}websocket{{ else }}http://{{ .ListenAddr }}:{{ .ListenPort }}{{ end }}
+as_token: {{ .ASToken }}
+hs_token: {{ .HSToken }}
+sender_localpart: {{ .BridgeName }}bot
+namespaces:
+  users:
+  - regex: '@{{ .BridgeName }}_.+:beeper\.local'
+    exclusive: true
+push_ephemeral: true
+heisenbridge:
+  media_url: https://matrix.{{ .BeeperDomain }}
+  displayname: Heisenbridge
+  owner_user_id: {{ .UserID }}
+  homeserver_url: {{ .HungryAddress }}

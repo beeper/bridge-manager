@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/AlecAivazis/survey/v2"
 	"github.com/fatih/color"
@@ -48,7 +49,8 @@ var configCommand = &cli.Command{
 }
 
 var websocketBridges = map[string]bool{
-	"imessage": true,
+	"imessage":     true,
+	"heisenbridge": true,
 }
 
 func simpleDescriptions(descs map[string]string) func(string, int) string {
@@ -102,9 +104,11 @@ func generateBridgeConfig(ctx *cli.Context) error {
 	}
 	bridgeType := ctx.String("type")
 	if bridgeType == "" {
-		bridgeType = officialBridges[bridge]
-		if bridgeType == "" {
-			bridgeType = bridge
+		for key, value := range officialBridges {
+			if strings.Contains(bridge, key) {
+				bridgeType = value
+				break
+			}
 		}
 	}
 	if !bridgeconfig.IsSupported(bridgeType) {

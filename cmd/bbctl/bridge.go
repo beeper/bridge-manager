@@ -161,6 +161,8 @@ var officialBridges = map[string]string{
 	"telegram":      "telegram",
 	"twitter":       "twitter",
 	"whatsapp":      "whatsapp",
+	"irc":           "heisenbridge",
+	"heisenbridge":  "heisenbridge",
 	"androidsms":    "androidsms",
 }
 
