@@ -48,11 +48,6 @@ var configCommand = &cli.Command{
 	Action: generateBridgeConfig,
 }
 
-var websocketBridges = map[string]bool{
-	"imessage":     true,
-	"heisenbridge": true,
-}
-
 func simpleDescriptions(descs map[string]string) func(string, int) string {
 	return func(s string, i int) string {
 		return descs[s]
@@ -99,27 +94,12 @@ func generateBridgeConfig(ctx *cli.Context) error {
 		return UserError{"Too many arguments specified (flags must come before arguments)"}
 	}
 	bridge := ctx.Args().Get(0)
-	if !allowedBridgeRegex.MatchString(bridge) {
-		return UserError{"Invalid bridge name"}
+	if err := validateBridgeName(ctx, bridge); err != nil {
+		return err
 	}
-	bridgeType := ctx.String("type")
-	if bridgeType == "" {
-		for key, value := range officialBridges {
-			if strings.Contains(bridge, key) {
-				bridgeType = value
-				break
-			}
-		}
-	}
-	if !bridgeconfig.IsSupported(bridgeType) {
-		_, _ = fmt.Fprintln(os.Stderr, color.YellowString("Unsupported bridge type"), color.CyanString(bridgeType))
-		err := survey.AskOne(&survey.Select{
-			Message: "Select bridge type:",
-			Options: bridgeconfig.SupportedBridges,
-		}, &bridgeType)
-		if err != nil {
-			return err
-		}
+	bridgeType, err := guessOrAskBridgeType(bridge, ctx.String("type"))
+	if err != nil {
+		return err
 	}
 	isWebsocket := ctx.String("address") == ""
 	if !isWebsocket && ctx.String("listen") == "" {
@@ -129,7 +109,6 @@ func generateBridgeConfig(ctx *cli.Context) error {
 	}
 	extraParamAsker := askParams[bridgeType]
 	extraParams := make(map[string]any)
-	var err error
 	if extraParamAsker != nil {
 		err = extraParamAsker(extraParams)
 		if err != nil {

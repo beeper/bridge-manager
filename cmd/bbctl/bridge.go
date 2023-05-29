@@ -4,8 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
-	"regexp"
-	"strings"
 
 	"github.com/AlecAivazis/survey/v2"
 	"github.com/fatih/color"
@@ -145,27 +143,6 @@ func deleteBridge(ctx *cli.Context) error {
 	return nil
 }
 
-var allowedBridgeRegex = regexp.MustCompile("^[a-z0-9-]{1,32}$")
-var officialBridges = map[string]string{
-	"discord":       "discord",
-	"discordgo":     "discord",
-	"facebook":      "facebook",
-	"googlechat":    "googlechat",
-	"imessagecloud": "imessage",
-	"imessage":      "imessage",
-	"instagram":     "instagram",
-	"linkedin":      "linkedin",
-	"signal":        "signal",
-	"slack":         "slack",
-	"slackgo":       "slack",
-	"telegram":      "telegram",
-	"twitter":       "twitter",
-	"whatsapp":      "whatsapp",
-	"irc":           "heisenbridge",
-	"heisenbridge":  "heisenbridge",
-	"androidsms":    "androidsms",
-}
-
 type RegisterJSON struct {
 	Registration     *appservice.Registration `json:"registration"`
 	HomeserverURL    string                   `json:"homeserver_url"`
@@ -244,21 +221,6 @@ func doRegisterBridge(ctx *cli.Context, bridge string, onlyGet bool) (*RegisterJ
 	return output, nil
 }
 
-func doOutputFile(ctx *cli.Context, name, data string) error {
-	outputPath := ctx.String("output")
-	if outputPath == "-" {
-		_, _ = fmt.Fprintln(os.Stderr, color.YellowString(name+" file:"))
-		fmt.Println(strings.TrimRight(data, "\n"))
-	} else {
-		err := os.WriteFile(outputPath, []byte(data), 0600)
-		if err != nil {
-			return fmt.Errorf("failed to write %s to %s: %w", strings.ToLower(name), outputPath, err)
-		}
-		_, _ = fmt.Fprintln(os.Stderr, color.YellowString("Wrote "+strings.ToLower(name)+" file to"), color.CyanString(outputPath))
-	}
-	return nil
-}
-
 func registerBridge(ctx *cli.Context) error {
 	if ctx.NArg() == 0 {
 		return UserError{"You must specify a bridge to register"}
@@ -266,14 +228,8 @@ func registerBridge(ctx *cli.Context) error {
 		return UserError{"Too many arguments specified (flags must come before arguments)"}
 	}
 	bridge := ctx.Args().Get(0)
-	if !allowedBridgeRegex.MatchString(bridge) {
-		return UserError{"Invalid bridge name. Names must consist of 1-32 lowercase ASCII letters, digits and -."}
-	}
-	if !strings.HasPrefix(bridge, "sh-") {
-		if !ctx.Bool("force") {
-			return UserError{"Self-hosted bridge names should start with sh-"}
-		}
-		_, _ = fmt.Fprintln(os.Stderr, "Self-hosted bridge names should start with sh-")
+	if err := validateBridgeName(ctx, bridge); err != nil {
+		return err
 	}
 	onlyGet := ctx.Command.Name == "get"
 	output, err := doRegisterBridge(ctx, bridge, onlyGet)
