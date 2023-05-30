@@ -51,7 +51,7 @@ var bridgeCommand = &cli.Command{
 				&cli.BoolFlag{
 					Name:    "force",
 					Aliases: []string{"f"},
-					Usage:   "Force register an official bridge, which is not currently supported.",
+					Usage:   "Force register a bridge without the sh- prefix (dangerous).",
 				},
 			},
 		},
@@ -78,7 +78,7 @@ var bridgeCommand = &cli.Command{
 				&cli.BoolFlag{
 					Name:    "force",
 					Aliases: []string{"f"},
-					Usage:   "Force get an official bridge, which is not currently supported.",
+					Usage:   "Force register a bridge without the sh- prefix (dangerous).",
 				},
 			},
 		},

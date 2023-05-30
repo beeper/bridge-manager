@@ -44,6 +44,11 @@ var configCommand = &cli.Command{
 			EnvVars: []string{"BEEPER_BRIDGE_CONFIG_FILE"},
 			Usage:   "Path to save generated config file to.",
 		},
+		&cli.BoolFlag{
+			Name:    "force",
+			Aliases: []string{"f"},
+			Usage:   "Force register a bridge without the sh- prefix (dangerous).",
+		},
 	},
 	Action: generateBridgeConfig,
 }
