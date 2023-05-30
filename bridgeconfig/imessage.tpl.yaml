@@ -101,7 +101,7 @@ hacky_startup_test:
 # Bridge config
 bridge:
     # The user of the bridge.
-    user: {{ .UserID }}
+    user: "{{ .UserID }}"
 
     # Localpart template of MXIDs for iMessage users.
     # {{ "{{.}}" }} is replaced with the phone number or email of the iMessage user.
