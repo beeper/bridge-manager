@@ -108,7 +108,7 @@ bridge:
     username_template: {{ .BridgeName }}_{{ "{{.}}" }}
     # Displayname template for iMessage users.
     # {{ "{{.}}" }} is replaced with the contact list name (if available) or username (phone number or email) of the iMessage user.
-    displayname_template: "{{ "{{.}}" }} (iMessage)"
+    displayname_template: "{{ "{{.}}" }}"
     # Should the bridge create a space and add bridged rooms to it?
     personal_filtering_spaces: false
 
@@ -283,6 +283,10 @@ bridge:
             # session before changing it. The Matrix spec recommends 100 as the
             # default.
             messages: 10000
+
+            # Disable rotating keys when a user's devices change?
+            # You should not enable this option unless you understand all the implications.
+            disable_device_change_key_rotation: true
 
     # Settings for relay mode
     relay:

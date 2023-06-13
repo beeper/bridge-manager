@@ -36,6 +36,8 @@ var officialBridges = map[string]string{
 
 var websocketBridges = map[string]bool{
 	"imessage":     true,
+	"whatsapp":     true,
+	"discord":      true,
 	"heisenbridge": true,
 }
 
