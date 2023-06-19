@@ -11,12 +11,11 @@ contents will be visible to Beeper servers.
 it's possible some bridges won't work - you can report such cases in the
 self-hosting support room linked below or in GitHub issues here</sub>
 
-In the future, we may also support self-hosting the official bridges for
-maximum security using this tool (so that message re-encryption happens on a
-machine you control rather than on Beeper servers). This tool can technically
-already be used for the official bridges, but they also need specific
-configuration to work optimally, so you shouldn't do it yet. If you really want
-to, use a different bridge name (e.g. `whatsapp2` instead of `whatsapp`).
+You can also self-host the official bridges for maximum security using this
+tool (so that message re-encryption happens on a machine you control rather
+than on Beeper servers). However, not all the official bridges are supported
+yet. See the "Official bridges" section below for instructions and the list of
+supported bridges.
 
 Please note that self-hosted bridges are not entitled to the usual level of
 customer support on Beeper. If you need help with self-hosting bridges using
@@ -29,6 +28,8 @@ support room.
 1. Build the binary with `./build.sh` (Go 1.19+ required) or download a binary
    from GitHub releases or actions.
 2. Log into your Beeper account with `bbctl login`.
+
+### 3rd party bridges
 3. Run `bbctl bridge register -a <address> <name>` to generate an appservice
    registration file.
    * `<address>` should be a publicly reachable https address where the Beeper
@@ -56,3 +57,15 @@ useful if you want to automate fetching the homeserver URL.
 If you don't want a self-hosted bridge anymore, you can delete it using `bbctl bridge delete <name>`.
 Deleting a bridge will permanently erase all traces of it from the Beeper servers
 (e.g. any rooms and ghost users it created).
+
+### Official bridges
+3. Run `bbctl config <name>` to generate a config file.
+   * `<name>`  should start with `sh-` and consist of a-z, 0-9 and -.
+   * If `<name>` contains the bridge type, it will be automatically detected.
+     Otherwise pass the type with `--type <type>`.
+   * Currently supported types: `discord`, `whatsapp`, `imessage`, `heisenbridge`
+4. Install the bridge software, then run the command that `bbctl config`
+   outputs to start the bridge.
+5. For now, you'll have to configure the bridge by sending a DM to the bridge
+   bot. Configuring self-hosted bridges through the chat networks dialog will
+   be available in the future.
