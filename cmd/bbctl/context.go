@@ -1,6 +1,10 @@
 package main
 
 import (
+	"fmt"
+	"os"
+
+	"github.com/fatih/color"
 	"github.com/urfave/cli/v2"
 	"maunium.net/go/mautrix"
 
@@ -38,4 +42,15 @@ func GetHungryClient(ctx *cli.Context) *hungryapi.Client {
 		return nil
 	}
 	return val.(*hungryapi.Client)
+}
+
+func SaveHungryURL(ctx *cli.Context, newURL string) {
+	env := GetEnvConfig(ctx)
+	if env.HungryAddress != newURL && newURL != "" {
+		env.HungryAddress = newURL
+		err := GetConfig(ctx).Save()
+		if err != nil {
+			_, _ = fmt.Fprintln(os.Stderr, color.RedString("Failed to save config: "+err.Error()))
+		}
+	}
 }

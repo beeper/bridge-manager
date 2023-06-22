@@ -60,6 +60,8 @@ type WhoamiUserInfo struct {
 	SupportRoomID       id.RoomID `json:"supportRoomId"`
 	UseHungryserv       bool      `json:"useHungryserv"`
 	BridgeClusterID     string    `json:"bridgeClusterId"`
+	AnalyticsID         string    `json:"analyticsId"`
+	HungryURL           string    `json:"hungryUrl"`
 }
 
 type RespWhoami struct {

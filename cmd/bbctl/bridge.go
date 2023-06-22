@@ -118,6 +118,7 @@ func deleteBridge(ctx *cli.Context) error {
 		if err != nil {
 			return fmt.Errorf("failed to get whoami: %w", err)
 		}
+		SaveHungryURL(ctx, whoami.UserInfo.HungryURL)
 		bridgeInfo, ok := whoami.User.Bridges[bridge]
 		if !ok {
 			return UserError{fmt.Sprintf("You don't have a %s bridge.", color.CyanString(bridge))}
@@ -158,6 +159,7 @@ func doRegisterBridge(ctx *cli.Context, bridge string, onlyGet bool) (*RegisterJ
 	if err != nil {
 		return nil, fmt.Errorf("failed to get whoami: %w", err)
 	}
+	SaveHungryURL(ctx, whoami.UserInfo.HungryURL)
 	bridgeInfo, ok := whoami.User.Bridges[bridge]
 	if ok && !onlyGet {
 		selfHosted, _ := bridgeInfo.BridgeState.Info["isSelfHosted"].(bool)
@@ -213,10 +215,6 @@ func doRegisterBridge(ctx *cli.Context, bridge string, onlyGet bool) (*RegisterJ
 		HomeserverURL:    hungryAPI.HomeserverURL.String(),
 		HomeserverDomain: "beeper.local",
 		YourUserID:       hungryAPI.UserID,
-	}
-	if homeserver == "beeper.com" || homeserver == "beeper-staging.com" {
-		nodeName := whoami.User.Hungryserv.RemoteState[hungryAPI.UserID.String()].Info["node"].(string)
-		output.HomeserverURL = fmt.Sprintf(hungryapi.HungryDirectURLTemplate, nodeName, envConfig.ClusterID, homeserver, envConfig.Username)
 	}
 	return output, nil
 }

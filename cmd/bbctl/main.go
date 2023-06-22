@@ -12,6 +12,7 @@ import (
 	"maunium.net/go/mautrix"
 	"maunium.net/go/mautrix/id"
 
+	"github.com/beeper/bridge-manager/api/beeperapi"
 	"github.com/beeper/bridge-manager/api/hungryapi"
 )
 
@@ -80,10 +81,17 @@ func prepareApp(ctx *cli.Context) error {
 	envConfig := cfg.Environments.Get(env)
 	ctx.Context = context.WithValue(ctx.Context, contextKeyConfig, cfg)
 	ctx.Context = context.WithValue(ctx.Context, contextKeyEnvConfig, envConfig)
+	if envConfig.HungryAddress == "" {
+		whoami, err := beeperapi.Whoami(homeserver, envConfig.AccessToken)
+		if err != nil {
+			return fmt.Errorf("failed to get whoami: %w", err)
+		}
+		SaveHungryURL(ctx, whoami.UserInfo.HungryURL)
+	}
 	if envConfig.HasCredentials() {
 		homeserver := ctx.String("homeserver")
 		ctx.Context = context.WithValue(ctx.Context, contextKeyMatrixClient, NewMatrixAPI(homeserver, envConfig.Username, envConfig.AccessToken))
-		ctx.Context = context.WithValue(ctx.Context, contextKeyHungryClient, hungryapi.NewClient(homeserver, envConfig.ClusterID, envConfig.Username, envConfig.AccessToken))
+		ctx.Context = context.WithValue(ctx.Context, contextKeyHungryClient, hungryapi.NewClient(homeserver, envConfig.HungryAddress, envConfig.Username, envConfig.AccessToken))
 	}
 	return nil
 }

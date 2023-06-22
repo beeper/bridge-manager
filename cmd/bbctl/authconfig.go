@@ -21,9 +21,10 @@ var envs = map[string]string{
 }
 
 type EnvConfig struct {
-	ClusterID   string `json:"cluster_id"`
-	Username    string `json:"username"`
-	AccessToken string `json:"access_token"`
+	ClusterID     string `json:"cluster_id"`
+	Username      string `json:"username"`
+	AccessToken   string `json:"access_token"`
+	HungryAddress string `json:"hungry_address"`
 }
 
 func (ec *EnvConfig) HasCredentials() bool {

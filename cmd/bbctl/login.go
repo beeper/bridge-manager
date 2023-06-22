@@ -71,6 +71,7 @@ func beeperLogin(ctx *cli.Context) error {
 	envCfg := GetEnvConfig(ctx)
 	envCfg.ClusterID = whoami.UserInfo.BridgeClusterID
 	envCfg.Username = whoami.UserInfo.Username
+	envCfg.HungryAddress = whoami.UserInfo.HungryURL
 	envCfg.AccessToken = resp.AccessToken
 	err = cfg.Save()
 	if err != nil {

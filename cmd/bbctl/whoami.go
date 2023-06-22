@@ -12,7 +12,6 @@ import (
 	"maunium.net/go/mautrix/bridge/status"
 
 	"github.com/beeper/bridge-manager/api/beeperapi"
-	"github.com/beeper/bridge-manager/api/hungryapi"
 	"github.com/beeper/bridge-manager/cli/hyper"
 )
 
@@ -151,6 +150,7 @@ func whoamiFunction(ctx *cli.Context) error {
 	if err != nil {
 		return fmt.Errorf("failed to get whoami: %w", err)
 	}
+	SaveHungryURL(ctx, whoami.UserInfo.HungryURL)
 	if ctx.Bool("raw") {
 		data, err := json.MarshalIndent(whoami, "", "  ")
 		if err != nil {
@@ -183,14 +183,7 @@ func whoamiFunction(ctx *cli.Context) error {
 	fmt.Printf("  Update channel: %s\n", coloredChannel(whoami.UserInfo.Channel))
 	fmt.Printf("  Cluster ID: %s\n", color.CyanString(whoami.UserInfo.BridgeClusterID))
 	hungryAPI := GetHungryClient(ctx)
-	var homeserverURL string
-	if homeserver == "beeper.com" || homeserver == "beeper-staging.com" {
-		// TODO deduplicate code with bridge.go
-		nodeName := whoami.User.Hungryserv.RemoteState[hungryAPI.UserID.String()].Info["node"].(string)
-		homeserverURL = fmt.Sprintf(hungryapi.HungryDirectURLTemplate, nodeName, whoami.UserInfo.BridgeClusterID, homeserver, whoami.UserInfo.Username)
-	} else {
-		homeserverURL = hungryAPI.HomeserverURL.String()
-	}
+	homeserverURL := hungryAPI.HomeserverURL.String()
 	fmt.Printf("  Hungryserv URL: %s\n", color.CyanString(hyper.Link(homeserverURL, homeserverURL, false)))
 	fmt.Printf("Bridges:\n")
 	internal := homeserver != "beeper.com" || whoami.UserInfo.Channel == "INTERNAL"

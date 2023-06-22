@@ -1,7 +1,6 @@
 package hungryapi
 
 import (
-	"fmt"
 	"net/http"
 	"time"
 
@@ -16,11 +15,7 @@ type Client struct {
 	Username string
 }
 
-const HungryURLTemplate = "https://lb.nodes.%s.bridges.%s/%s"
-const HungryDirectURLTemplate = "https://%s.nodes.%s.bridges.%s/%s/"
-
-func NewClient(baseDomain, clusterID, username, accessToken string) *Client {
-	homeserverURL := fmt.Sprintf(HungryURLTemplate, clusterID, baseDomain, username)
+func NewClient(baseDomain, homeserverURL, username, accessToken string) *Client {
 	client, err := mautrix.NewClient(homeserverURL, id.NewUserID(username, baseDomain), accessToken)
 	if err != nil {
 		panic(err)
