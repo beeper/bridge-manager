@@ -37,6 +37,11 @@ var configCommand = &cli.Command{
 			EnvVars: []string{"BEEPER_BRIDGE_TYPE"},
 			Usage:   "The type of bridge being registered.",
 		},
+		&cli.StringSliceFlag{
+			Name:    "param",
+			Aliases: []string{"p"},
+			Usage:   "Set a bridge-specific config generation option. Can be specified multiple times for different keys. Format: key=value",
+		},
 		&cli.StringFlag{
 			Name:    "output",
 			Aliases: []string{"o"},
@@ -114,6 +119,13 @@ func generateBridgeConfig(ctx *cli.Context) error {
 	}
 	extraParamAsker := askParams[bridgeType]
 	extraParams := make(map[string]any)
+	for _, item := range ctx.StringSlice("param") {
+		parts := strings.SplitN(item, "=", 2)
+		if len(parts) != 2 {
+			return UserError{fmt.Sprintf("Invalid param %q", item)}
+		}
+		extraParams[strings.ToLower(parts[0])] = parts[1]
+	}
 	if extraParamAsker != nil {
 		err = extraParamAsker(extraParams)
 		if err != nil {
