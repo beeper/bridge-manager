@@ -90,6 +90,52 @@ func newRequest(baseDomain, token, method, path string) *http.Request {
 	return req
 }
 
+func encodeContent(into *http.Request, body any) error {
+	var buf bytes.Buffer
+	err := json.NewEncoder(&buf).Encode(body)
+	if err != nil {
+		return fmt.Errorf("failed to encode request: %w", err)
+	}
+	into.Body = io.NopCloser(&buf)
+	return nil
+}
+
+func doRequest(req *http.Request, reqData, resp any) (err error) {
+	if reqData != nil {
+		err = encodeContent(req, reqData)
+		if err != nil {
+			return
+		}
+	}
+	r, err := cli.Do(req)
+	if err != nil {
+		return fmt.Errorf("failed to send request: %w", err)
+	}
+	defer r.Body.Close()
+	if r.StatusCode < 200 || r.StatusCode >= 300 {
+		var body map[string]any
+		_ = json.NewDecoder(r.Body).Decode(&body)
+		if body != nil {
+			retryCount, ok := body["retries"].(float64)
+			if ok && retryCount > 0 && r.StatusCode == 403 && req.URL.Path == "/user/login/response" {
+				return fmt.Errorf("%w (%d retries left)", ErrInvalidLoginCode, int(retryCount))
+			}
+			errorMsg, ok := body["error"].(string)
+			if ok {
+				return fmt.Errorf("server returned error (HTTP %d): %s", r.StatusCode, errorMsg)
+			}
+		}
+		return fmt.Errorf("unexpected status code %d", r.StatusCode)
+	}
+	if resp != nil {
+		err = json.NewDecoder(r.Body).Decode(resp)
+		if err != nil {
+			return fmt.Errorf("error decoding response: %w", err)
+		}
+	}
+	return nil
+}
+
 type ReqPostBridgeState struct {
 	StateEvent status.BridgeStateEvent `json:"stateEvent"`
 	Reason     string                  `json:"reason"`
@@ -98,56 +144,16 @@ type ReqPostBridgeState struct {
 
 func DeleteBridge(domain, bridgeName, token string) error {
 	req := newRequest(domain, token, http.MethodDelete, fmt.Sprintf("/bridge/%s", bridgeName))
-	r, err := cli.Do(req)
-	if err != nil {
-		return fmt.Errorf("failed to send request: %w", err)
-	}
-	defer r.Body.Close()
-	var body map[string]any
-	_ = json.NewDecoder(r.Body).Decode(&body)
-	if r.StatusCode < 200 || r.StatusCode >= 300 {
-		if body != nil {
-			errorMsg, ok := body["error"].(string)
-			if ok {
-				return fmt.Errorf("server returned error (HTTP %d): %s", r.StatusCode, errorMsg)
-			}
-		}
-		return fmt.Errorf("unexpected status code %d", r.StatusCode)
-	}
-	return nil
+	return doRequest(req, nil, nil)
 }
 
 func PostBridgeState(domain, username, bridgeName, asToken string, data ReqPostBridgeState) error {
 	req := newRequest(domain, asToken, http.MethodPost, fmt.Sprintf("/bridgebox/%s/bridge/%s/bridge_state", username, bridgeName))
-	var buf bytes.Buffer
-	err := json.NewEncoder(&buf).Encode(&data)
-	if err != nil {
-		return fmt.Errorf("failed to encode request: %w", err)
-	}
-	req.Body = io.NopCloser(&buf)
-	r, err := cli.Do(req)
-	if err != nil {
-		return fmt.Errorf("failed to send request: %w", err)
-	}
-	defer r.Body.Close()
-	if r.StatusCode < 200 || r.StatusCode >= 300 {
-		return fmt.Errorf("unexpected status code %d", r.StatusCode)
-	}
-	return nil
+	return doRequest(req, &data, nil)
 }
 
 func Whoami(baseDomain, token string) (resp *RespWhoami, err error) {
-	r, err := cli.Do(newRequest(baseDomain, token, http.MethodGet, "/whoami"))
-	if err != nil {
-		return nil, fmt.Errorf("failed to send request: %w", err)
-	}
-	defer r.Body.Close()
-	if r.StatusCode != http.StatusOK {
-		return nil, fmt.Errorf("unexpected status code %d", r.StatusCode)
-	}
-	err = json.NewDecoder(r.Body).Decode(&resp)
-	if err != nil {
-		return nil, fmt.Errorf("error decoding response: %w", err)
-	}
-	return resp, nil
+	req := newRequest(baseDomain, token, http.MethodGet, "/whoami")
+	err = doRequest(req, nil, &resp)
+	return
 }

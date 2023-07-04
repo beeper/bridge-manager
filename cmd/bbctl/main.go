@@ -141,6 +141,7 @@ var app = &cli.App{
 	Before: prepareApp,
 	Commands: []*cli.Command{
 		loginCommand,
+		loginPasswordCommand,
 		logoutCommand,
 		bridgeCommand,
 		whoamiCommand,
