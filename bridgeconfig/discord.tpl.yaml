@@ -83,7 +83,7 @@ appservice:
 bridge:
     # Localpart template of MXIDs for Discord users.
     # {{.}} is replaced with the internal ID of the Discord user.
-    username_template: {{ .Prefix }}_{{ "{{.}}" }}
+    username_template: {{ .BridgeName }}_{{ "{{.}}" }}
     # Displayname template for Discord users. This is also used as the room name in DMs if private_chat_portal_meta is enabled.
     # Available variables:
     #   .ID - Internal user ID

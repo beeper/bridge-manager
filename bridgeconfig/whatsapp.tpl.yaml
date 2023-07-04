@@ -104,7 +104,7 @@ whatsapp:
 bridge:
     # Localpart template of MXIDs for WhatsApp users.
     # {{ "{{.}}" }} is replaced with the phone number of the WhatsApp user.
-    username_template: {{ .Prefix }}_{{ "{{.}}" }}
+    username_template: {{ .BridgeName }}_{{ "{{.}}" }}
     # Displayname template for WhatsApp users.
     displayname_template: {{ `"{{or .FullName .BusinessName .PushName .JID"` }}
     # Should the bridge create a space for each logged-in user and add bridged rooms to it?
