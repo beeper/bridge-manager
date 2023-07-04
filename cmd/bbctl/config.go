@@ -10,6 +10,7 @@ import (
 	"github.com/urfave/cli/v2"
 
 	"github.com/beeper/bridge-manager/bridgeconfig"
+	"github.com/beeper/bridge-manager/cli/hyper"
 )
 
 var configCommand = &cli.Command{
@@ -169,20 +170,23 @@ func generateBridgeConfig(ctx *cli.Context) error {
 	if outputPath == "-" || outputPath == "" {
 		outputPath = "<config file>"
 	}
-	var startupCommand string
+	var startupCommand, installInstructions string
 	switch bridgeType {
 	case "imessage", "whatsapp", "discord", "slack":
 		startupCommand = fmt.Sprintf("mautrix-%s", bridgeType)
 		if outputPath != "config.yaml" && outputPath != "<config file>" {
 			startupCommand += " -c " + outputPath
 		}
+		installInstructions = fmt.Sprintf("https://docs.mau.fi/bridges/go/setup.html?bridge=%s#installation", bridgeType)
 	case "heisenbridge":
 		heisenHomeserverURL := reg.HomeserverURL
 		if reg.Registration.URL == "websocket" {
 			heisenHomeserverURL = strings.Replace(heisenHomeserverURL, "https://", "wss://", 1)
 		}
 		startupCommand = fmt.Sprintf("python -m heisenbridge -c %s -o %s %s", outputPath, reg.YourUserID, heisenHomeserverURL)
+		installInstructions = "https://github.com/beeper/bridge-manager/wiki/Heisenbridge"
 	}
 	_, _ = fmt.Fprintf(os.Stderr, "\n%s: %s\n", color.YellowString("Startup command"), color.CyanString(startupCommand))
+	_, _ = fmt.Fprintf(os.Stderr, "See %s for bridge installation instructions\n", hyper.Link(installInstructions, installInstructions, false))
 	return nil
 }
