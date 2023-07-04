@@ -101,11 +101,11 @@ bridge:
     #   .GuildName - Guild name.
     #   .NSFW - Whether the channel is marked as NSFW.
     #   .Type - Channel type (see values at https://github.com/bwmarrin/discordgo/blob/v0.25.0/structs.go#L251-L267)
-    channel_name_template: '{{if or (eq .Type 3) (eq .Type 4)}}{{.Name}}{{else}}#{{.Name}}{{end}}'
+    channel_name_template: {{ `"{{if or (eq .Type 3) (eq .Type 4)}}{{.Name}}{{else}}#{{.Name}}{{end}}"` }}
     # Displayname template for Discord guilds (bridged as spaces).
     # Available variables:
     #   .Name - Guild name
-    guild_name_template: '{{.Name}}'
+    guild_name_template: {{ `"{{.Name}}"` }}
     # Whether to explicitly set the avatar and room name for private chat portal rooms.
     # If set to `default`, this will be enabled in encrypted rooms and disabled in unencrypted rooms.
     # If set to `always`, all DM rooms will have explicit names and avatars set.
@@ -174,13 +174,13 @@ bridge:
         # Should custom mxc:// URIs be used instead of reuploading media?
         enabled: false
         # Pattern for normal message attachments.
-        attachments: mxc://discord-media.mau.dev/attachments|{{.ChannelID}}|{{.AttachmentID}}|{{.FileName}}
+        attachments: {{ `mxc://discord-media.mau.dev/attachments|{{.ChannelID}}|{{.AttachmentID}}|{{.FileName}}` }}
         # Pattern for custom emojis.
-        emojis: mxc://discord-media.mau.dev/emojis|{{.ID}}.{{.Ext}}
+        emojis: {{ `mxc://discord-media.mau.dev/emojis|{{.ID}}.{{.Ext}}` }}
         # Pattern for stickers. Note that animated lottie stickers will not be converted if this is enabled.
-        stickers: mxc://discord-media.mau.dev/stickers|{{.ID}}.{{.Ext}}
+        stickers: {{ `mxc://discord-media.mau.dev/stickers|{{.ID}}.{{.Ext}}` }}
         # Pattern for static user avatars.
-        avatars: mxc://discord-media.mau.dev/avatars|{{.UserID}}|{{.AvatarID}}.{{.Ext}}
+        avatars: {{ `mxc://discord-media.mau.dev/avatars|{{.UserID}}|{{.AvatarID}}.{{.Ext}}` }}
     # Settings for converting animated stickers.
     animated_sticker:
         # Format to which animated stickers should be converted.
