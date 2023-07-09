@@ -63,7 +63,7 @@ Deleting a bridge will permanently erase all traces of it from the Beeper server
    * `<name>`  should start with `sh-` and consist of a-z, 0-9 and -.
    * If `<name>` contains the bridge type, it will be automatically detected.
      Otherwise pass the type with `--type <type>`.
-   * Currently supported types: `discord`, `whatsapp`, `imessage`, `heisenbridge`
+   * Currently supported types: `discord`, `whatsapp`, `imessage`, `heisenbridge`, `gmessages`
 4. Install the bridge software, then run the command that `bbctl config`
    outputs to start the bridge.
 5. For now, you'll have to configure the bridge by sending a DM to the bridge
