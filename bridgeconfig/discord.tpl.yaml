@@ -25,7 +25,7 @@ homeserver:
     # mautrix-asmux (deprecated), and hungryserv (proprietary).
     websocket: {{ .Websocket }}
     # How often should the websocket be pinged? Pinging will be disabled if this is zero.
-    ping_interval_seconds: 0
+    ping_interval_seconds: 180
 
 # Application service host/registration related details.
 # Changing these values requires regeneration of the registration.

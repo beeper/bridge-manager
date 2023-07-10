@@ -8,7 +8,7 @@ homeserver:
     # Set to null to disable using the websocket. When not using the websocket, make sure hostname and port are set in the appservice section.
     websocket_proxy: {{ if .Websocket }}{{ replace .HungryAddress "https" "wss" }}{{ else }}null{{ end }}
     # How often should the websocket be pinged? Pinging will be disabled if this is zero.
-    ping_interval_seconds: 0
+    ping_interval_seconds: 180
     # The domain of the homeserver (also known as server_name, used for MXIDs, etc).
     domain: beeper.local
 
