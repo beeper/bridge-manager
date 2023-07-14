@@ -206,6 +206,7 @@ func doRegisterBridge(ctx *cli.Context, bridge string, onlyGet bool) (*RegisterJ
 			"isHungry":     true,
 			"isSelfHosted": true,
 		},
+		IsSelfHosted: true,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to mark bridge as RUNNING: %w", err)
