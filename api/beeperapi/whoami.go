@@ -15,13 +15,14 @@ import (
 )
 
 type BridgeState struct {
-	Username   string                  `json:"username"`
-	Bridge     string                  `json:"bridge"`
-	StateEvent status.BridgeStateEvent `json:"stateEvent"`
-	Source     string                  `json:"source"`
-	CreatedAt  time.Time               `json:"createdAt"`
-	Reason     string                  `json:"reason"`
-	Info       map[string]any          `json:"info"`
+	Username     string                  `json:"username"`
+	Bridge       string                  `json:"bridge"`
+	StateEvent   status.BridgeStateEvent `json:"stateEvent"`
+	Source       string                  `json:"source"`
+	CreatedAt    time.Time               `json:"createdAt"`
+	Reason       string                  `json:"reason"`
+	Info         map[string]any          `json:"info"`
+	IsSelfHosted bool                    `json:"isSelfHosted"`
 }
 
 type WhoamiBridge struct {
@@ -137,9 +138,10 @@ func doRequest(req *http.Request, reqData, resp any) (err error) {
 }
 
 type ReqPostBridgeState struct {
-	StateEvent status.BridgeStateEvent `json:"stateEvent"`
-	Reason     string                  `json:"reason"`
-	Info       map[string]any          `json:"info"`
+	StateEvent   status.BridgeStateEvent `json:"stateEvent"`
+	Reason       string                  `json:"reason"`
+	Info         map[string]any          `json:"info"`
+	IsSelfHosted bool                    `json:"isSelfHosted"`
 }
 
 func DeleteBridge(domain, bridgeName, token string) error {
