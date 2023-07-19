@@ -133,7 +133,7 @@ func generateBridgeConfig(ctx *cli.Context) error {
 			return err
 		}
 	}
-	reg, err := doRegisterBridge(ctx, bridge, false)
+	reg, err := doRegisterBridge(ctx, bridge, bridgeType, false)
 	if err != nil {
 		return err
 	}

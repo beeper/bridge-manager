@@ -142,6 +142,7 @@ type ReqPostBridgeState struct {
 	Reason       string                  `json:"reason"`
 	Info         map[string]any          `json:"info"`
 	IsSelfHosted bool                    `json:"isSelfHosted"`
+	BridgeType   string                  `json:"bridgeType,omitempty"`
 }
 
 func DeleteBridge(domain, bridgeName, token string) error {

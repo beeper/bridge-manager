@@ -150,7 +150,7 @@ type RegisterJSON struct {
 	YourUserID       id.UserID                `json:"your_user_id"`
 }
 
-func doRegisterBridge(ctx *cli.Context, bridge string, onlyGet bool) (*RegisterJSON, error) {
+func doRegisterBridge(ctx *cli.Context, bridge, bridgeType string, onlyGet bool) (*RegisterJSON, error) {
 	homeserver := ctx.String("homeserver")
 	envConfig := GetEnvConfig(ctx)
 	accessToken := envConfig.AccessToken
@@ -201,6 +201,7 @@ func doRegisterBridge(ctx *cli.Context, bridge string, onlyGet bool) (*RegisterJ
 		StateEvent:   state,
 		Reason:       "SELF_HOST_REGISTERED",
 		IsSelfHosted: true,
+		BridgeType:   bridgeType,
 	})
 	if err != nil {
 		return nil, fmt.Errorf("failed to mark bridge as RUNNING: %w", err)
@@ -225,7 +226,7 @@ func registerBridge(ctx *cli.Context) error {
 		return err
 	}
 	onlyGet := ctx.Command.Name == "get"
-	output, err := doRegisterBridge(ctx, bridge, onlyGet)
+	output, err := doRegisterBridge(ctx, bridge, "", onlyGet)
 	if err != nil {
 		return err
 	}
