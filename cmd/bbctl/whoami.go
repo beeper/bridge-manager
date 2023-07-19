@@ -108,12 +108,12 @@ func parseBridgeImage(bridge, image string, internal bool) string {
 	return color.HiBlueString(hyper.Link(match[2][:8], fmt.Sprintf(dockerToGitRepo[match[1]], match[2]), false))
 }
 
-func formatBridgeRemotes(name string, bridge beeperapi.WhoamiBridge, isSelfHosted bool) string {
+func formatBridgeRemotes(name string, bridge beeperapi.WhoamiBridge) string {
 	switch {
 	case name == "hungryserv", name == "androidsms", name == "imessage":
 		return ""
 	case len(bridge.RemoteState) == 0:
-		if isSelfHosted {
+		if bridge.BridgeState.IsSelfHosted {
 			return ""
 		}
 		return color.YellowString("not logged in")
@@ -132,12 +132,11 @@ func formatBridge(name string, bridge beeperapi.WhoamiBridge, internal bool) str
 	if versionString != "" {
 		formatted += fmt.Sprintf(" (version: %s)", versionString)
 	}
-	selfHosted, _ := bridge.BridgeState.Info["isSelfHosted"].(bool)
-	if selfHosted {
+	if bridge.BridgeState.IsSelfHosted {
 		formatted += fmt.Sprintf(" (%s)", color.HiGreenString("self-hosted"))
 	}
 	formatted += fmt.Sprintf(" - %s", coloredBridgeState(bridge.BridgeState.StateEvent))
-	remotes := formatBridgeRemotes(name, bridge, selfHosted)
+	remotes := formatBridgeRemotes(name, bridge)
 	if remotes != "" {
 		formatted += " - " + remotes
 	}

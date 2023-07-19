@@ -123,8 +123,7 @@ func deleteBridge(ctx *cli.Context) error {
 		if !ok {
 			return UserError{fmt.Sprintf("You don't have a %s bridge.", color.CyanString(bridge))}
 		}
-		selfHosted, _ := bridgeInfo.BridgeState.Info["isSelfHosted"].(bool)
-		if !selfHosted {
+		if !bridgeInfo.BridgeState.IsSelfHosted {
 			return UserError{fmt.Sprintf("Your %s bridge is not self-hosted.", color.CyanString(bridge))}
 		}
 	}
@@ -162,8 +161,7 @@ func doRegisterBridge(ctx *cli.Context, bridge string, onlyGet bool) (*RegisterJ
 	SaveHungryURL(ctx, whoami.UserInfo.HungryURL)
 	bridgeInfo, ok := whoami.User.Bridges[bridge]
 	if ok && !onlyGet {
-		selfHosted, _ := bridgeInfo.BridgeState.Info["isSelfHosted"].(bool)
-		if !selfHosted {
+		if !bridgeInfo.BridgeState.IsSelfHosted {
 			return nil, UserError{fmt.Sprintf("Your %s bridge is not self-hosted.", color.CyanString(bridge))}
 		}
 		_, _ = fmt.Fprintf(os.Stderr, "You already have a %s bridge, returning existing registration file\n\n", color.CyanString(bridge))
@@ -200,12 +198,8 @@ func doRegisterBridge(ctx *cli.Context, bridge string, onlyGet bool) (*RegisterJ
 	}
 
 	err = beeperapi.PostBridgeState(ctx.String("homeserver"), GetEnvConfig(ctx).Username, bridge, resp.AppToken, beeperapi.ReqPostBridgeState{
-		StateEvent: state,
-		Reason:     "SELF_HOST_REGISTERED",
-		Info: map[string]any{
-			"isHungry":     true,
-			"isSelfHosted": true,
-		},
+		StateEvent:   state,
+		Reason:       "SELF_HOST_REGISTERED",
 		IsSelfHosted: true,
 	})
 	if err != nil {
