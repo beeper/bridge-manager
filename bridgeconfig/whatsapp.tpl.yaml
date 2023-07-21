@@ -104,7 +104,7 @@ bridge:
     # {{ "{{.}}" }} is replaced with the phone number of the WhatsApp user.
     username_template: {{ .BridgeName }}_{{ "{{.}}" }}
     # Displayname template for WhatsApp users.
-    displayname_template: {{ `"{{or .FullName .BusinessName .PushName .JID"` }}
+    displayname_template: {{ `"{{or .FullName .BusinessName .PushName .JID}}"` }}
     # Should the bridge create a space for each logged-in user and add bridged rooms to it?
     # Users who logged in before turning this on should run `!wa sync space` to create and fill the space for the first time.
     personal_filtering_spaces: false
