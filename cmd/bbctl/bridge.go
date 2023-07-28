@@ -16,85 +16,84 @@ import (
 	"github.com/beeper/bridge-manager/api/hungryapi"
 )
 
-var bridgeCommand = &cli.Command{
-	Name:    "bridge",
-	Aliases: []string{"b"},
-	Usage:   "Manage your bridges",
-	Before:  RequiresAuth,
-	Subcommands: []*cli.Command{
-		{
-			Name:      "register",
-			Aliases:   []string{"r"},
-			Usage:     "Register a new bridge and print the appservice registration file",
-			ArgsUsage: "BRIDGE",
-			Action:    registerBridge,
-			Flags: []cli.Flag{
-				&cli.StringFlag{
-					Name:    "address",
-					Aliases: []string{"a"},
-					EnvVars: []string{"BEEPER_BRIDGE_ADDRESS"},
-					Usage:   "Optionally, a https address where the Beeper server can push events.\nWhen omitted, the server will expect the bridge to connect with a websocket to receive events.",
-				},
-				&cli.StringFlag{
-					Name:    "output",
-					Aliases: []string{"o"},
-					Value:   "-",
-					EnvVars: []string{"BEEPER_BRIDGE_REGISTRATION_FILE"},
-					Usage:   "Path to save generated registration file to.",
-				},
-				&cli.BoolFlag{
-					Name:    "json",
-					Aliases: []string{"j"},
-					EnvVars: []string{"BEEPER_BRIDGE_REGISTRATION_JSON"},
-					Usage:   "Return all data as JSON instead of registration YAML and pretty-printed metadata",
-				},
-				&cli.BoolFlag{
-					Name:    "force",
-					Aliases: []string{"f"},
-					Usage:   "Force register a bridge without the sh- prefix (dangerous).",
-				},
-			},
+var registerCommand = &cli.Command{
+	Name:      "register",
+	Aliases:   []string{"r"},
+	Usage:     "Register a 3rd party bridge and print the appservice registration file",
+	ArgsUsage: "BRIDGE",
+	Action:    registerBridge,
+	Before:    RequiresAuth,
+	Flags: []cli.Flag{
+		&cli.StringFlag{
+			Name:    "address",
+			Aliases: []string{"a"},
+			EnvVars: []string{"BEEPER_BRIDGE_ADDRESS"},
+			Usage:   "Optionally, a https address where the Beeper server can push events.\nWhen omitted, the server will expect the bridge to connect with a websocket to receive events.",
 		},
-		{
-			Name:      "get",
-			Aliases:   []string{"g"},
-			Usage:     "Get the registration of an existing bridge",
-			ArgsUsage: "BRIDGE",
-			Action:    registerBridge,
-			Flags: []cli.Flag{
-				&cli.StringFlag{
-					Name:    "output",
-					Aliases: []string{"o"},
-					Value:   "-",
-					EnvVars: []string{"BEEPER_BRIDGE_REGISTRATION_FILE"},
-					Usage:   "Path to save generated registration file to.",
-				},
-				&cli.BoolFlag{
-					Name:    "json",
-					Aliases: []string{"j"},
-					EnvVars: []string{"BEEPER_BRIDGE_REGISTRATION_JSON"},
-					Usage:   "Return all data as JSON instead of registration YAML and pretty-printed metadata",
-				},
-				&cli.BoolFlag{
-					Name:    "force",
-					Aliases: []string{"f"},
-					Usage:   "Force register a bridge without the sh- prefix (dangerous).",
-				},
-			},
+		&cli.StringFlag{
+			Name:    "output",
+			Aliases: []string{"o"},
+			Value:   "-",
+			EnvVars: []string{"BEEPER_BRIDGE_REGISTRATION_FILE"},
+			Usage:   "Path to save generated registration file to.",
 		},
-		{
-			Name:      "delete",
-			Aliases:   []string{"d"},
-			Usage:     "Delete a bridge and all associated rooms on the Beeper servers",
-			ArgsUsage: "BRIDGE",
-			Action:    deleteBridge,
-			Flags: []cli.Flag{
-				&cli.BoolFlag{
-					Name:    "force",
-					Aliases: []string{"f"},
-					Usage:   "Force delete the bridge, even if it's not self-hosted or doesn't seem to exist.",
-				},
-			},
+		&cli.BoolFlag{
+			Name:    "json",
+			Aliases: []string{"j"},
+			EnvVars: []string{"BEEPER_BRIDGE_REGISTRATION_JSON"},
+			Usage:   "Return all data as JSON instead of registration YAML and pretty-printed metadata",
+		},
+		&cli.BoolFlag{
+			Name:    "force",
+			Aliases: []string{"f"},
+			Usage:   "Force register a bridge without the sh- prefix (dangerous).",
+			Hidden:  true,
+		},
+	},
+}
+
+var getCommand = &cli.Command{
+	Name:      "get",
+	Aliases:   []string{"g"},
+	Usage:     "Get the registration of an existing 3rd party bridge",
+	ArgsUsage: "BRIDGE",
+	Action:    registerBridge,
+	Before:    RequiresAuth,
+	Flags: []cli.Flag{
+		&cli.StringFlag{
+			Name:    "output",
+			Aliases: []string{"o"},
+			Value:   "-",
+			EnvVars: []string{"BEEPER_BRIDGE_REGISTRATION_FILE"},
+			Usage:   "Path to save generated registration file to.",
+		},
+		&cli.BoolFlag{
+			Name:    "json",
+			Aliases: []string{"j"},
+			EnvVars: []string{"BEEPER_BRIDGE_REGISTRATION_JSON"},
+			Usage:   "Return all data as JSON instead of registration YAML and pretty-printed metadata",
+		},
+		&cli.BoolFlag{
+			Name:    "force",
+			Aliases: []string{"f"},
+			Usage:   "Force register a bridge without the sh- prefix (dangerous).",
+			Hidden:  true,
+		},
+	},
+}
+
+var deleteCommand = &cli.Command{
+	Name:      "delete",
+	Aliases:   []string{"d"},
+	Usage:     "Delete a bridge and all associated rooms on the Beeper servers",
+	ArgsUsage: "BRIDGE",
+	Action:    deleteBridge,
+	Before:    RequiresAuth,
+	Flags: []cli.Flag{
+		&cli.BoolFlag{
+			Name:    "force",
+			Aliases: []string{"f"},
+			Usage:   "Force delete the bridge, even if it's not self-hosted or doesn't seem to exist.",
 		},
 	},
 }
