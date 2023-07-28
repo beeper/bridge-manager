@@ -5,6 +5,8 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"path/filepath"
+	"runtime"
 	"strings"
 
 	"maunium.net/go/mautrix/id"
@@ -12,12 +14,10 @@ import (
 )
 
 var envs = map[string]string{
-	"prod":        "beeper.com",
-	"production":  "beeper.com",
-	"staging":     "beeper-staging.com",
-	"dev":         "beeper-dev.com",
-	"development": "beeper-dev.com",
-	"local":       "beeper.localtest.me",
+	"prod":    "beeper.com",
+	"staging": "beeper-staging.com",
+	"dev":     "beeper-dev.com",
+	"local":   "beeper.localtest.me",
 }
 
 type EnvConfig struct {
@@ -25,6 +25,7 @@ type EnvConfig struct {
 	Username      string `json:"username"`
 	AccessToken   string `json:"access_token"`
 	HungryAddress string `json:"hungry_address"`
+	BridgeDataDir string `json:"bridge_data_dir"`
 }
 
 func (ec *EnvConfig) HasCredentials() bool {
@@ -48,6 +49,35 @@ type Config struct {
 	Path         string      `json:"-"`
 }
 
+var UserDataDir string
+
+func getUserDataDir() (dir string, err error) {
+	dir = os.Getenv("BBCTL_DATA_HOME")
+	if dir != "" {
+		return
+	}
+	if runtime.GOOS == "windows" || runtime.GOOS == "darwin" {
+		return os.UserConfigDir()
+	}
+	dir = os.Getenv("XDG_DATA_HOME")
+	if dir == "" {
+		dir = os.Getenv("HOME")
+		if dir == "" {
+			return "", errors.New("neither $XDG_DATA_HOME nor $HOME are defined")
+		}
+		dir = filepath.Join(dir, ".local", "share")
+	}
+	return
+}
+
+func init() {
+	var err error
+	UserDataDir, err = getUserDataDir()
+	if err != nil {
+		panic(fmt.Errorf("couldn't find data directory: %w", err))
+	}
+}
+
 func loadConfig(path string) (ret *Config, err error) {
 	defer func() {
 		if ret == nil {
@@ -63,6 +93,10 @@ func loadConfig(path string) (ret *Config, err error) {
 		for key, env := range ret.Environments {
 			if env == nil {
 				delete(ret.Environments, key)
+				continue
+			}
+			if env.BridgeDataDir == "" {
+				env.BridgeDataDir = filepath.Join(UserDataDir, "bbctl", key)
 			}
 		}
 	}()
