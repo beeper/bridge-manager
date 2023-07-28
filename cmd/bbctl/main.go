@@ -144,7 +144,6 @@ var app = &cli.App{
 		loginPasswordCommand,
 		logoutCommand,
 		registerCommand,
-		getCommand,
 		deleteCommand,
 		whoamiCommand,
 		configCommand,
