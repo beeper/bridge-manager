@@ -74,10 +74,10 @@ func doRegisterBridge(ctx *cli.Context, bridge, bridgeType string, onlyGet bool)
 	}
 	SaveHungryURL(ctx, whoami.UserInfo.HungryURL)
 	bridgeInfo, ok := whoami.User.Bridges[bridge]
-	if ok && !onlyGet {
-		if !bridgeInfo.BridgeState.IsSelfHosted {
-			return nil, UserError{fmt.Sprintf("Your %s bridge is not self-hosted.", color.CyanString(bridge))}
-		}
+	if !bridgeInfo.BridgeState.IsSelfHosted {
+		return nil, UserError{fmt.Sprintf("Your %s bridge is not self-hosted.", color.CyanString(bridge))}
+	}
+	if ok && !onlyGet && ctx.Command.Name == "register" {
 		_, _ = fmt.Fprintf(os.Stderr, "You already have a %s bridge, returning existing registration file\n\n", color.CyanString(bridge))
 	}
 	hungryAPI := GetHungryClient(ctx)
