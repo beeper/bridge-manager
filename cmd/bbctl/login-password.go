@@ -10,7 +10,7 @@ import (
 
 var loginPasswordCommand = &cli.Command{
 	Name:    "login-password",
-	Aliases: []string{"l"},
+	Aliases: []string{"p"},
 	Usage:   "Log into the Beeper server using username and password",
 	Before:  interactive.Ask,
 	Action:  beeperLoginPassword,
