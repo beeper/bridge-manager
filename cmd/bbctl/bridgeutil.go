@@ -38,14 +38,6 @@ var officialBridges = map[string]string{
 	"googlemessages": "gmessages",
 }
 
-var websocketBridges = map[string]bool{
-	"imessage":     true,
-	"whatsapp":     true,
-	"discord":      true,
-	"heisenbridge": true,
-	"gmessages":    true,
-}
-
 func doOutputFile(ctx *cli.Context, name, data string) error {
 	outputPath := ctx.String("output")
 	if outputPath == "-" {

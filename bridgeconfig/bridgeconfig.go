@@ -23,7 +23,7 @@ type Params struct {
 	BridgeName   string
 	UserID       id.UserID
 
-	Params map[string]any
+	Params map[string]string
 }
 
 //go:embed *.tpl.yaml
