@@ -21,18 +21,6 @@ var configCommand = &cli.Command{
 	Before:    RequiresAuth,
 	Flags: []cli.Flag{
 		&cli.StringFlag{
-			Name:    "address",
-			Aliases: []string{"a"},
-			EnvVars: []string{"BEEPER_BRIDGE_ADDRESS"},
-			Usage:   "Optionally, a https address where the Beeper server can push events.\nWhen omitted, the server will expect the bridge to connect with a websocket to receive events.",
-		},
-		&cli.StringFlag{
-			Name:    "listen",
-			Aliases: []string{"l"},
-			EnvVars: []string{"BEEPER_BRIDGE_LISTEN_ADDRESS"},
-			Usage:   "IP and port where the bridge should listen. Only relevant when address is specified.",
-		},
-		&cli.StringFlag{
 			Name:    "type",
 			Aliases: []string{"t"},
 			EnvVars: []string{"BEEPER_BRIDGE_TYPE"},
@@ -112,12 +100,6 @@ func generateBridgeConfig(ctx *cli.Context) error {
 	if err != nil {
 		return err
 	}
-	isWebsocket := ctx.String("address") == ""
-	if !isWebsocket && ctx.String("listen") == "" {
-		return UserError{"Both --listen and --address must be provided when not using websocket mode"}
-	} else if isWebsocket && !websocketBridges[bridgeType] {
-		return UserError{fmt.Sprintf("%s doesn't support websockets yet, please provide --address and --listen", bridgeType)}
-	}
 	extraParamAsker := askParams[bridgeType]
 	extraParams := make(map[string]any)
 	for _, item := range ctx.StringSlice("param") {
@@ -137,21 +119,11 @@ func generateBridgeConfig(ctx *cli.Context) error {
 	if err != nil {
 		return err
 	}
-	var listenAddr string
-	var listenPort uint16
-	if !isWebsocket {
-		_, err = fmt.Sscanf(ctx.String("listen"), "%s:%d", &listenAddr, &listenPort)
-		if err != nil {
-			return fmt.Errorf("failed to parse listen address: %w", err)
-		}
-	}
 
 	cfg, err := bridgeconfig.Generate(bridgeType, bridgeconfig.Params{
 		HungryAddress: reg.HomeserverURL,
 		BeeperDomain:  ctx.String("homeserver"),
-		Websocket:     reg.Registration.URL == "websocket",
-		ListenAddr:    listenAddr,
-		ListenPort:    listenPort,
+		Websocket:     true,
 		AppserviceID:  reg.Registration.ID,
 		ASToken:       reg.Registration.AppToken,
 		HSToken:       reg.Registration.ServerToken,
@@ -179,10 +151,7 @@ func generateBridgeConfig(ctx *cli.Context) error {
 		}
 		installInstructions = fmt.Sprintf("https://docs.mau.fi/bridges/go/setup.html?bridge=%s#installation", bridgeType)
 	case "heisenbridge":
-		heisenHomeserverURL := reg.HomeserverURL
-		if reg.Registration.URL == "websocket" {
-			heisenHomeserverURL = strings.Replace(heisenHomeserverURL, "https://", "wss://", 1)
-		}
+		heisenHomeserverURL := strings.Replace(reg.HomeserverURL, "https://", "wss://", 1)
 		startupCommand = fmt.Sprintf("python -m heisenbridge -c %s -o %s %s", outputPath, reg.YourUserID, heisenHomeserverURL)
 		installInstructions = "https://github.com/beeper/bridge-manager/wiki/Heisenbridge"
 	}
