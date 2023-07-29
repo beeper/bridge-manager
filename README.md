@@ -31,6 +31,18 @@ support room.
      Windows is not supported natively, please use WSL.
 2. Log into your Beeper account with `bbctl login`.
 
+### Official bridges
+3. Run `bbctl run <name>` to run the bridge.
+   * `<name>`  should start with `sh-` and consist of a-z, 0-9 and -.
+   * If `<name>` contains the bridge type, it will be automatically detected.
+     Otherwise pass the type with `--type <type>`.
+   * Currently supported types: `discord`, `whatsapp`, `imessage`, `heisenbridge`, `gmessages`
+   * The bridge will be installed to `~/.local/share/bbctl`. You can change the
+     directory in the config file at `~/.config/bbctl.json`.
+4. For now, you'll have to configure the bridge by sending a DM to the bridge
+   bot. Configuring self-hosted bridges through the chat networks dialog will
+   be available in the future.
+
 ### 3rd party bridges
 3. Run `bbctl register -a <address> <name>` to generate an appservice
    registration file.
@@ -57,15 +69,3 @@ you want to automate fetching the homeserver URL.
 If you don't want a self-hosted bridge anymore, you can delete it using `bbctl delete <name>`.
 Deleting a bridge will permanently erase all traces of it from the Beeper servers
 (e.g. any rooms and ghost users it created).
-
-### Official bridges
-3. Run `bbctl run <name>` to run the bridge.
-   * `<name>`  should start with `sh-` and consist of a-z, 0-9 and -.
-   * If `<name>` contains the bridge type, it will be automatically detected.
-     Otherwise pass the type with `--type <type>`.
-   * Currently supported types: `discord`, `whatsapp`, `imessage`, `heisenbridge`, `gmessages`
-   * The bridge will be installed to `~/.local/share/bbctl`. You can change the
-     directory in the config file at `~/.config/bbctl.json`.
-4. For now, you'll have to configure the bridge by sending a DM to the bridge
-   bot. Configuring self-hosted bridges through the chat networks dialog will
-   be available in the future.
