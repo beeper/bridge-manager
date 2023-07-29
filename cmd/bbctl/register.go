@@ -67,8 +67,7 @@ type RegisterJSON struct {
 func doRegisterBridge(ctx *cli.Context, bridge, bridgeType string, onlyGet bool) (*RegisterJSON, error) {
 	homeserver := ctx.String("homeserver")
 	envConfig := GetEnvConfig(ctx)
-	accessToken := envConfig.AccessToken
-	whoami, err := beeperapi.Whoami(homeserver, accessToken)
+	whoami, err := beeperapi.Whoami(homeserver, envConfig.AccessToken)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get whoami: %w", err)
 	}

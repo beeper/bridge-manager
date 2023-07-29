@@ -41,7 +41,7 @@ func deleteBridge(ctx *cli.Context) error {
 	homeserver := ctx.String("homeserver")
 	accessToken := GetEnvConfig(ctx).AccessToken
 	if !ctx.Bool("force") {
-		whoami, err := beeperapi.Whoami(homeserver, accessToken)
+		whoami, err := getCachedWhoami(ctx)
 		if err != nil {
 			return fmt.Errorf("failed to get whoami: %w", err)
 		}

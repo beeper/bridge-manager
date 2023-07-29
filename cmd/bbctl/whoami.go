@@ -143,9 +143,22 @@ func formatBridge(name string, bridge beeperapi.WhoamiBridge, internal bool) str
 	return formatted
 }
 
+var cachedWhoami *beeperapi.RespWhoami
+
+func getCachedWhoami(ctx *cli.Context) (*beeperapi.RespWhoami, error) {
+	if cachedWhoami != nil {
+		return cachedWhoami, nil
+	}
+	resp, err := beeperapi.Whoami(ctx.String("homeserver"), GetEnvConfig(ctx).AccessToken)
+	if err != nil {
+		return nil, err
+	}
+	cachedWhoami = resp
+	return resp, nil
+}
+
 func whoamiFunction(ctx *cli.Context) error {
-	homeserver := ctx.String("homeserver")
-	whoami, err := beeperapi.Whoami(homeserver, GetEnvConfig(ctx).AccessToken)
+	whoami, err := getCachedWhoami(ctx)
 	if err != nil {
 		return fmt.Errorf("failed to get whoami: %w", err)
 	}
@@ -167,6 +180,7 @@ func whoamiFunction(ctx *cli.Context) error {
 			fmt.Printf("Noticed cluster ID changed from %s to %s and saved to config\n", oldID, whoami.UserInfo.BridgeClusterID)
 		}
 	}
+	homeserver := ctx.String("homeserver")
 	fmt.Printf("User ID: @%s:%s\n", color.GreenString(whoami.UserInfo.Username), coloredHomeserver(homeserver))
 	if whoami.UserInfo.Admin {
 		fmt.Printf("Admin: %s\n", color.RedString("true"))

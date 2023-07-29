@@ -12,7 +12,6 @@ import (
 	"maunium.net/go/mautrix"
 	"maunium.net/go/mautrix/id"
 
-	"github.com/beeper/bridge-manager/api/beeperapi"
 	"github.com/beeper/bridge-manager/api/hungryapi"
 )
 
@@ -83,7 +82,7 @@ func prepareApp(ctx *cli.Context) error {
 	ctx.Context = context.WithValue(ctx.Context, contextKeyEnvConfig, envConfig)
 	if envConfig.HasCredentials() {
 		if envConfig.HungryAddress == "" {
-			whoami, err := beeperapi.Whoami(homeserver, envConfig.AccessToken)
+			whoami, err := getCachedWhoami(ctx)
 			if err != nil {
 				return fmt.Errorf("failed to get whoami: %w", err)
 			}
