@@ -57,13 +57,13 @@ Deleting a bridge will permanently erase all traces of it from the Beeper server
 (e.g. any rooms and ghost users it created).
 
 ### Official bridges
-3. Run `bbctl config <name>` to generate a config file.
+3. Run `bbctl run <name>` to run the bridge.
    * `<name>`  should start with `sh-` and consist of a-z, 0-9 and -.
    * If `<name>` contains the bridge type, it will be automatically detected.
      Otherwise pass the type with `--type <type>`.
    * Currently supported types: `discord`, `whatsapp`, `imessage`, `heisenbridge`, `gmessages`
-4. Install the bridge software, then run the command that `bbctl config`
-   outputs to start the bridge.
-5. For now, you'll have to configure the bridge by sending a DM to the bridge
+   * The bridge will be installed to `~/.local/share/bbctl`. You can change the
+     directory in the config file at `~/.config/bbctl.json`.
+4. For now, you'll have to configure the bridge by sending a DM to the bridge
    bot. Configuring self-hosted bridges through the chat networks dialog will
    be available in the future.
