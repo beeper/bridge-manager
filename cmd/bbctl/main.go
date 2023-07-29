@@ -147,6 +147,7 @@ var app = &cli.App{
 		deleteCommand,
 		whoamiCommand,
 		configCommand,
+		runCommand,
 	},
 }
 
