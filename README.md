@@ -27,6 +27,8 @@ support room.
 ## Usage
 1. Build the binary with `./build.sh` (Go 1.19+ required) or download a binary
    from GitHub releases or actions.
+   * bbctl supports amd64 and arm64 on Linux and macOS.
+     Windows is not supported natively, please use WSL.
 2. Log into your Beeper account with `bbctl login`.
 
 ### 3rd party bridges

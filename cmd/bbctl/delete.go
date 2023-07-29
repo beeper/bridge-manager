@@ -1,13 +1,18 @@
 package main
 
 import (
+	"errors"
 	"fmt"
+	"io/fs"
+	"os"
+	"path/filepath"
 
 	"github.com/AlecAivazis/survey/v2"
 	"github.com/fatih/color"
 	"github.com/urfave/cli/v2"
 
 	"github.com/beeper/bridge-manager/api/beeperapi"
+	"github.com/beeper/bridge-manager/log"
 )
 
 var deleteCommand = &cli.Command{
@@ -67,5 +72,12 @@ func deleteBridge(ctx *cli.Context) error {
 		return fmt.Errorf("error deleting bridge: %w", err)
 	}
 	fmt.Println("Started deleting bridge")
+	bridgeDir := filepath.Join(GetEnvConfig(ctx).BridgeDataDir, bridge)
+	err = os.RemoveAll(bridgeDir)
+	if err != nil && !errors.Is(err, fs.ErrNotExist) {
+		log.Printf("Failed to delete [magenta]%s[reset]: [red]%v[reset]", bridgeDir, err)
+	} else {
+		log.Printf("Deleted local bridge data from [magenta]%s[reset]", bridgeDir)
+	}
 	return nil
 }
