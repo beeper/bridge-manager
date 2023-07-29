@@ -146,7 +146,7 @@ func DownloadMautrixBridgeBinary(ctx context.Context, bridge, path string, noUpd
 	} else {
 		log.Printf("Updating [cyan]%s[reset] (diff: %s)", fileName, linkifyDiff(repo, currentCommit, build.Commit))
 	}
-	file, err := os.CreateTemp("", "bbctl-"+fileName+"-*")
+	file, err := os.CreateTemp(filepath.Dir(path), "tmp-"+fileName+"-*")
 	if err != nil {
 		return fmt.Errorf("failed to open temp file: %w", err)
 	}
