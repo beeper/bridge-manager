@@ -94,6 +94,10 @@ func getJobFromBridge(bridge string) (string, error) {
 				return "", fmt.Errorf("mautrix-signal does not support 32-bit arm")
 			}
 			return "build arm", nil
+		case "darwin/arm64":
+			return "build macos arm64", nil
+		case "darwin/amd64":
+			return "build macos amd64", nil
 		default:
 			return "", fmt.Errorf("binaries for %s are not yet built in the CI", osAndArch)
 		}
