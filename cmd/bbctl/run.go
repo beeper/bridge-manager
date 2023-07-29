@@ -89,6 +89,40 @@ func updateGoBridge(ctx context.Context, binaryPath, bridgeType string, noUpdate
 	return gitlab.DownloadMautrixBridgeBinary(ctx, bridgeType, binaryPath, noUpdate, "", currentVersion.Commit)
 }
 
+func setupPythonVenv(ctx context.Context, bridgeDir, bridgeType string) error {
+	var installPackage string
+	switch bridgeType {
+	case "heisenbridge":
+		installPackage = "heisenbridge"
+	case "telegram", "facebook", "googlechat", "instagram", "twitter":
+		installPackage = fmt.Sprintf("mautrix-%s[all]", bridgeType)
+	default:
+		return fmt.Errorf("unknown python bridge type %s", bridgeType)
+	}
+	venvPath := filepath.Join(bridgeDir, "venv")
+	log.Printf("Creating Python virtualenv at [magenta]%s[reset]", venvPath)
+	err := makeCmd(ctx, bridgeDir, "python3", "-m", "venv", venvPath).Run()
+	if err != nil {
+		return fmt.Errorf("failed to create venv: %w", err)
+	}
+	log.Printf("Installing [cyan]%s[reset] into virtualenv", installPackage)
+	pipPath := filepath.Join(venvPath, "bin", "pip3")
+	err = makeCmd(ctx, bridgeDir, pipPath, "install", "--upgrade", installPackage).Run()
+	if err != nil {
+		return fmt.Errorf("failed to install package: %w", err)
+	}
+	log.Printf("[green]Installation complete[reset]")
+	return nil
+}
+
+func makeCmd(ctx context.Context, pwd, path string, args ...string) *exec.Cmd {
+	cmd := exec.CommandContext(ctx, path, args...)
+	cmd.Dir = pwd
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	return cmd
+}
+
 func runBridge(ctx *cli.Context) error {
 	if ctx.NArg() == 0 {
 		return UserError{"You must specify a bridge to run"}
@@ -127,19 +161,22 @@ func runBridge(ctx *cli.Context) error {
 			}
 		}
 	case "heisenbridge":
-		// TODO create python venv and install heisenbridge
+		if overrideBridgeCmd == "" {
+			err = setupPythonVenv(ctx.Context, bridgeDir, cfg.BridgeType)
+			if err != nil {
+				return fmt.Errorf("failed to update bridge: %w", err)
+			}
+		}
 		heisenHomeserverURL := strings.Replace(cfg.HomeserverURL, "https://", "wss://", 1)
-		bridgeCmd = filepath.Join(bridgeDir, "venv", "bin", "python")
+		bridgeCmd = filepath.Join(bridgeDir, "venv", "bin", "python3")
 		bridgeArgs = []string{"-m", "heisenbridge", "-c", "config.yaml", "-o", cfg.YourUserID.String(), heisenHomeserverURL}
 	}
 	if overrideBridgeCmd != "" {
 		bridgeCmd = overrideBridgeCmd
 	}
 
-	cmd := exec.CommandContext(ctx.Context, bridgeCmd, bridgeArgs...)
-	cmd.Dir = bridgeDir
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
+	cmd := makeCmd(ctx.Context, bridgeDir, bridgeCmd, bridgeArgs...)
+	log.Printf("Starting [cyan]%s[reset]", cfg.BridgeType)
 	err = cmd.Run()
 	if err != nil {
 		return err
