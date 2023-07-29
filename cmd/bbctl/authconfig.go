@@ -97,6 +97,10 @@ func loadConfig(path string) (ret *Config, err error) {
 			}
 			if env.BridgeDataDir == "" {
 				env.BridgeDataDir = filepath.Join(UserDataDir, "bbctl", key)
+				saveErr := ret.Save()
+				if saveErr != nil {
+					err = fmt.Errorf("failed to save config after updating data directory: %w", err)
+				}
 			}
 		}
 	}()
