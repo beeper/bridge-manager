@@ -74,7 +74,12 @@ type VersionJSONOutput struct {
 func updateGoBridge(ctx context.Context, binaryPath, bridgeType string, noUpdate bool) error {
 	var currentVersion VersionJSONOutput
 
-	if _, err := os.Stat(binaryPath); err == nil || !errors.Is(err, fs.ErrNotExist) {
+	err := os.MkdirAll(filepath.Dir(binaryPath), 0700)
+	if err != nil {
+		return err
+	}
+
+	if _, err = os.Stat(binaryPath); err == nil || !errors.Is(err, fs.ErrNotExist) {
 		if currentVersionBytes, err := exec.Command(binaryPath, "--version-json").Output(); err != nil {
 			log.Printf("Failed to get current bridge version: [red]%v[reset] - reinstalling", err)
 		} else if err = json.Unmarshal(currentVersionBytes, &currentVersion); err != nil {
@@ -97,7 +102,8 @@ func runBridge(ctx *cli.Context) error {
 		return err
 	}
 
-	bridgeDir := filepath.Join(GetEnvConfig(ctx).BridgeDataDir, bridgeName)
+	dataDir := GetEnvConfig(ctx).BridgeDataDir
+	bridgeDir := filepath.Join(dataDir, bridgeName)
 	err = os.MkdirAll(bridgeDir, 0700)
 	if err != nil {
 		return err
@@ -113,7 +119,7 @@ func runBridge(ctx *cli.Context) error {
 	var bridgeArgs []string
 	switch cfg.BridgeType {
 	case "imessage", "whatsapp", "discord", "slack", "gmessages":
-		bridgeCmd = filepath.Join(bridgeDir, fmt.Sprintf("mautrix-%s", cfg.BridgeType))
+		bridgeCmd = filepath.Join(dataDir, "binaries", fmt.Sprintf("mautrix-%s", cfg.BridgeType))
 		if overrideBridgeCmd == "" {
 			err = updateGoBridge(ctx.Context, bridgeCmd, cfg.BridgeType, ctx.Bool("no-update"))
 			if err != nil {
