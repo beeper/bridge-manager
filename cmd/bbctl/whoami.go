@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"regexp"
 	"sort"
+	"strings"
 
 	"github.com/fatih/color"
 	"github.com/urfave/cli/v2"
@@ -133,7 +134,11 @@ func formatBridge(name string, bridge beeperapi.WhoamiBridge, internal bool) str
 		formatted += fmt.Sprintf(" (version: %s)", versionString)
 	}
 	if bridge.BridgeState.IsSelfHosted {
-		formatted += fmt.Sprintf(" (%s)", color.HiGreenString("self-hosted"))
+		var typeName string
+		if !strings.Contains(name, bridge.BridgeState.BridgeType) {
+			typeName = bridge.BridgeState.BridgeType + ", "
+		}
+		formatted += fmt.Sprintf(" (%s%s)", typeName, color.HiGreenString("self-hosted"))
 	}
 	formatted += fmt.Sprintf(" - %s", coloredBridgeState(bridge.BridgeState.StateEvent))
 	remotes := formatBridgeRemotes(name, bridge)
