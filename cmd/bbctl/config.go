@@ -98,9 +98,20 @@ func doGenerateBridgeConfig(ctx *cli.Context, bridge string) (*generatedBridgeCo
 	if err := validateBridgeName(ctx, bridge); err != nil {
 		return nil, err
 	}
-	bridgeType, err := guessOrAskBridgeType(bridge, ctx.String("type"))
+
+	whoami, err := getCachedWhoami(ctx)
 	if err != nil {
 		return nil, err
+	}
+	existingBridge, ok := whoami.User.Bridges[bridge]
+	var bridgeType string
+	if ok && existingBridge.BridgeState.BridgeType != "" {
+		bridgeType = existingBridge.BridgeState.BridgeType
+	} else {
+		bridgeType, err = guessOrAskBridgeType(bridge, ctx.String("type"))
+		if err != nil {
+			return nil, err
+		}
 	}
 	extraParamAsker := askParams[bridgeType]
 	extraParams := make(map[string]string)

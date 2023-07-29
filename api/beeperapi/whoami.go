@@ -23,6 +23,7 @@ type BridgeState struct {
 	Reason       string                  `json:"reason"`
 	Info         map[string]any          `json:"info"`
 	IsSelfHosted bool                    `json:"isSelfHosted"`
+	BridgeType   string                  `json:"bridgeType"`
 }
 
 type WhoamiBridge struct {
