@@ -25,11 +25,16 @@ support room.
 [#self-hosting:beeper.com]: https://matrix.to/#/#self-hosting:beeper.com
 
 ## Usage
-1. Build the binary with `./build.sh` (Go 1.19+ required) or download a binary
-   from GitHub releases or actions.
+1. Download the latest binary from [GitHub releases](https://github.com/beeper/bridge-manager/releases)
+   or [actions](https://nightly.link/beeper/bridge-manager/workflows/go.yaml/main).
+   * Alternatively, you can build it yourself by cloning the repo and running
+     `./build.sh`. Building requires Go 1.19 or higher.
    * bbctl supports amd64 and arm64 on Linux and macOS.
      Windows is not supported natively, please use WSL.
 2. Log into your Beeper account with `bbctl login`.
+
+Then continue with one of the sections below, depending on whether you want to
+run an official Beeper bridge or a 3rd party bridge.
 
 ### Official bridges
 3. Run `bbctl run <name>` to run the bridge.
@@ -41,7 +46,9 @@ support room.
      directory in the config file at `~/.config/bbctl.json`.
 4. For now, you'll have to configure the bridge by sending a DM to the bridge
    bot. Configuring self-hosted bridges through the chat networks dialog will
-   be available in the future.
+   be available in the future. Spaces and starting chats are also not yet
+   available, although you can start chats using the `pm` command with the
+   bridge bot.
 
 ### 3rd party bridges
 3. Run `bbctl register -a <address> <name>` to generate an appservice
@@ -66,6 +73,9 @@ You can use `--json` with `register` to get the whole response as JSON instead
 of registration YAML and pretty-printed extra details. This may be useful if
 you want to automate fetching the homeserver URL.
 
-If you don't want a self-hosted bridge anymore, you can delete it using `bbctl delete <name>`.
-Deleting a bridge will permanently erase all traces of it from the Beeper servers
-(e.g. any rooms and ghost users it created).
+### Deleting bridges
+If you don't want a self-hosted bridge anymore, you can delete it using
+`bbctl delete <name>`. Deleting a bridge will permanently erase all traces of
+it from the Beeper servers (e.g. any rooms and ghost users it created).
+For official bridges, it will also delete the local data directory with the
+bridge config, database and python virtualenv (if applicable).
