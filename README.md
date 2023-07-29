@@ -30,7 +30,7 @@ support room.
 2. Log into your Beeper account with `bbctl login`.
 
 ### 3rd party bridges
-3. Run `bbctl bridge register -a <address> <name>` to generate an appservice
+3. Run `bbctl register -a <address> <name>` to generate an appservice
    registration file.
    * `<address>` should be a publicly reachable https address where the Beeper
      server will push new events.
@@ -40,19 +40,19 @@ support room.
 4. Now you can configure and run the bridge by following the bridge's own
    documentation.
 
-Note that the homeserver URL may change if the node your hungryserv is running
-on dies. In general, that shouldn't happen, but it's not impossible.
+Note that the homeserver URL may change if you're moved to a different cluster.
+In general, that shouldn't happen, but it's not impossible.
 
-If you want to get the registration again later, you can use `get` instead of
-`register`. Just re-running `register` is allowed too, but you need to provide
-the address again if you do that (which also means if you want to change the
-address, just re-run register with the new address).
+If you want to get the registration again later, you can add the `--get` flag.
+Just re-running `register` is allowed too, but you need to provide the address
+again if you do that (which also means if you want to change the address, just
+re-run register with the new address).
 
-You can use `--json` with `register` and `get` to get the whole response as
-JSON instead of registration YAML and pretty-printed extra details. This may be
-useful if you want to automate fetching the homeserver URL.
+You can use `--json` with `register` to get the whole response as JSON instead
+of registration YAML and pretty-printed extra details. This may be useful if
+you want to automate fetching the homeserver URL.
 
-If you don't want a self-hosted bridge anymore, you can delete it using `bbctl bridge delete <name>`.
+If you don't want a self-hosted bridge anymore, you can delete it using `bbctl delete <name>`.
 Deleting a bridge will permanently erase all traces of it from the Beeper servers
 (e.g. any rooms and ghost users it created).
 
