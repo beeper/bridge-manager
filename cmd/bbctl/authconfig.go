@@ -120,6 +120,11 @@ func loadConfig(path string) (ret *Config, err error) {
 }
 
 func (cfg *Config) Save() error {
+	dirName := filepath.Dir(cfg.Path)
+	err := os.MkdirAll(dirName, 0700)
+	if err != nil {
+		return fmt.Errorf("failed to create config directory at %s: %w", dirName, err)
+	}
 	file, err := os.OpenFile(cfg.Path, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0600)
 	if err != nil {
 		return fmt.Errorf("failed to open config at %s for writing: %v", cfg.Path, err)
