@@ -8,8 +8,11 @@ import (
 	"io/fs"
 	"os"
 	"os/exec"
+	"os/signal"
 	"path/filepath"
 	"strings"
+	"syscall"
+	"time"
 
 	"github.com/urfave/cli/v2"
 
@@ -177,6 +180,29 @@ func runBridge(ctx *cli.Context) error {
 
 	cmd := makeCmd(ctx.Context, bridgeDir, bridgeCmd, bridgeArgs...)
 	log.Printf("Starting [cyan]%s[reset]", cfg.BridgeType)
+
+	c := make(chan os.Signal, 1)
+	signal.Notify(c, os.Interrupt, syscall.SIGTERM)
+
+	go func() {
+		<-c
+		log.Printf("Shutting down [cyan]%s[reset]", cfg.BridgeType)
+		proc := cmd.Process
+		if proc != nil {
+			err := proc.Signal(syscall.SIGTERM)
+			if err != nil {
+				log.Printf("Failed to send SIGTERM to bridge: %v", err)
+			}
+		}
+		time.Sleep(3 * time.Second)
+		log.Printf("Killing process")
+		err := proc.Kill()
+		if err != nil {
+			log.Printf("Failed to kill bridge: %v", err)
+		}
+		os.Exit(1)
+	}()
+
 	err = cmd.Run()
 	if err != nil {
 		return err
