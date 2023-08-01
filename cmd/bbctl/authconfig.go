@@ -5,12 +5,15 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"path"
 	"path/filepath"
 	"runtime"
 	"strings"
 
 	"maunium.net/go/mautrix/id"
 	"maunium.net/go/mautrix/util"
+
+	"github.com/beeper/bridge-manager/log"
 )
 
 var envs = map[string]string{
@@ -78,6 +81,27 @@ func init() {
 	}
 }
 
+func migrateOldConfig(currentPath string) error {
+	baseConfigDir, err := os.UserConfigDir()
+	if err != nil {
+		panic(err)
+	}
+	newDefault := path.Join(baseConfigDir, "bbctl", "bbctl.json")
+	oldDefault := path.Join(baseConfigDir, "bbctl.json")
+	if currentPath != newDefault {
+		return nil
+	} else if _, err = os.Stat(oldDefault); err != nil {
+		return nil
+	} else if err = os.MkdirAll(filepath.Dir(newDefault), 0700); err != nil {
+		return err
+	} else if err = os.Rename(oldDefault, newDefault); err != nil {
+		return err
+	} else {
+		log.Printf("Moved config to new path (from %s to %s)", oldDefault, newDefault)
+		return nil
+	}
+}
+
 func loadConfig(path string) (ret *Config, err error) {
 	defer func() {
 		if ret == nil {
@@ -105,6 +129,10 @@ func loadConfig(path string) (ret *Config, err error) {
 		}
 	}()
 
+	err = migrateOldConfig(path)
+	if err != nil {
+		return nil, fmt.Errorf("failed to move config to new path: %w", err)
+	}
 	file, err := os.Open(path)
 	if errors.Is(err, os.ErrNotExist) {
 		return &Config{}, nil

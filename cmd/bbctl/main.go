@@ -62,7 +62,7 @@ func getDefaultConfigPath() string {
 	if err != nil {
 		panic(err)
 	}
-	return path.Join(baseConfigDir, "bbctl.json")
+	return path.Join(baseConfigDir, "bbctl", "bbctl.json")
 }
 
 func prepareApp(ctx *cli.Context) error {
