@@ -128,6 +128,7 @@ func makeCmd(ctx context.Context, pwd, path string, args ...string) *exec.Cmd {
 	cmd.Dir = pwd
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
+	cmd.Stdin = os.Stdin
 	return cmd
 }
 
