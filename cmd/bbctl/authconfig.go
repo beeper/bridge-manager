@@ -86,7 +86,7 @@ func migrateOldConfig(currentPath string) error {
 	if err != nil {
 		panic(err)
 	}
-	newDefault := path.Join(baseConfigDir, "bbctl", "bbctl.json")
+	newDefault := path.Join(baseConfigDir, "bbctl", "config.json")
 	oldDefault := path.Join(baseConfigDir, "bbctl.json")
 	if currentPath != newDefault {
 		return nil
