@@ -45,6 +45,11 @@ var configCommand = &cli.Command{
 			Usage:   "Force register a bridge without the sh- prefix (dangerous).",
 			Hidden:  true,
 		},
+		&cli.BoolFlag{
+			Name:   "no-state",
+			Usage:  "Don't send a bridge state update (dangerous).",
+			Hidden: true,
+		},
 	},
 	Action: generateBridgeConfig,
 }

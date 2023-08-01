@@ -54,6 +54,11 @@ var registerCommand = &cli.Command{
 			Usage:   "Force register a bridge without the sh- prefix (dangerous).",
 			Hidden:  true,
 		},
+		&cli.BoolFlag{
+			Name:   "no-state",
+			Usage:  "Don't send a bridge state update (dangerous).",
+			Hidden: true,
+		},
 	},
 }
 
@@ -110,14 +115,16 @@ func doRegisterBridge(ctx *cli.Context, bridge, bridgeType string, onlyGet bool)
 		state = status.StateStarting
 	}
 
-	err = beeperapi.PostBridgeState(ctx.String("homeserver"), GetEnvConfig(ctx).Username, bridge, resp.AppToken, beeperapi.ReqPostBridgeState{
-		StateEvent:   state,
-		Reason:       "SELF_HOST_REGISTERED",
-		IsSelfHosted: true,
-		BridgeType:   bridgeType,
-	})
-	if err != nil {
-		return nil, fmt.Errorf("failed to mark bridge as RUNNING: %w", err)
+	if !ctx.Bool("no-state") {
+		err = beeperapi.PostBridgeState(ctx.String("homeserver"), GetEnvConfig(ctx).Username, bridge, resp.AppToken, beeperapi.ReqPostBridgeState{
+			StateEvent:   state,
+			Reason:       "SELF_HOST_REGISTERED",
+			IsSelfHosted: true,
+			BridgeType:   bridgeType,
+		})
+		if err != nil {
+			return nil, fmt.Errorf("failed to mark bridge as RUNNING: %w", err)
+		}
 	}
 	output := &RegisterJSON{
 		Registration:     &resp,
