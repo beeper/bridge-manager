@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"os"
+	"path/filepath"
 	"strings"
 
 	"github.com/AlecAivazis/survey/v2"
@@ -149,16 +150,21 @@ func doGenerateBridgeConfig(ctx *cli.Context, bridge string) (*generatedBridgeCo
 		return nil, err
 	}
 
+	dbPrefix := GetEnvConfig(ctx).DatabaseDir
+	if dbPrefix != "" {
+		dbPrefix = filepath.Join(dbPrefix, bridge+"-")
+	}
 	cfg, err := bridgeconfig.Generate(bridgeType, bridgeconfig.Params{
-		HungryAddress: reg.HomeserverURL,
-		BeeperDomain:  ctx.String("homeserver"),
-		Websocket:     true,
-		AppserviceID:  reg.Registration.ID,
-		ASToken:       reg.Registration.AppToken,
-		HSToken:       reg.Registration.ServerToken,
-		BridgeName:    bridge,
-		UserID:        reg.YourUserID,
-		Params:        extraParams,
+		HungryAddress:  reg.HomeserverURL,
+		BeeperDomain:   ctx.String("homeserver"),
+		Websocket:      true,
+		AppserviceID:   reg.Registration.ID,
+		ASToken:        reg.Registration.AppToken,
+		HSToken:        reg.Registration.ServerToken,
+		BridgeName:     bridge,
+		UserID:         reg.YourUserID,
+		Params:         extraParams,
+		DatabasePrefix: dbPrefix,
 	})
 	return &generatedBridgeConfig{
 		BridgeType:   bridgeType,
