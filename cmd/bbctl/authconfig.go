@@ -32,7 +32,7 @@ type EnvConfig struct {
 }
 
 func (ec *EnvConfig) HasCredentials() bool {
-	return ec.Username != "" && ec.ClusterID != "" && strings.HasPrefix(ec.AccessToken, "syt_")
+	return strings.HasPrefix(ec.AccessToken, "syt_")
 }
 
 type EnvConfigs map[string]*EnvConfig

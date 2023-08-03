@@ -13,6 +13,7 @@ import (
 	"maunium.net/go/mautrix/id"
 
 	"github.com/beeper/bridge-manager/api/hungryapi"
+	"github.com/beeper/bridge-manager/log"
 )
 
 type UserError struct {
@@ -81,12 +82,19 @@ func prepareApp(ctx *cli.Context) error {
 	ctx.Context = context.WithValue(ctx.Context, contextKeyConfig, cfg)
 	ctx.Context = context.WithValue(ctx.Context, contextKeyEnvConfig, envConfig)
 	if envConfig.HasCredentials() {
-		if envConfig.HungryAddress == "" {
+		if envConfig.HungryAddress == "" || envConfig.ClusterID == "" || envConfig.Username == "" {
+			log.Printf("Fetching whoami to fill missing env config details")
 			whoami, err := getCachedWhoami(ctx)
 			if err != nil {
 				return fmt.Errorf("failed to get whoami: %w", err)
 			}
-			SaveHungryURL(ctx, whoami.UserInfo.HungryURL)
+			envConfig.Username = whoami.UserInfo.Username
+			envConfig.ClusterID = whoami.UserInfo.BridgeClusterID
+			envConfig.HungryAddress = whoami.UserInfo.HungryURL
+			err = cfg.Save()
+			if err != nil {
+				_, _ = fmt.Fprintln(os.Stderr, color.RedString("Failed to save config: "+err.Error()))
+			}
 		}
 		homeserver := ctx.String("homeserver")
 		ctx.Context = context.WithValue(ctx.Context, contextKeyMatrixClient, NewMatrixAPI(homeserver, envConfig.Username, envConfig.AccessToken))
