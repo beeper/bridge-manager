@@ -86,7 +86,6 @@ func doMatrixLogin(ctx *cli.Context, req *mautrix.ReqLogin, whoami *beeperapi.Re
 			return fmt.Errorf("failed to get user details: %w", err)
 		}
 	}
-	fmt.Printf("Found own bridge cluster ID: %s\n", whoami.UserInfo.BridgeClusterID)
 	envCfg := GetEnvConfig(ctx)
 	envCfg.ClusterID = whoami.UserInfo.BridgeClusterID
 	envCfg.Username = whoami.UserInfo.Username

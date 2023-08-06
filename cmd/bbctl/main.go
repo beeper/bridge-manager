@@ -84,16 +84,9 @@ func prepareApp(ctx *cli.Context) error {
 	if envConfig.HasCredentials() {
 		if envConfig.HungryAddress == "" || envConfig.ClusterID == "" || envConfig.Username == "" {
 			log.Printf("Fetching whoami to fill missing env config details")
-			whoami, err := getCachedWhoami(ctx)
+			_, err = getCachedWhoami(ctx)
 			if err != nil {
 				return fmt.Errorf("failed to get whoami: %w", err)
-			}
-			envConfig.Username = whoami.UserInfo.Username
-			envConfig.ClusterID = whoami.UserInfo.BridgeClusterID
-			envConfig.HungryAddress = whoami.UserInfo.HungryURL
-			err = cfg.Save()
-			if err != nil {
-				_, _ = fmt.Fprintln(os.Stderr, color.RedString("Failed to save config: "+err.Error()))
 			}
 		}
 		homeserver := ctx.String("homeserver")

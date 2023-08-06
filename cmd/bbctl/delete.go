@@ -50,7 +50,6 @@ func deleteBridge(ctx *cli.Context) error {
 		if err != nil {
 			return fmt.Errorf("failed to get whoami: %w", err)
 		}
-		SaveHungryURL(ctx, whoami.UserInfo.HungryURL)
 		bridgeInfo, ok := whoami.User.Bridges[bridge]
 		if !ok {
 			return UserError{fmt.Sprintf("You don't have a %s bridge.", color.CyanString(bridge))}

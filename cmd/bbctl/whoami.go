@@ -14,6 +14,7 @@ import (
 
 	"github.com/beeper/bridge-manager/api/beeperapi"
 	"github.com/beeper/bridge-manager/cli/hyper"
+	"github.com/beeper/bridge-manager/log"
 )
 
 var whoamiCommand = &cli.Command{
@@ -154,9 +155,29 @@ func getCachedWhoami(ctx *cli.Context) (*beeperapi.RespWhoami, error) {
 	if cachedWhoami != nil {
 		return cachedWhoami, nil
 	}
-	resp, err := beeperapi.Whoami(ctx.String("homeserver"), GetEnvConfig(ctx).AccessToken)
+	ec := GetEnvConfig(ctx)
+	resp, err := beeperapi.Whoami(ctx.String("homeserver"), ec.AccessToken)
 	if err != nil {
 		return nil, err
+	}
+	changed := false
+	if ec.Username != resp.UserInfo.Username {
+		ec.Username = resp.UserInfo.Username
+		changed = true
+	}
+	if ec.ClusterID != resp.UserInfo.BridgeClusterID {
+		ec.ClusterID = resp.UserInfo.BridgeClusterID
+		changed = true
+	}
+	if ec.HungryAddress != resp.UserInfo.HungryURL {
+		ec.HungryAddress = resp.UserInfo.HungryURL
+		changed = true
+	}
+	if changed {
+		err = GetConfig(ctx).Save()
+		if err != nil {
+			log.Printf("Failed to save config after updating: %v", err)
+		}
 	}
 	cachedWhoami = resp
 	return resp, nil
@@ -167,7 +188,6 @@ func whoamiFunction(ctx *cli.Context) error {
 	if err != nil {
 		return fmt.Errorf("failed to get whoami: %w", err)
 	}
-	SaveHungryURL(ctx, whoami.UserInfo.HungryURL)
 	if ctx.Bool("raw") {
 		data, err := json.MarshalIndent(whoami, "", "  ")
 		if err != nil {

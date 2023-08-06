@@ -70,13 +70,10 @@ type RegisterJSON struct {
 }
 
 func doRegisterBridge(ctx *cli.Context, bridge, bridgeType string, onlyGet bool) (*RegisterJSON, error) {
-	homeserver := ctx.String("homeserver")
-	envConfig := GetEnvConfig(ctx)
-	whoami, err := beeperapi.Whoami(homeserver, envConfig.AccessToken)
+	whoami, err := getCachedWhoami(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get whoami: %w", err)
 	}
-	SaveHungryURL(ctx, whoami.UserInfo.HungryURL)
 	bridgeInfo, ok := whoami.User.Bridges[bridge]
 	if ok && !bridgeInfo.BridgeState.IsSelfHosted && !ctx.Bool("force") {
 		return nil, UserError{fmt.Sprintf("Your %s bridge is not self-hosted.", color.CyanString(bridge))}
