@@ -113,10 +113,66 @@ func linkifyDiff(repo, fromCommit, toCommit string) string {
 	return hyper.Link(formattedDiff, fmt.Sprintf("https://github.com/%s/compare/%s...%s", repo, fromCommit, toCommit), false)
 }
 
+func makeArtifactURL(domain, jobURL, fileName string) string {
+	return (&url.URL{
+		Scheme: "https",
+		Host:   domain,
+		Path:   filepath.Join(jobURL, "artifacts", "raw", fileName),
+	}).String()
+}
+
+func downloadFile(ctx context.Context, artifactURL, path string) error {
+	fileName := filepath.Base(path)
+	file, err := os.CreateTemp(filepath.Dir(path), "tmp-"+fileName+"-*")
+	if err != nil {
+		return fmt.Errorf("failed to open temp file: %w", err)
+	}
+	defer func() {
+		_ = file.Close()
+		_ = os.Remove(file.Name())
+	}()
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, artifactURL, nil)
+	if err != nil {
+		return fmt.Errorf("failed to prepare download request: %w", err)
+	}
+	resp, err := noTimeoutCli.Do(req)
+	if err != nil {
+		return fmt.Errorf("failed to download artifact: %w", err)
+	}
+	defer resp.Body.Close()
+	bar := progressbar.DefaultBytes(
+		resp.ContentLength,
+		fmt.Sprintf("Downloading %s", color.CyanString(fileName)),
+	)
+	_, err = io.Copy(io.MultiWriter(file, bar), resp.Body)
+	if err != nil {
+		return fmt.Errorf("failed to write file: %w", err)
+	}
+	_ = file.Close()
+	err = os.Rename(file.Name(), path)
+	if err != nil {
+		return fmt.Errorf("failed to move temp file: %w", err)
+	}
+	err = os.Chmod(path, 0755)
+	if err != nil {
+		return fmt.Errorf("failed to chmod binary: %w", err)
+	}
+	return nil
+}
+
+func needsLibolmDylib(bridge string) bool {
+	switch bridge {
+	case "imessage", "whatsapp", "discord", "slack", "gmessages":
+		return runtime.GOOS == "darwin"
+	default:
+		return false
+	}
+}
+
 func DownloadMautrixBridgeBinary(ctx context.Context, bridge, path string, noUpdate bool, branchOverride, currentCommit string) error {
 	domain := "mau.dev"
 	repo := fmt.Sprintf("mautrix/%s", bridge)
-	fileName := fmt.Sprintf("mautrix-%s", bridge)
+	fileName := filepath.Base(path)
 	ref, err := getRefFromBridge(bridge)
 	if err != nil {
 		return err
@@ -150,45 +206,22 @@ func DownloadMautrixBridgeBinary(ctx context.Context, bridge, path string, noUpd
 	} else {
 		log.Printf("Updating [cyan]%s[reset] (diff: %s)", fileName, linkifyDiff(repo, currentCommit, build.Commit))
 	}
-	file, err := os.CreateTemp(filepath.Dir(path), "tmp-"+fileName+"-*")
+	artifactURL := makeArtifactURL(domain, build.JobURL, fileName)
+	err = downloadFile(ctx, artifactURL, path)
 	if err != nil {
-		return fmt.Errorf("failed to open temp file: %w", err)
+		return err
 	}
-	defer func() {
-		_ = file.Close()
-		_ = os.Remove(file.Name())
-	}()
-	artifactURL := (&url.URL{
-		Scheme: "https",
-		Host:   domain,
-		Path:   filepath.Join(build.JobURL, "artifacts", "raw", fileName),
-	}).String()
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, artifactURL, nil)
-	if err != nil {
-		return fmt.Errorf("failed to prepare download request: %w", err)
+	if needsLibolmDylib(bridge) {
+		libolmPath := filepath.Join(filepath.Dir(path), "libolm.3.dylib")
+		// TODO redownload libolm if it's outdated?
+		if _, err = os.Stat(libolmPath); err != nil {
+			err = downloadFile(ctx, makeArtifactURL(domain, build.JobURL, "libolm.3.dylib"), libolmPath)
+			if err != nil {
+				return fmt.Errorf("failed to download libolm: %w", err)
+			}
+		}
 	}
-	resp, err := noTimeoutCli.Do(req)
-	if err != nil {
-		return fmt.Errorf("failed to download artifact: %w", err)
-	}
-	defer resp.Body.Close()
-	bar := progressbar.DefaultBytes(
-		resp.ContentLength,
-		fmt.Sprintf("Downloading %s", color.CyanString(fileName)),
-	)
-	_, err = io.Copy(io.MultiWriter(file, bar), resp.Body)
-	if err != nil {
-		return fmt.Errorf("failed to write file: %w", err)
-	}
-	_ = file.Close()
-	err = os.Rename(file.Name(), path)
-	if err != nil {
-		return fmt.Errorf("failed to move temp file: %w", err)
-	}
-	err = os.Chmod(path, 0755)
-	if err != nil {
-		return fmt.Errorf("failed to chmod binary: %w", err)
-	}
+
 	log.Printf("Successfully installed [cyan]%s[reset] commit %s", fileName, linkifyCommit(domain, build.Commit))
 	return nil
 }
