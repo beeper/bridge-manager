@@ -167,7 +167,7 @@ func DownloadMautrixBridgeBinary(ctx context.Context, bridge, path string, noUpd
 	if err != nil {
 		return fmt.Errorf("failed to prepare download request: %w", err)
 	}
-	resp, err := cli.Do(req)
+	resp, err := noTimeoutCli.Do(req)
 	if err != nil {
 		return fmt.Errorf("failed to download artifact: %w", err)
 	}

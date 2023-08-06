@@ -12,6 +12,7 @@ import (
 	"maunium.net/go/mautrix"
 )
 
+var noTimeoutCli = &http.Client{}
 var cli = &http.Client{Timeout: 30 * time.Second}
 
 type queryRequestBody struct {
