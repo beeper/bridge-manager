@@ -11,5 +11,9 @@ insert_final_newline = true
 [*.yaml]
 indent_style = space
 
+[*.plist]
+indent_style = space
+indent_size = 2
+
 [{.pre-commit-config.yaml,.github/workflows/*.yaml}]
 indent_size = 2

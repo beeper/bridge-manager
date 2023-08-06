@@ -155,6 +155,7 @@ var app = &cli.App{
 		whoamiCommand,
 		configCommand,
 		runCommand,
+		installServiceCommand,
 	},
 }
 

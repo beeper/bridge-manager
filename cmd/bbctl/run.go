@@ -132,6 +132,61 @@ func makeCmd(ctx context.Context, pwd, path string, args ...string) *exec.Cmd {
 	return cmd
 }
 
+type installedBridge struct {
+	Dir  string
+	Cmd  string
+	Args []string
+	Cfg  *generatedBridgeConfig
+}
+
+func doInstallBridge(ctx *cli.Context, bridgeName string, installBinary bool) (*installedBridge, error) {
+	cfg, err := doGenerateBridgeConfig(ctx, bridgeName)
+	if err != nil {
+		return nil, err
+	}
+
+	dataDir := GetEnvConfig(ctx).BridgeDataDir
+	bridgeDir := filepath.Join(dataDir, bridgeName)
+	err = os.MkdirAll(bridgeDir, 0700)
+	if err != nil {
+		return nil, err
+	}
+
+	err = os.WriteFile(filepath.Join(bridgeDir, "config.yaml"), []byte(cfg.Config), 0600)
+	if err != nil {
+		return nil, fmt.Errorf("failed to save config: %w", err)
+	}
+
+	var bridgeCmd string
+	var bridgeArgs []string
+	switch cfg.BridgeType {
+	case "imessage", "whatsapp", "discord", "slack", "gmessages":
+		bridgeCmd = filepath.Join(dataDir, "binaries", fmt.Sprintf("mautrix-%s", cfg.BridgeType))
+		if installBinary {
+			err = updateGoBridge(ctx.Context, bridgeCmd, cfg.BridgeType, ctx.Bool("no-update"))
+			if err != nil {
+				return nil, fmt.Errorf("failed to update bridge: %w", err)
+			}
+		}
+	case "heisenbridge":
+		if installBinary {
+			err = setupPythonVenv(ctx.Context, bridgeDir, cfg.BridgeType)
+			if err != nil {
+				return nil, fmt.Errorf("failed to update bridge: %w", err)
+			}
+		}
+		heisenHomeserverURL := strings.Replace(cfg.HomeserverURL, "https://", "wss://", 1)
+		bridgeCmd = filepath.Join(bridgeDir, "venv", "bin", "python3")
+		bridgeArgs = []string{"-m", "heisenbridge", "-c", "config.yaml", "-o", cfg.YourUserID.String(), heisenHomeserverURL}
+	}
+	return &installedBridge{
+		Dir:  bridgeDir,
+		Cmd:  bridgeCmd,
+		Args: bridgeArgs,
+		Cfg:  cfg,
+	}, nil
+}
+
 func runBridge(ctx *cli.Context) error {
 	if ctx.NArg() == 0 {
 		return UserError{"You must specify a bridge to run"}
@@ -139,60 +194,25 @@ func runBridge(ctx *cli.Context) error {
 		return UserError{"Too many arguments specified (flags must come before arguments)"}
 	}
 	bridgeName := ctx.Args().Get(0)
-
-	cfg, err := doGenerateBridgeConfig(ctx, bridgeName)
-	if err != nil {
-		return err
-	}
-
-	dataDir := GetEnvConfig(ctx).BridgeDataDir
-	bridgeDir := filepath.Join(dataDir, bridgeName)
-	err = os.MkdirAll(bridgeDir, 0700)
-	if err != nil {
-		return err
-	}
-
-	err = os.WriteFile(filepath.Join(bridgeDir, "config.yaml"), []byte(cfg.Config), 0600)
-	if err != nil {
-		return fmt.Errorf("failed to save config: %w", err)
-	}
-
 	overrideBridgeCmd := ctx.String("custom-startup-command")
-	var bridgeCmd string
-	var bridgeArgs []string
-	switch cfg.BridgeType {
-	case "imessage", "whatsapp", "discord", "slack", "gmessages":
-		bridgeCmd = filepath.Join(dataDir, "binaries", fmt.Sprintf("mautrix-%s", cfg.BridgeType))
-		if overrideBridgeCmd == "" {
-			err = updateGoBridge(ctx.Context, bridgeCmd, cfg.BridgeType, ctx.Bool("no-update"))
-			if err != nil {
-				return fmt.Errorf("failed to update bridge: %w", err)
-			}
-		}
-	case "heisenbridge":
-		if overrideBridgeCmd == "" {
-			err = setupPythonVenv(ctx.Context, bridgeDir, cfg.BridgeType)
-			if err != nil {
-				return fmt.Errorf("failed to update bridge: %w", err)
-			}
-		}
-		heisenHomeserverURL := strings.Replace(cfg.HomeserverURL, "https://", "wss://", 1)
-		bridgeCmd = filepath.Join(bridgeDir, "venv", "bin", "python3")
-		bridgeArgs = []string{"-m", "heisenbridge", "-c", "config.yaml", "-o", cfg.YourUserID.String(), heisenHomeserverURL}
+
+	installed, err := doInstallBridge(ctx, bridgeName, overrideBridgeCmd == "")
+	if err != nil {
+		return err
 	}
 	if overrideBridgeCmd != "" {
-		bridgeCmd = overrideBridgeCmd
+		installed.Cmd = overrideBridgeCmd
 	}
 
-	cmd := makeCmd(ctx.Context, bridgeDir, bridgeCmd, bridgeArgs...)
-	log.Printf("Starting [cyan]%s[reset]", cfg.BridgeType)
+	cmd := makeCmd(ctx.Context, installed.Dir, installed.Cmd, installed.Args...)
+	log.Printf("Starting [cyan]%s[reset]", installed.Cfg.BridgeType)
 
 	c := make(chan os.Signal, 1)
 	signal.Notify(c, os.Interrupt, syscall.SIGTERM)
 
 	go func() {
 		<-c
-		log.Printf("Shutting down [cyan]%s[reset]", cfg.BridgeType)
+		log.Printf("Shutting down [cyan]%s[reset]", installed.Cfg.BridgeType)
 		proc := cmd.Process
 		if proc != nil {
 			err := proc.Signal(syscall.SIGTERM)

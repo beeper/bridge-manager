@@ -1,0 +1,11 @@
+[Unit]
+Description=Beeper {{ .BridgeType }} ({{ .Name }})
+After=network.target
+
+[Service]
+Type=simple
+WorkingDirectory={{ .WorkDir }}
+ExecStart=bbctl run {{ shelljoin .Args }} "{{ .Name }}"
+
+[Install]
+WantedBy=default.target

@@ -48,16 +48,16 @@ func init() {
 	}
 }
 
-func templateName(bridgeName string) string {
-	return fmt.Sprintf("%s.tpl.yaml", bridgeName)
+func templateName(bridgeType string) string {
+	return fmt.Sprintf("%s.tpl.yaml", bridgeType)
 }
 
-func IsSupported(bridgeName string) bool {
-	return tpl.Lookup(templateName(bridgeName)) != nil
+func IsSupported(bridgeType string) bool {
+	return tpl.Lookup(templateName(bridgeType)) != nil
 }
 
-func Generate(bridgeName string, params Params) (string, error) {
+func Generate(bridgeType string, params Params) (string, error) {
 	var out strings.Builder
-	err := tpl.ExecuteTemplate(&out, templateName(bridgeName), &params)
+	err := tpl.ExecuteTemplate(&out, templateName(bridgeType), &params)
 	return out.String(), err
 }

@@ -134,7 +134,7 @@ func doGenerateBridgeConfig(ctx *cli.Context, bridge string) (*generatedBridgeCo
 		if err != nil {
 			return nil, err
 		}
-		if len(extraParams) != len(cliParams) {
+		if len(extraParams) != len(cliParams) && ctx.Command != installServiceCommand {
 			formattedParams := make([]string, 0, len(extraParams))
 			for key, value := range extraParams {
 				_, isCli := cliParams[key]
