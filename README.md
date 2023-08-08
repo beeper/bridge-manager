@@ -50,6 +50,11 @@ run an official Beeper bridge or a 3rd party bridge.
    available, although you can start chats using the `pm` command with the
    bridge bot.
 
+Currently the bridge will run in foreground, so you'll have to keep `bbctl run`
+active somewhere (tmux is a good option). In the future, a service mode will be
+added where the bridge is registered as a systemd or launchd service to be
+started automatically by the OS.
+
 ### 3rd party bridges
 3. Run `bbctl register -a <address> <name>` to generate an appservice
    registration file.
