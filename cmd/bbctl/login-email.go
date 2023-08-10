@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"path/filepath"
 
 	"github.com/AlecAivazis/survey/v2"
 	"github.com/urfave/cli/v2"
@@ -91,6 +92,7 @@ func doMatrixLogin(ctx *cli.Context, req *mautrix.ReqLogin, whoami *beeperapi.Re
 	envCfg.Username = whoami.UserInfo.Username
 	envCfg.HungryAddress = whoami.UserInfo.HungryURL
 	envCfg.AccessToken = resp.AccessToken
+	envCfg.BridgeDataDir = filepath.Join(UserDataDir, "bbctl", ctx.String("env"))
 	err = cfg.Save()
 	if err != nil {
 		_, _ = api.Logout()
