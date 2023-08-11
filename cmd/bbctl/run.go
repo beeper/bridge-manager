@@ -105,7 +105,8 @@ func setupPythonVenv(ctx context.Context, bridgeDir, bridgeType string) error {
 	case "heisenbridge":
 		installPackage = "heisenbridge"
 	case "telegram", "facebook", "googlechat", "instagram", "twitter":
-		installPackage = fmt.Sprintf("mautrix-%s[all]", bridgeType)
+		//installPackage = fmt.Sprintf("mautrix-%s[all]", bridgeType)
+		installPackage = fmt.Sprintf("mautrix-%s[all] @ git+https://github.com/mautrix/%s.git@master", bridgeType, bridgeType)
 	default:
 		return fmt.Errorf("unknown python bridge type %s", bridgeType)
 	}
