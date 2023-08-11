@@ -34,8 +34,17 @@ var officialBridges = map[string]string{
 	"androidsms":    "androidsms",
 	"gmessages":     "gmessages",
 	"sms":           "gmessages",
+	"rcs":           "gmessages",
 
 	"googlemessages": "gmessages",
+}
+
+var websocketBridges = map[string]bool{
+	"discord":      true,
+	"slack":        true,
+	"whatsapp":     true,
+	"gmessages":    true,
+	"heisenbridge": true,
 }
 
 func doOutputFile(ctx *cli.Context, name, data string) error {

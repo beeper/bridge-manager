@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"math/rand"
 	"os"
 	"path/filepath"
 	"strings"
@@ -154,10 +155,19 @@ func doGenerateBridgeConfig(ctx *cli.Context, bridge string) (*generatedBridgeCo
 	if dbPrefix != "" {
 		dbPrefix = filepath.Join(dbPrefix, bridge+"-")
 	}
+	websocket := websocketBridges[bridgeType]
+	var listenAddress string
+	var listenPort uint16
+	if !websocket {
+		listenAddress = "127.29.3.1"
+		// TODO use something less hacky?
+		listenPort = uint16(30000 + rand.Intn(30000))
+		reg.Registration.URL = fmt.Sprintf("http://%s:%d", listenAddress, listenPort)
+	}
 	cfg, err := bridgeconfig.Generate(bridgeType, bridgeconfig.Params{
 		HungryAddress:  reg.HomeserverURL,
 		BeeperDomain:   ctx.String("homeserver"),
-		Websocket:      true,
+		Websocket:      websocket,
 		AppserviceID:   reg.Registration.ID,
 		ASToken:        reg.Registration.AppToken,
 		HSToken:        reg.Registration.ServerToken,
@@ -165,6 +175,11 @@ func doGenerateBridgeConfig(ctx *cli.Context, bridge string) (*generatedBridgeCo
 		UserID:         reg.YourUserID,
 		Params:         extraParams,
 		DatabasePrefix: dbPrefix,
+
+		ListenAddr: listenAddress,
+		ListenPort: listenPort,
+
+		ProvisioningSecret: whoami.User.AsmuxData.LoginToken,
 	})
 	return &generatedBridgeConfig{
 		BridgeType:   bridgeType,

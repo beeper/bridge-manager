@@ -23,6 +23,8 @@ type Params struct {
 	BridgeName   string
 	UserID       id.UserID
 
+	ProvisioningSecret string
+
 	DatabasePrefix string
 
 	Params map[string]string

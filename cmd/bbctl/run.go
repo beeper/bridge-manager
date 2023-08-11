@@ -11,10 +11,12 @@ import (
 	"os/signal"
 	"path/filepath"
 	"strings"
+	"sync"
 	"syscall"
 	"time"
 
 	"github.com/urfave/cli/v2"
+	"maunium.net/go/mautrix/appservice"
 
 	"github.com/beeper/bridge-manager/api/gitlab"
 	"github.com/beeper/bridge-manager/log"
@@ -151,6 +153,11 @@ func runBridge(ctx *cli.Context) error {
 	if err != nil {
 		return err
 	}
+	// TODO creating this here feels a bit hacky
+	err = os.MkdirAll(filepath.Join(bridgeDir, "logs"), 0700)
+	if err != nil {
+		return err
+	}
 
 	err = os.WriteFile(filepath.Join(bridgeDir, "config.yaml"), []byte(cfg.Config), 0600)
 	if err != nil {
@@ -160,6 +167,7 @@ func runBridge(ctx *cli.Context) error {
 	overrideBridgeCmd := ctx.String("custom-startup-command")
 	var bridgeCmd string
 	var bridgeArgs []string
+	var needsWebsocketProxy bool
 	switch cfg.BridgeType {
 	case "imessage", "whatsapp", "discord", "slack", "gmessages":
 		bridgeCmd = filepath.Join(dataDir, "binaries", fmt.Sprintf("mautrix-%s", cfg.BridgeType))
@@ -169,6 +177,16 @@ func runBridge(ctx *cli.Context) error {
 				return fmt.Errorf("failed to update bridge: %w", err)
 			}
 		}
+	case "telegram", "facebook", "googlechat", "instagram", "twitter":
+		if overrideBridgeCmd == "" {
+			err = setupPythonVenv(ctx.Context, bridgeDir, cfg.BridgeType)
+			if err != nil {
+				return fmt.Errorf("failed to update bridge: %w", err)
+			}
+		}
+		bridgeCmd = filepath.Join(bridgeDir, "venv", "bin", "python3")
+		bridgeArgs = []string{"-m", "mautrix_" + cfg.BridgeType}
+		needsWebsocketProxy = true
 	case "heisenbridge":
 		if overrideBridgeCmd == "" {
 			err = setupPythonVenv(ctx.Context, bridgeDir, cfg.BridgeType)
@@ -185,14 +203,39 @@ func runBridge(ctx *cli.Context) error {
 	}
 
 	cmd := makeCmd(ctx.Context, bridgeDir, bridgeCmd, bridgeArgs...)
+	var as *appservice.AppService
+	var wg sync.WaitGroup
+	wsProxyClosed := make(chan struct{})
+	if needsWebsocketProxy {
+		wg.Add(1)
+		log.Printf("Starting websocket proxy")
+		as = appservice.Create()
+		as.Registration = cfg.Registration
+		as.HomeserverDomain = "beeper.local"
+		prepareAppserviceWebsocketProxy(ctx, as)
+		go func() {
+			runAppserviceWebsocket(ctx, as)
+			close(wsProxyClosed)
+			wg.Done()
+		}()
+	}
+
 	log.Printf("Starting [cyan]%s[reset]", cfg.BridgeType)
 
 	c := make(chan os.Signal, 1)
 	signal.Notify(c, os.Interrupt, syscall.SIGTERM)
 
 	go func() {
-		<-c
+		select {
+		case <-c:
+			fmt.Println()
+		case <-wsProxyClosed:
+			log.Printf("Websocket proxy exited, shutting down bridge")
+		}
 		log.Printf("Shutting down [cyan]%s[reset]", cfg.BridgeType)
+		if as != nil && as.StopWebsocket != nil {
+			as.StopWebsocket(appservice.ErrWebsocketManualStop)
+		}
 		proc := cmd.Process
 		if proc != nil {
 			err := proc.Signal(syscall.SIGTERM)
@@ -213,5 +256,6 @@ func runBridge(ctx *cli.Context) error {
 	if err != nil {
 		return err
 	}
+	wg.Wait()
 	return nil
 }

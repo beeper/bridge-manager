@@ -167,30 +167,15 @@ func proxyWebsocketRequest(baseURL *url.URL, cmd appservice.WebsocketCommand) (b
 	}
 }
 
-func proxyAppserviceWebsocket(ctx *cli.Context) error {
-	regPath := ctx.String("registration")
-	reg, err := appservice.LoadRegistration(regPath)
-	if err != nil {
-		return fmt.Errorf("failed to load registration: %w", err)
-	} else if reg.URL == "" || reg.URL == "websocket" {
-		return UserError{"You must change the `url` field in the registration file to point at the local appservice HTTP server (e.g. `http://localhost:8080`)"}
-	} else if !strings.HasPrefix(reg.URL, "http://") && !strings.HasPrefix(reg.URL, "https://") {
-		return UserError{"`url` field in registration must start with http:// or https://"}
-	}
-	parsedURL, err := url.Parse(reg.URL)
-	if err != nil {
-		return fmt.Errorf("failed to parse URL: %w", err)
-	}
-	as := appservice.Create()
-	as.Registration = reg
-	as.HomeserverDomain = "beeper.local"
+func prepareAppserviceWebsocketProxy(ctx *cli.Context, as *appservice.AppService) {
+	parsedURL, _ := url.Parse(as.Registration.URL)
 	zerolog.TimeFieldFormat = time.RFC3339Nano
 	as.Log = zerolog.New(zerolog.NewConsoleWriter(func(w *zerolog.ConsoleWriter) {
 		w.TimeFormat = time.StampMilli
 	})).With().Timestamp().Logger()
 	as.PrepareWebsocket()
 	as.WebsocketTransactionHandler = func(ctx context.Context, msg appservice.WebsocketMessage) (bool, any) {
-		err := proxyWebsocketTransaction(ctx, reg.ServerToken, parsedURL, msg)
+		err := proxyWebsocketTransaction(ctx, as.Registration.ServerToken, parsedURL, msg)
 		if err != nil {
 			return false, err
 		}
@@ -203,6 +188,23 @@ func proxyAppserviceWebsocket(ctx *cli.Context) error {
 		return proxyWebsocketRequest(parsedURL, cmd)
 	})
 	_ = as.SetHomeserverURL(GetEnvConfig(ctx).HungryAddress)
+}
+
+func proxyAppserviceWebsocket(ctx *cli.Context) error {
+	regPath := ctx.String("registration")
+	reg, err := appservice.LoadRegistration(regPath)
+	if err != nil {
+		return fmt.Errorf("failed to load registration: %w", err)
+	} else if reg.URL == "" || reg.URL == "websocket" {
+		return UserError{"You must change the `url` field in the registration file to point at the local appservice HTTP server (e.g. `http://localhost:8080`)"}
+	} else if !strings.HasPrefix(reg.URL, "http://") && !strings.HasPrefix(reg.URL, "https://") {
+		return UserError{"`url` field in registration must start with http:// or https://"}
+	}
+	as := appservice.Create()
+	as.Registration = reg
+	as.HomeserverDomain = "beeper.local"
+	prepareAppserviceWebsocketProxy(ctx, as)
+
 	c := make(chan os.Signal, 1)
 	signal.Notify(c, os.Interrupt, syscall.SIGTERM)
 	var wg sync.WaitGroup

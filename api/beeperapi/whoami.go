@@ -38,8 +38,6 @@ type WhoamiBridge struct {
 }
 
 type WhoamiAsmuxData struct {
-	ID         string `json:"id"`
-	APIToken   string `json:"api_token"`
 	LoginToken string `json:"login_token"`
 }
 
