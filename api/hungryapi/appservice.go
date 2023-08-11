@@ -4,10 +4,10 @@ import (
 	"net/http"
 	"time"
 
+	"go.mau.fi/util/jsontime"
 	"maunium.net/go/mautrix"
 	"maunium.net/go/mautrix/appservice"
 	"maunium.net/go/mautrix/id"
-	"maunium.net/go/mautrix/util/jsontime"
 )
 
 type Client struct {

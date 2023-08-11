@@ -10,8 +10,8 @@ import (
 	"runtime"
 	"strings"
 
+	"go.mau.fi/util/random"
 	"maunium.net/go/mautrix/id"
-	"maunium.net/go/mautrix/util"
 
 	"github.com/beeper/bridge-manager/log"
 )
@@ -110,7 +110,7 @@ func loadConfig(path string) (ret *Config, err error) {
 		}
 		ret.Path = path
 		if ret.DeviceID == "" {
-			ret.DeviceID = id.DeviceID("bbctl_" + strings.ToUpper(util.RandomString(8)))
+			ret.DeviceID = id.DeviceID("bbctl_" + strings.ToUpper(random.String(8)))
 		}
 		if ret.Environments == nil {
 			ret.Environments = make(EnvConfigs)
