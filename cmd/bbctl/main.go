@@ -148,6 +148,7 @@ var app = &cli.App{
 		whoamiCommand,
 		configCommand,
 		runCommand,
+		proxyCommand,
 	},
 }
 

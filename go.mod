@@ -6,12 +6,13 @@ require (
 	github.com/AlecAivazis/survey/v2 v2.3.7
 	github.com/fatih/color v1.15.0
 	github.com/mitchellh/colorstring v0.0.0-20190213212951-d06e56a500db
+	github.com/rs/zerolog v1.30.0
 	github.com/schollz/progressbar/v3 v3.13.1
 	github.com/tidwall/gjson v1.16.0
 	github.com/urfave/cli/v2 v2.25.7
 	go.mau.fi/util v0.0.0-20230805171708-199bf3eec776
 	golang.org/x/exp v0.0.0-20230810033253-352e893a4cad
-	maunium.net/go/mautrix v0.15.5-0.20230811112040-11414eaa0bd5
+	maunium.net/go/mautrix v0.15.5-0.20230811131248-82eaf14f46cb
 )
 
 require (
@@ -24,7 +25,6 @@ require (
 	github.com/mattn/go-runewidth v0.0.15 // indirect
 	github.com/mgutz/ansi v0.0.0-20170206155736-9520e82c474b // indirect
 	github.com/rivo/uniseg v0.4.4 // indirect
-	github.com/rs/zerolog v1.30.0 // indirect
 	github.com/russross/blackfriday/v2 v2.1.0 // indirect
 	github.com/tidwall/match v1.1.1 // indirect
 	github.com/tidwall/pretty v1.2.0 // indirect
