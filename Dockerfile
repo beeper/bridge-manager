@@ -4,11 +4,11 @@ FROM golang
 
 RUN apt-get update && apt-get install -y jq
 
-RUN git clone https://github.com/beeper/bridge-manager.git
-
-WORKDIR bridge-manager
 RUN go install golang.org/x/tools/cmd/goimports@latest
 RUN go install honnef.co/go/tools/cmd/staticcheck@latest
+
+COPY . /build
+WORKDIR /build
 
 RUN ./build.sh
 
