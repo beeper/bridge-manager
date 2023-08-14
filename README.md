@@ -31,6 +31,7 @@ support room.
      `./build.sh`. Building requires Go 1.20 or higher.
    * bbctl supports amd64 and arm64 on Linux and macOS.
      Windows is not supported natively, please use WSL.
+   * If you'd like to send gifs to your bridged chats, you also need to install ffmpeg on your system.
 2. Log into your Beeper account with `bbctl login`.
 
 Then continue with one of the sections below, depending on whether you want to
