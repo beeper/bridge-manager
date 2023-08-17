@@ -37,12 +37,24 @@ Then continue with one of the sections below, depending on whether you want to
 run an official Beeper bridge or a 3rd party bridge.
 
 ### Official bridges
+For Python bridges, you must install Python 3 with the `venv` module with your
+OS package manager. For example, `sudo apt install python3 python3-venv` on
+Debian-based distros. The Python version built into macOS may be new enough, or
+you can get the latest version via brew. The minimum Python version varies by
+bridge, but if you use the latest Debian or Ubuntu LTS, it should be new enough.
+
+Some bridges require ffmpeg for converting media (e.g. when sending gifs), so
+you should also install that with your OS package manager (`sudo apt install ffmpeg`
+on Debian or `brew install ffmpeg` on macOS).
+
+After installing relevant dependencies:
+
 3. Run `bbctl run <name>` to run the bridge.
    * `<name>`  should start with `sh-` and consist of a-z, 0-9 and -.
    * If `<name>` contains the bridge type, it will be automatically detected.
      Otherwise pass the type with `--type <type>`.
    * Currently supported types: `discord`, `whatsapp`, `imessage`,
-     `heisenbridge`, `gmessages` (Slack & Python bridges coming soon).
+     `heisenbridge`, `gmessages`, `instagram` (Slack & Python bridges coming soon).
    * The bridge will be installed to `~/.local/share/bbctl`. You can change the
      directory in the config file at `~/.config/bbctl.json`.
 4. For now, you'll have to configure the bridge by sending a DM to the bridge
