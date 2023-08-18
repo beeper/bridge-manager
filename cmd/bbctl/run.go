@@ -112,7 +112,12 @@ func setupPythonVenv(ctx context.Context, bridgeDir, bridgeType string) error {
 	}
 	venvPath := filepath.Join(bridgeDir, "venv")
 	log.Printf("Creating Python virtualenv at [magenta]%s[reset]", venvPath)
-	err := makeCmd(ctx, bridgeDir, "python3", "-m", "venv", venvPath).Run()
+	venvArgs := []string{"-m", "venv"}
+	if os.Getenv("SYSTEM_SITE_PACKAGES") == "true" {
+		venvArgs = append(venvArgs, "--system-site-packages")
+	}
+	venvArgs = append(venvArgs, venvPath)
+	err := makeCmd(ctx, bridgeDir, "python3", venvArgs...).Run()
 	if err != nil {
 		return fmt.Errorf("failed to create venv: %w", err)
 	}

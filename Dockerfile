@@ -1,18 +1,19 @@
-# syntax=docker/dockerfile:1
+FROM golang:1.21-alpine3.18 AS builder
 
-FROM golang
+COPY . /build/
+RUN cd /build && ./build.sh
 
-RUN apt-get update && apt-get install -y jq
+FROM alpine:3.18
 
-RUN go install golang.org/x/tools/cmd/goimports@latest
-RUN go install honnef.co/go/tools/cmd/staticcheck@latest
+RUN apk add --no-cache bash curl jq git ffmpeg \
+	# Python for python bridges
+	python3 py3-pip py3-setuptools py3-wheel \
+	# Common dependencies that need native extensions for Python bridges
+	py3-magic py3-ruamel.yaml py3-aiohttp py3-pillow py3-olm py3-pycryptodome
 
-COPY . /build
-WORKDIR /build
+VOLUME /data
+COPY --from=builder /build/bbctl /usr/local/bin/bbctl
+COPY ./docker/run-bridge.sh /usr/local/bin/run-bridge.sh
+ENV SYSTEM_SITE_PACKAGES=true
 
-RUN ./build.sh
-
-RUN mkdir /data
-RUN mkdir /litefs
-
-CMD export BBCTL_CONFIG=/bbctl.json && jq -n '{environments: {prod: {access_token: env.MATRIX_ACCESS_TOKEN, database_dir: "/litefs", bridge_data_dir: "/data"}}}' > $BBCTL_CONFIG && ./bbctl run $BRIDGE_NAME
+CMD /usr/local/bin/run-bridge.sh
