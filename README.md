@@ -69,15 +69,21 @@ added where the bridge is registered as a systemd or launchd service to be
 started automatically by the OS.
 
 ### 3rd party bridges
-3. Run `bbctl register -a <address> <name>` to generate an appservice
-   registration file.
-   * `<address>` should be a publicly reachable https address where the Beeper
-     server will push new events.
+3. Run `bbctl register <name>` to generate an appservice registration file.
    * `<name>` is a short name for the bridge (a-z, 0-9, -). The name should
      start with `sh-`. The bridge user ID namespace will be `@<name>_.+:beeper.local`
      and the bridge bot will be `@<name>bot:beeper.local`.
+   * Optionally you can pass `-a <address>` to have the Beeper server push
+     events directly to the bridge. However, this requires that the bridge is
+     publicly accessible. The proxy option below is easier.
 4. Now you can configure and run the bridge by following the bridge's own
    documentation.
+5. If you didn't pass an address to `register`, modify the registration file to
+   point at where the bridge will listen locally (e.g. `url: http://localhost:8080`),
+   then run `bbctl proxy -r registration.yaml` to start the proxy.
+   * The proxy will connect to the Beeper server using a websocket and push
+     received events to the bridge via HTTP. Since the HTTP requests are all on
+     localhost, you don't need port forwarding or TLS certificates.
 
 Note that the homeserver URL may change if you're moved to a different cluster.
 In general, that shouldn't happen, but it's not impossible.
