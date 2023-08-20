@@ -233,11 +233,13 @@ func runBridge(ctx *cli.Context) error {
 	log.Printf("Starting [cyan]%s[reset]", cfg.BridgeType)
 
 	c := make(chan os.Signal, 1)
+	interrupted := false
 	signal.Notify(c, os.Interrupt, syscall.SIGTERM)
 
 	go func() {
 		select {
 		case <-c:
+			interrupted = true
 			fmt.Println()
 		case <-wsProxyClosed:
 			log.Printf("Websocket proxy exited, shutting down bridge")
@@ -263,6 +265,12 @@ func runBridge(ctx *cli.Context) error {
 	}()
 
 	err = cmd.Run()
+	if !interrupted {
+		log.Printf("Bridge exited")
+	}
+	if as != nil && as.StopWebsocket != nil {
+		as.StopWebsocket(appservice.ErrWebsocketManualStop)
+	}
 	if err != nil {
 		return err
 	}
