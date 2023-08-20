@@ -1,6 +1,9 @@
 package main
 
 import (
+	"crypto/aes"
+	"encoding/base64"
+	"encoding/hex"
 	"fmt"
 	"math/rand"
 	"os"
@@ -62,10 +65,11 @@ func simpleDescriptions(descs map[string]string) func(string, int) string {
 	}
 }
 
-var askParams = map[string]func(map[string]string) error{
-	"imessage": func(extraParams map[string]string) error {
+var askParams = map[string]func(map[string]string) (bool, error){
+	"imessage": func(extraParams map[string]string) (bool, error) {
 		platform := extraParams["imessage_platform"]
 		barcelonaPath := extraParams["barcelona_path"]
+		var didAddParams bool
 		if platform == "" {
 			err := survey.AskOne(&survey.Select{
 				Message: "Select iMessage connector:",
@@ -77,9 +81,10 @@ var askParams = map[string]func(map[string]string) error{
 				Default: "mac",
 			}, &platform)
 			if err != nil {
-				return err
+				return didAddParams, err
 			}
 			extraParams["imessage_platform"] = platform
+			didAddParams = true
 		}
 		if platform == "mac-nosip" && barcelonaPath == "" {
 			err := survey.AskOne(&survey.Input{
@@ -87,11 +92,27 @@ var askParams = map[string]func(map[string]string) error{
 				Default: "darwin-barcelona-mautrix",
 			}, &barcelonaPath)
 			if err != nil {
-				return err
+				return didAddParams, err
 			}
 			extraParams["barcelona_path"] = barcelonaPath
+			didAddParams = true
 		}
-		return nil
+		return didAddParams, nil
+	},
+	"telegram": func(extraParams map[string]string) (bool, error) {
+		_, hasID := extraParams["api_id"]
+		_, hasHash := extraParams["api_hash"]
+		if !hasID || !hasHash {
+			extraParams["api_id"] = "26417019"
+			// This is mostly here so the api key wouldn't show up in automated searches.
+			// It's not really secret, and this key is only used here, cloud bridges have their own key.
+			k, _ := base64.RawStdEncoding.DecodeString("qDP2pQ1LogRjxUYrFUDjDw")
+			d, _ := base64.RawStdEncoding.DecodeString("B9VMuZeZlFk0pkbLcfSDDQ")
+			b, _ := aes.NewCipher(k)
+			b.Decrypt(d, d)
+			extraParams["api_hash"] = hex.EncodeToString(d)
+		}
+		return false, nil
 	},
 }
 
@@ -131,11 +152,12 @@ func doGenerateBridgeConfig(ctx *cli.Context, bridge string) (*generatedBridgeCo
 	}
 	cliParams := maps.Clone(extraParams)
 	if extraParamAsker != nil {
-		err = extraParamAsker(extraParams)
+		var didAddParams bool
+		didAddParams, err = extraParamAsker(extraParams)
 		if err != nil {
 			return nil, err
 		}
-		if len(extraParams) != len(cliParams) {
+		if didAddParams {
 			formattedParams := make([]string, 0, len(extraParams))
 			for key, value := range extraParams {
 				_, isCli := cliParams[key]

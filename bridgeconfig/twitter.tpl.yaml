@@ -13,7 +13,7 @@ homeserver:
     # Number of retries for all HTTP requests if the homeserver isn't reachable.
     http_retry_count: 4
     # The URL to push real-time bridge status to.
-    # If set, the bridge will make POST requests to this URL whenever a user's Instagram MQTT connection state changes.
+    # If set, the bridge will make POST requests to this URL whenever a user's Twitter connection state changes.
     # The bridge will use the appservice as_token to authorize requests.
     status_endpoint: null
     # Endpoint for reporting per-message status.
@@ -42,7 +42,7 @@ appservice:
     # Format examples:
     #   SQLite:   sqlite:filename.db
     #   Postgres: postgres://username:password@hostname/dbname
-    database: sqlite:{{.DatabasePrefix}}mautrix-instagram.db
+    database: sqlite:{{.DatabasePrefix}}mautrix-twitter.db
     # Additional arguments for asyncpg.create_pool() or sqlite3.connect()
     # https://magicstack.github.io/asyncpg/current/api/index.html#asyncpg.pool.create_pool
     # https://docs.python.org/3/library/sqlite3.html#sqlite3.connect
@@ -52,14 +52,25 @@ appservice:
         min_size: 1
         max_size: 1
 
+    # Provisioning API part of the web server for automated portal creation and fetching information.
+    # Used by things like mautrix-manager (https://github.com/tulir/mautrix-manager).
+    provisioning:
+        # Whether or not the provisioning API should be enabled.
+        enabled: true
+        # The prefix to use in the provisioning API endpoints.
+        prefix: /_matrix/provision/v1
+        # The shared secret to authorize users of the API.
+        # Set to "generate" to generate and save a new token.
+        shared_secret: {{ .ProvisioningSecret }}
+
     # The unique ID of this appservice.
     id: {{ .AppserviceID }}
     # Username of the appservice bot.
     bot_username: {{ .BridgeName}}bot
     # Display name and avatar for bot. Set to "remove" to remove display name/avatar, leave empty
     # to leave display name/avatar as-is.
-    bot_displayname: Instagram bridge bot
-    bot_avatar: mxc://maunium.net/JxjlbZUlCPULEeHZSwleUXQv
+    bot_displayname: Twitter bridge bot
+    bot_avatar: mxc://maunium.net/HVHcnusJkQcpVcsVGZRELLCn
 
     # Whether or not to receive ephemeral events via appservice transactions.
     # Requires MSC2409 support (i.e. Synapse 1.22+).
@@ -80,40 +91,28 @@ manhole:
     # Whether or not opening the manhole is allowed.
     enabled: false
     # The path for the unix socket.
-    path: /var/tmp/mautrix-instagram.manhole
+    path: /var/tmp/mautrix-twitter.manhole
     # The list of UIDs who can be added to the whitelist.
     # If empty, any UIDs can be specified in the open-manhole command.
     whitelist:
     - 0
 
-instagram:
-    # Seed for generating devices. This is secret because the seed is used to generate
-    # device IDs, which can apparently be used to bypass two-factor authentication after
-    # logging out, because Instagram is insecure.
-    device_seed: generate
-
-    mqtt_keepalive: 60
-
 # Bridge config
 bridge:
-    # Localpart template of MXIDs for Instagram users.
-    # {userid} is replaced with the user ID of the Instagram user.
+    # Localpart template of MXIDs for Twitter users.
+    # {userid} is replaced with the user ID of the Twitter user.
     username_template: "{{ .BridgeName }}_{userid}"
-    # Displayname template for Instagram users.
-    # {displayname} is replaced with the display name of the Instagram user.
-    # {username} is replaced with the username of the Instagram user.
+    # Displayname template for Twitter users.
+    # {displayname} is replaced with the display name of the Twitter user.
+    # {username} is replaced with the username of the Twitter user.
     displayname_template: "{displayname}"
-    # Displayname template for 1:1 chat portals. Same variables as displayname_template.
-    private_chat_name_template: "{displayname}"
-    # Displayname template for group chat portals. Only {name} is available.
-    group_chat_name_template: "{name}"
 
     # Maximum length of displayname
     displayname_max_length: 100
 
-    # The maximum number of conversations that should be synced when we get a
-    # message sync error. In general, 1 page (20) is sufficient.
-    max_startup_thread_sync_count: 20
+    # Number of conversations to sync (and create portals for) on login.
+    # Set 0 to disable automatic syncing.
+    initial_conversation_sync: -1
     # Whether or not to use /sync to get read receipts and typing notifications
     # when double puppeting is enabled
     sync_with_custom_puppets: false
@@ -121,6 +120,11 @@ bridge:
     # Note that updating the m.direct event is not atomic (except with mautrix-asmux)
     # and is therefore prone to race conditions.
     sync_direct_chat_list: false
+    # When using double puppeting, should low quality DMs be moved to a specific tag in Matrix?
+    # The low priority tag is `m.lowpriority`.
+    low_quality_tag: m.lowpriority
+    # When using double puppeting, mute low quality DMs (by changing the user's push rules)?
+    low_quality_mute: true
     # Allow using double puppeting from any server with a valid client .well-known file.
     double_puppet_allow_discovery: false
     # Servers to allow double puppeting from, even if double_puppet_allow_discovery is false.
@@ -138,85 +142,24 @@ bridge:
     # Whether or not created rooms should have federation enabled.
     # If false, created portal rooms will never be federated.
     federate_rooms: false
-    # Settings for backfilling messages from Instagram.
+    # Settings for backfilling messages from Twitter.
+    #
+    # Missed message backfilling is currently based on receiving them from the Twitter polling API,
+    # rather than manually asking for messages in each conversation. Due to this, there's no way to
+    # set a limit for missed message backfilling.
     backfill:
-        # Enable initial backfill (~10 messages after creating portal)?
-        enable_initial: true
-        # Enable backfill queue? This is used for backfilling additional threads after the initial sync,
-        # and when MSC2716 is enabled, to backfill message history going backwards.
-        enable: false
-        # Use MSC2716 for backfilling? If this is disabled, backfilling only happens when syncing threads,
-        # and the incremental settings below don't apply.
-        #
-        # This requires a server with MSC2716 support, which is currently an experimental feature in Synapse.
-        # It can be enabled by setting experimental_features -> msc2716_enabled to true in homeserver.yaml.
-        msc2716: true
-        # Use double puppets for backfilling?
-        # In order to use this, the double puppets must be in the appservice's user ID namespace
-        # (because the bridge can't use the double puppet access token with batch sending).
-        # This only affects double puppets on the local server, double puppets on other servers will never be used.
-        double_puppet_backfill: true
-        # The maximum number of conversations that should be synced.
-        # Other conversations will be backfilled on demand when the start PM
-        # provisioning endpoint is used or when a message comes in from that
-        # chat.
-        # If set to -1, all conversations will by synced.
-        max_conversations: 20
-        # The minimum amount of time to wait between syncing each thread. This
-        # helps avoid situations where you sync too quickly.
-        min_sync_thread_delay: 15
-        # If this value is greater than 0, then if the conversation's last
-        # message was more than this number of hours ago, then the conversation
-        # will automatically be marked it as read.
-        # Conversations that have a last message that is less than this number
-        # of hours ago will have their unread status synced from Instagram.
-        unread_hours_threshold: 720
-
-        # Settings for how quickly to backoff when rate-limits are encountered
-        # while backfilling.
-        backoff:
-            # How many seconds to wait after getting rate limited during a
-            # thread list fetch.
-            thread_list: 300
-            # How many seconds to wait after getting rate limited during a
-            # message history fetch.
-            message_history: 300
-
-        # Settings for backfills.
-        #
-        # During initial/incremental sync, the entirety of the thread that is
-        # available will be backfilled. For example, on initial sync, about 20
-        # messages are included for each thread in the thread list returned by
-        # the server. After that, incremental backfills will be run for each of
-        # the portals in a round-robin fashion until all portals have been
-        # backfilled as configured below.
-        incremental:
-            # The maximum number of pages to backfill per batch.
-            max_pages: 0
-            # The maximum number of total pages to backfill per portal.
-            # If set to -1, infinite pages will be synced.
-            max_total_pages: 0
-            # The number of seconds to wait between backfilling each page.
-            page_delay: 15
-            # The number of seconds to wait after backfilling the batch of
-            # messages.
-            post_batch_delay: 30
-
-    periodic_reconnect:
-        # Interval in seconds in which to automatically reconnect all users.
-        # This can be used to automatically mitigate the bug where Instagram stops sending messages.
-        # Set to -1 to disable periodic reconnections entirely.
-        interval: 21600
-        # Whether or not the bridge should backfill chats when reconnecting.
-        resync: false
-        # Should even disconnected users be reconnected?
-        always: true
-
-    # URL to call to retrieve a proxy URL from (defaults to the http_proxy environment variable).
-    get_proxy_api_url: null
-    # Whether to use proxy for downloading media from Instagram.
-    use_proxy_for_media: true
-
+        # Whether or not the Twitter users of logged in Matrix users should be
+        # invited to private chats when backfilling history from Twitter. This is
+        # usually needed to prevent rate limits and to allow timestamp massaging.
+        invite_own_puppet: false
+        # Maximum number of messages to backfill initially.
+        # Set to 0 to disable backfilling when creating portal.
+        initial_limit: 100
+        # If using double puppeting, should notifications be disabled
+        # while the initial backfill is in progress?
+        disable_notifications: true
+        # Backfill backwards after the initial batch (requires MSC2716 support on homeserver)
+        backwards: true
     # End-to-bridge encryption support options.
     #
     # See https://docs.mau.fi/bridges/general/end-to-bridge-encryption.html for more info.
@@ -299,53 +242,34 @@ bridge:
     # If set to `never`, DM rooms will never have names and avatars set.
     private_chat_portal_meta: never
     # Whether or not the bridge should send a read receipt from the bridge bot when a message has
-    # been sent to Instagram.
+    # been sent to Twitter.
     delivery_receipts: false
     # Whether or not delivery errors should be reported as messages in the Matrix room.
     delivery_error_reports: false
     # Whether the bridge should send the message status as a custom com.beeper.message_send_status event.
     message_status_events: true
+    # Whether or not non-fatal polling errors should send notices to the notice room.
+    temporary_disconnect_notices: false
+    # Disable bridge notices entirely
+    disable_bridge_notices: true
+    # Number of seconds to sleep more than the previous error when a polling error occurs.
+    # Growth is capped at 15 minutes.
+    error_sleep: 5
+    # Maximum number of polling errors before giving up. Set to -1 to retry forever.
+    max_poll_errors: -1
     # Set this to true to tell the bridge to re-send m.bridge events to all rooms on the next run.
     # This field will automatically be changed back to false after it,
     # except if the config file is not writable.
     resend_bridge_info: false
-    # Whether or not unimportant bridge notices should be sent to the user.
-    # (e.g. connected, disconnected but will retry)
-    unimportant_bridge_notices: false
-    # Disable bridge notices entirely
-    disable_bridge_notices: true
-    # Send captions in the same message as images. This will send data compatible with both MSC2530 and MSC3552.
+    # Send captions in the same message as images. This will send data compatible with MSC2530.
     # This is currently not supported in most clients.
     caption_in_message: true
 
-    # Should Matrix m.notice-type messages be bridged?
-    bridge_notices: true
-
-    # Should Matrix typing notices be sent to Instagram? Typing notifications
-    # from Instagram will still be bridged.
-    bridge_matrix_typing: false
-
-    # Provisioning API part of the web server for automated portal creation and fetching information.
-    # Used by things like mautrix-manager (https://github.com/tulir/mautrix-manager).
-    provisioning:
-        # Whether or not the provisioning API should be enabled.
-        enabled: true
-        # The prefix to use in the provisioning API endpoints.
-        prefix: /_matrix/provision/v1
-        # The shared secret to authorize users of the API.
-        # Set to "generate" to generate and save a new token.
-        shared_secret: {{ .ProvisioningSecret }}
-        # Segment API key to enable analytics tracking for web server endpoints. Set to null to disable.
-        segment_key: null
-        # Optional user_id to use when sending Segment events. If null, defaults to using mxID.
-        segment_user_id: null
-
     # The prefix for commands. Only required in non-management rooms.
-    command_prefix: "!ig"
+    command_prefix: "!tw"
 
     # Permissions for using the bridge.
     # Permitted values:
-    #      relay - Allowed to be relayed through the bridge, no access to commands.
     #       user - Use the bridge with puppeting.
     #      admin - Use and administrate the bridge.
     # Permitted keys:
@@ -355,23 +279,6 @@ bridge:
     permissions:
         "{{ .UserID }}": "admin"
 
-    relay:
-        # Whether relay mode should be allowed. If allowed, `!ig set-relay` can be used to turn any
-        # authenticated user into a relaybot for that chat.
-        enabled: false
-        # The formats to use when sending messages to Instagram via a relay user.
-        #
-        # Available variables:
-        #   $sender_displayname - The display name of the sender (e.g. Example User)
-        #   $sender_username    - The username (Matrix ID localpart) of the sender (e.g. exampleuser)
-        #   $sender_mxid        - The Matrix ID of the sender (e.g. @exampleuser:example.com)
-        #   $message            - The message content
-        #
-        # Note that Instagram doesn't support captions for images, so images won't include any indication of being relayed.
-        message_formats:
-            m.text: '$sender_displayname: $message'
-            m.notice: '$sender_displayname: $message'
-            m.emote: '* $sender_displayname $message'
 
 # Python logging configuration.
 #
@@ -381,7 +288,7 @@ logging:
     version: 1
     formatters:
         colored:
-            (): mautrix_instagram.util.ColorFormatter
+            (): mautrix_twitter.util.ColorFormatter
             format: "[%(asctime)s] [%(levelname)s@%(name)s] %(message)s"
         normal:
             format: "[%(asctime)s] [%(levelname)s@%(name)s] %(message)s"
@@ -389,7 +296,7 @@ logging:
         file:
             class: logging.handlers.RotatingFileHandler
             formatter: normal
-            filename: ./logs/mautrix-instagram.log
+            filename: ./logs/mautrix-twitter.log
             maxBytes: 10485760
             backupCount: 10
         console:
@@ -398,11 +305,7 @@ logging:
     loggers:
         mau:
             level: DEBUG
-        mauigpapi:
-            level: DEBUG
         aiohttp:
-            level: INFO
-        paho.mqtt:
             level: INFO
     root:
         level: DEBUG
