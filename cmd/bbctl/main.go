@@ -31,7 +31,7 @@ var (
 
 	ParsedBuildTime time.Time
 
-	Version = "v0.6.1"
+	Version = "v0.7.0"
 )
 
 const BuildTimeFormat = "Jan _2 2006, 15:04:05 MST"
