@@ -215,19 +215,23 @@ func runBridge(ctx *cli.Context) error {
 	}
 	var as *appservice.AppService
 	var wg sync.WaitGroup
+	var cancelWS context.CancelFunc
 	wsProxyClosed := make(chan struct{})
 	if needsWebsocketProxy {
-		wg.Add(1)
+		wg.Add(2)
 		log.Printf("Starting websocket proxy")
 		as = appservice.Create()
 		as.Registration = cfg.Registration
 		as.HomeserverDomain = "beeper.local"
 		prepareAppserviceWebsocketProxy(ctx, as)
-		go func() {
-			runAppserviceWebsocket(ctx, as)
-			close(wsProxyClosed)
+		var wsCtx context.Context
+		wsCtx, cancelWS = context.WithCancel(ctx.Context)
+		defer cancelWS()
+		go runAppserviceWebsocket(wsCtx, func() {
 			wg.Done()
-		}()
+			close(wsProxyClosed)
+		}, as)
+		go keepaliveAppserviceWebsocket(wsCtx, wg.Done, as)
 	}
 
 	log.Printf("Starting [cyan]%s[reset]", cfg.BridgeType)
@@ -270,6 +274,9 @@ func runBridge(ctx *cli.Context) error {
 	}
 	if as != nil && as.StopWebsocket != nil {
 		as.StopWebsocket(appservice.ErrWebsocketManualStop)
+	}
+	if cancelWS != nil {
+		cancelWS()
 	}
 	if err != nil {
 		return err
