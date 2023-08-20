@@ -209,6 +209,10 @@ func runBridge(ctx *cli.Context) error {
 	}
 
 	cmd := makeCmd(ctx.Context, bridgeDir, bridgeCmd, bridgeArgs...)
+	cmd.SysProcAttr = &syscall.SysProcAttr{
+		// Don't pass through signals to the bridge, we'll send a sigterm when we want to stop it.
+		Setpgid: true,
+	}
 	var as *appservice.AppService
 	var wg sync.WaitGroup
 	wsProxyClosed := make(chan struct{})
