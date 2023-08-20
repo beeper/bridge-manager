@@ -1,4 +1,5 @@
-Dockerfile
+docker/Dockerfile
+docker/README.md
 ci-build-all.sh
 run.sh
 LICENSE

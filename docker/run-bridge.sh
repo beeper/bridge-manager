@@ -1,10 +1,14 @@
 #!/bin/bash
 set -euf -o pipefail
-if [[ -z "$BRIDGE_NAME" ]]; then
-	echo "BRIDGE_NAME not set"
-	exit 1
+if [[ -z "${BRIDGE_NAME:-}" ]]; then
+	if [[ ! -z "$1" ]]; then
+		export BRIDGE_NAME="$1"
+	else
+		echo "BRIDGE_NAME not set"
+		exit 1
+	fi
 fi
-export BBCTL_CONFIG=${BBCTL_CONFIG:-/bbctl.json}
+export BBCTL_CONFIG=${BBCTL_CONFIG:-/tmp/bbctl.json}
 export BEEPER_ENV=${BEEPER_ENV:-prod}
 if [[ ! -f $BBCTL_CONFIG ]]; then
 	if [[ -z "$MATRIX_ACCESS_TOKEN" ]]; then

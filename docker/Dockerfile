@@ -23,4 +23,4 @@ COPY ./docker/run-bridge.sh /usr/local/bin/run-bridge.sh
 ENV SYSTEM_SITE_PACKAGES=true
 VOLUME /data
 
-CMD /usr/local/bin/run-bridge.sh
+ENTRYPOINT /usr/local/bin/run-bridge.sh
