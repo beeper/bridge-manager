@@ -38,7 +38,7 @@ const BuildTimeFormat = "Jan _2 2006, 15:04:05 MST"
 
 func init() {
 	var err error
-	ParsedBuildTime, err = time.Parse(BuildTimeFormat, BuildTime)
+	ParsedBuildTime, err = time.Parse(time.RFC3339, BuildTime)
 	if BuildTime != "" && err != nil {
 		panic(fmt.Errorf("program compiled with malformed build time: %w", err))
 	}
