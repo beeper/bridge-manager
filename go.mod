@@ -11,8 +11,8 @@ require (
 	github.com/tidwall/gjson v1.16.0
 	github.com/urfave/cli/v2 v2.25.7
 	go.mau.fi/util v0.0.0-20230805171708-199bf3eec776
-	golang.org/x/exp v0.0.0-20230810033253-352e893a4cad
-	maunium.net/go/mautrix v0.15.5-0.20230811131248-82eaf14f46cb
+	golang.org/x/exp v0.0.0-20230817173708-d852ddb80c63
+	maunium.net/go/mautrix v0.16.0
 )
 
 require (
