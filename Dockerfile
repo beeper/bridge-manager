@@ -11,7 +11,7 @@ RUN apk add --no-cache bash curl jq git ffmpeg \
 	# Python for python bridges
 	python3 py3-pip py3-setuptools py3-wheel \
 	# Common dependencies that need native extensions for Python bridges
-	py3-magic py3-ruamel.yaml py3-aiohttp py3-pillow py3-olm py3-pycryptodome \
+	py3-magic py3-ruamel.yaml py3-aiohttp py3-pillow py3-olm py3-pycryptodome
 
 COPY --from=lottie /cryptg-*.whl /tmp/
 RUN pip3 install /tmp/cryptg-*.whl && rm -f /tmp/cryptg-*.whl
