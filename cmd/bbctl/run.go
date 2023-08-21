@@ -10,6 +10,7 @@ import (
 	"os/exec"
 	"os/signal"
 	"path/filepath"
+	"runtime"
 	"strings"
 	"sync"
 	"syscall"
@@ -209,9 +210,12 @@ func runBridge(ctx *cli.Context) error {
 	}
 
 	cmd := makeCmd(ctx.Context, bridgeDir, bridgeCmd, bridgeArgs...)
-	cmd.SysProcAttr = &syscall.SysProcAttr{
-		// Don't pass through signals to the bridge, we'll send a sigterm when we want to stop it.
-		Setpgid: true,
+	if runtime.GOOS == "linux" {
+		cmd.SysProcAttr = &syscall.SysProcAttr{
+			// Don't pass through signals to the bridge, we'll send a sigterm when we want to stop it.
+			// Causes weird issues on macOS, so limited to Linux.
+			Setpgid: true,
+		}
 	}
 	var as *appservice.AppService
 	var wg sync.WaitGroup
@@ -253,7 +257,8 @@ func runBridge(ctx *cli.Context) error {
 			as.StopWebsocket(appservice.ErrWebsocketManualStop)
 		}
 		proc := cmd.Process
-		if proc != nil {
+		// On non-Linux, assume setpgid wasn't set, so the signal will be automatically sent to both processes.
+		if proc != nil && runtime.GOOS == "linux" {
 			err := proc.Signal(syscall.SIGTERM)
 			if err != nil {
 				log.Printf("Failed to send SIGTERM to bridge: %v", err)
