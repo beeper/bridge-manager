@@ -17,8 +17,8 @@ if [[ ! -f $BBCTL_CONFIG ]]; then
 	fi
 	export DATA_DIR=${DATA_DIR:-/data}
 	if [[ ! -d $DATA_DIR ]]; then
-		echo "DATA_DIR ($DATA_DIR) does not exist"
-		exit 1
+		echo "DATA_DIR ($DATA_DIR) does not exist, creating"
+		mkdir -p $DATA_DIR
 	fi
 	export DB_DIR=${DB_DIR:-/data/db}
 	mkdir -p $DB_DIR
