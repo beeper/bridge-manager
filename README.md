@@ -53,8 +53,10 @@ After installing relevant dependencies:
    * `<name>`  should start with `sh-` and consist of a-z, 0-9 and -.
    * If `<name>` contains the bridge type, it will be automatically detected.
      Otherwise pass the type with `--type <type>`.
-   * Currently supported types: `discord`, `whatsapp`, `imessage`,
-     `heisenbridge`, `gmessages`, `instagram` (Slack & Python bridges coming soon).
+   * Currently supported types: `discord`, `whatsapp`, `imessage`, `slack`,
+     `heisenbridge`, `gmessages`, `telegram`, `facebook`, `instagram`,
+     `googlechat`, `twitter`
+     * Signal will be added once the Go rewrite is complete.
    * The bridge will be installed to `~/.local/share/bbctl`. You can change the
      directory in the config file at `~/.config/bbctl.json`.
 4. For now, you'll have to configure the bridge by sending a DM to the bridge
