@@ -61,7 +61,8 @@ type WhoamiUserInfo struct {
 	UseHungryserv       bool      `json:"useHungryserv"`
 	BridgeClusterID     string    `json:"bridgeClusterId"`
 	AnalyticsID         string    `json:"analyticsId"`
-	HungryURL           string    `json:"hungryUrl"`
+	FakeHungryURL       string    `json:"hungryUrl"`
+	HungryURL           string    `json:"hungryUrlDirect"`
 }
 
 type RespWhoami struct {
