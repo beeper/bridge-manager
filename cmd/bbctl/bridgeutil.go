@@ -18,6 +18,7 @@ var officialBridges = map[string]string{
 	"discord":        "discord",
 	"facebook":       "facebook",
 	"googlechat":     "googlechat",
+	"gchat":          "googlechat",
 	"imessage":       "imessage",
 	"instagram":      "instagram",
 	"linkedin":       "linkedin",
