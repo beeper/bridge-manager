@@ -1,6 +1,8 @@
-# v0.7.1 (unreleased)
+# v0.7.1 (2023-08-26)
 
+* Updated to use new hungryserv URL field in whoami response.
 * Stopped using `setpgid` when running bridges on macOS as it causes weird issues.
+* Changed docker image to create `DATA_DIR` if it doesn't exist instead of failing.
 
 # v0.7.0 (2023-08-20)
 
