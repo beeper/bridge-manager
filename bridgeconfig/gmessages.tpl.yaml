@@ -88,12 +88,30 @@ metrics:
     # IP and port where the metrics listener should be. The path is always /metrics
     listen: 127.0.0.1:8001
 
+google_messages:
+    # OS name to tell the phone. This is the name that shows up in the paired devices list.
+    os: Beeper (self-hosted)
+    # Browser type to tell the phone. This decides which icon is shown.
+    # Valid types: OTHER, CHROME, FIREFOX, SAFARI, OPERA, IE, EDGE
+    browser: OTHER
+    # Device type to tell the phone. This also affects the icon, as well as how many sessions are allowed simultaneously.
+    # One web, two tablets and one PWA should be able to connect at the same time.
+    # Valid types: WEB, TABLET, PWA
+    device: TABLET
+
+    # Should the bridge aggressively set itself as the active device if the user opens Google Messages in a browser?
+    # If this is disabled, the user must manually use the `set-active` command to reactivate the bridge.
+    aggressive_reconnect: false
+
 # Bridge config
 bridge:
     # Localpart template of MXIDs for SMS users.
     # {{.}} is replaced with an identifier of the recipient.
     username_template: {{ .BridgeName }}_{{ "{{.}}" }}
     # Displayname template for SMS users.
+    # {{.FullName}} - Full name provided by the phone
+    # {{.FirstName}} - First name provided by the phone
+    # {{.PhoneNumber}} - Formatted phone number provided by the phone
     displayname_template: {{ `"{{or .FullName .PhoneNumber}}"` }}
     # Should the bridge create a space for each logged-in user and add bridged rooms to it?
     personal_filtering_spaces: true
@@ -110,6 +128,14 @@ bridge:
     # Note that updating the m.direct event is not atomic (except with mautrix-asmux)
     # and is therefore prone to race conditions.
     sync_direct_chat_list: false
+    # Number of chats to sync when connecting to Google Messages.
+    initial_chat_sync_count: 25
+    # Backfill settings
+    backfill:
+        # Number of messages to backfill in new chats.
+        initial_limit: 50
+        # Number of messages to backfill on startup if the last message ID in the chat sync doesn't match the last bridged message.
+        missed_limit: 100
 
     # Servers to always allow double puppeting from
     double_puppet_server_map:
@@ -138,7 +164,7 @@ bridge:
     mute_bridging: false
     # When using double puppeting, should archived chats be moved to a specific tag in Matrix?
     # This can be set to a tag (e.g. m.lowpriority), or null to disable.
-    archive_tag: m.lowpriority
+    archive_tag: null
     # Same as above, but for pinned chats. The favorite tag is called m.favourite
     pinned_tag: m.favourite
     # Should mute status and tags only be bridged when the portal room is created?
@@ -152,6 +178,8 @@ bridge:
     # Send captions in the same message as images. This will send data compatible with both MSC2530 and MSC3552.
     # This is currently not supported in most clients.
     caption_in_message: true
+    # Send galleries as a single event? This is not an MSC (yet).
+    beeper_galleries: false
 
     # The prefix for commands. Only required in non-management rooms.
     command_prefix: "!gm"

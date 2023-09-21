@@ -92,7 +92,8 @@ bridge:
     #   .Discriminator - The 4 numbers after the name on Discord
     #   .Bot - Whether the user is a bot
     #   .System - Whether the user is an official system user
-    #   .Webhook - Whether the user is a webhook
+    #   .Webhook - Whether the user is a webhook and is not an application
+    #   .Application - Whether the user is an application
     displayname_template: {{ `"{{if .Webhook}}Webhook{{else}}{{or .GlobalName .Username}}{{end}}"` }}
     # Displayname template for Discord channels (bridged as rooms, or spaces when type=4).
     # Available variables:
@@ -232,6 +233,7 @@ bridge:
             initial:
                 dm: 50
                 channel: 0
+                thread: 0
             # Missed message backfill (on startup).
             # 0 means backfill is disabled, -1 means fetch all messages since last bridged message.
             # When using unlimited backfill (-1), messages are backfilled as they are fetched.
@@ -239,6 +241,7 @@ bridge:
             missed:
                 dm: -1
                 channel: 50
+                thread: 0
         # Maximum members in a guild to enable backfilling. Set to -1 to disable limit.
         # This can be used as a rough heuristic to disable backfilling in channels that are too active.
         # Currently only applies to missed message backfill.
@@ -279,6 +282,10 @@ bridge:
             delete_on_device_delete: true
             # Periodically delete megolm sessions when 2x max_age has passed since receiving the session.
             periodically_delete_expired: true
+            # Delete inbound megolm sessions that don't have the received_at field used for
+            # automatic ratcheting and expired session deletion. This is meant as a migration
+            # to delete old keys prior to the bridge update.
+            delete_outdated_inbound: false
         # What level of device verification should be required from users?
         #
         # Valid levels:
