@@ -43,6 +43,7 @@ var websocketBridges = map[string]bool{
 	"gmessages":    true,
 	"heisenbridge": true,
 	"imessage":     true,
+	"signal":       true,
 }
 
 func doOutputFile(ctx *cli.Context, name, data string) error {
