@@ -207,7 +207,7 @@ bridge:
     # instead of users having to find an access token and run `login-matrix`
     # manually.
     login_shared_secret_map:
-        {{ .BeeperDomain }}: appservice
+        {{ .BeeperDomain }}: "as_token:{{ .ASToken }}"
 
     # The prefix for commands. Only required in non-management rooms.
     command_prefix: '!discord'

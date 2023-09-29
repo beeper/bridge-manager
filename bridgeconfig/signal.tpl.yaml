@@ -119,7 +119,7 @@ bridge:
     # instead of users having to find an access token and run `login-matrix`
     # manually.
     login_shared_secret_map:
-        {{ .BeeperDomain }}: appservice
+        {{ .BeeperDomain }}: "as_token:{{ .ASToken }}"
 
     # Maximum time for handling Matrix events. Duration strings formatted for https://pkg.go.dev/time#ParseDuration
     # Null means there's no enforced timeout.

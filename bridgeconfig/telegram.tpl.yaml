@@ -209,7 +209,7 @@ bridge:
     # If using this for other servers than the bridge's server,
     # you must also set the URL in the double_puppet_server_map.
     login_shared_secret_map:
-        {{ .BeeperDomain }}: appservice
+        {{ .BeeperDomain }}: "as_token:{{ .ASToken }}"
     # Set to false to disable link previews in messages sent to Telegram.
     telegram_link_preview: true
     # Whether or not the !tg join command should do a HTTP request
