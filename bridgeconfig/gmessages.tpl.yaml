@@ -106,12 +106,8 @@ google_messages:
 # Bridge config
 bridge:
     # Localpart template of MXIDs for SMS users.
-    # {{.}} is replaced with an identifier of the recipient.
     username_template: {{ .BridgeName }}_{{ "{{.}}" }}
     # Displayname template for SMS users.
-    # {{.FullName}} - Full name provided by the phone
-    # {{.FirstName}} - First name provided by the phone
-    # {{.PhoneNumber}} - Formatted phone number provided by the phone
     displayname_template: {{ `"{{or .FullName .PhoneNumber}}"` }}
     # Should the bridge create a space for each logged-in user and add bridged rooms to it?
     personal_filtering_spaces: true
