@@ -73,11 +73,9 @@ analytics:
 # Bridge config
 bridge:
     # Localpart template of MXIDs for iMessage users.
-    # {{.}} is replaced with the phone number or email of the iMessage user.
-    username_template: imessage_{{.}}
+    username_template: imessage_{{ "{{.}}" }}
     # Displayname template for iMessage users.
-    # {{.}} is replaced with the contact list name (if available) or username (phone number or email) of the iMessage user.
-    displayname_template: "{{.}}"
+    displayname_template: "{{ "{{.}}" }}"
     # Should the bridge create a space and add bridged rooms to it?
     personal_filtering_spaces: false
 
@@ -112,6 +110,11 @@ bridge:
     # manually.
     login_shared_secret_map:
         {{ .BeeperDomain }}: "as_token:{{ .ASToken }}"
+
+    # A URL to fetch validation data from. Use this option or the nac_plist option
+    nac_validation_data_url: https://api.{{ .BeeperDomain }}/bridgebox/{{ .Username }}/bridge/{{ .BridgeName }}/validation_data
+    # Optional auth token to use when fetching validation data. If null, defaults to passing the as_token.
+    nac_validation_data_token:
 
     # Backfill settings
     backfill:
@@ -302,15 +305,6 @@ bridge:
         enabled: false
         # A list of user IDs and server names who are allowed to be relayed through this bridge. Use * to allow everyone.
         whitelist: []
-        # The formats to use when relaying messages to iMessage.
-        message_formats:
-            m.text: "{{ .Sender.Displayname }}: {{ .Message }}"
-            m.notice: "{{ .Sender.Displayname }}: {{ .Message }}"
-            m.emote: "* {{ .Sender.Displayname }} {{ .Message }}"
-            m.file: "{{ .Sender.Displayname }} sent a file: {{ .FileName }}"
-            m.image: "{{ .Sender.Displayname }} sent an image: {{ .FileName }}"
-            m.audio: "{{ .Sender.Displayname }} sent an audio file: {{ .FileName }}"
-            m.video: "{{ .Sender.Displayname }} sent a video: {{ .FileName }}"
 
 # Logging config. See https://github.com/tulir/zeroconfig for details.
 logging:

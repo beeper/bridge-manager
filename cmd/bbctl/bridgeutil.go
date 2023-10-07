@@ -77,6 +77,10 @@ func validateBridgeName(ctx *cli.Context, bridge string) error {
 }
 
 func guessOrAskBridgeType(bridge, bridgeType string) (string, error) {
+	// Hack because the officialBridges map is unordered
+	if strings.Contains(bridge, "imessagego") && bridgeType == "" {
+		bridgeType = "imessagego"
+	}
 	if bridgeType == "" {
 		for key, value := range officialBridges {
 			if strings.Contains(bridge, key) {

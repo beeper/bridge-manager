@@ -212,6 +212,7 @@ func doGenerateBridgeConfig(ctx *cli.Context, bridge string) (*generatedBridgeCo
 		ASToken:        reg.Registration.AppToken,
 		HSToken:        reg.Registration.ServerToken,
 		BridgeName:     bridge,
+		Username:       reg.YourUserID.Localpart(),
 		UserID:         reg.YourUserID,
 		Params:         extraParams,
 		DatabasePrefix: dbPrefix,

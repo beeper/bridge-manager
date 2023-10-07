@@ -21,6 +21,7 @@ type Params struct {
 	ASToken      string
 	HSToken      string
 	BridgeName   string
+	Username     string
 	UserID       id.UserID
 
 	ProvisioningSecret string
