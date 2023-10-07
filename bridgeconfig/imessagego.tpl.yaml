@@ -39,7 +39,7 @@ appservice:
         # The database type. Only "sqlite3-fk-wal" is supported.
         type: sqlite3-fk-wal
         # SQLite database path. A raw file path is supported, but `file:<path>?_txlock=immediate` is recommended.
-        uri: file:{{.DatabasePrefix}}mautrix-whatsapp.db?_txlock=immediate
+        uri: file:{{.DatabasePrefix}}beeper-imessage.db?_txlock=immediate
 
     # The unique ID of this appservice.
     id: {{ .AppserviceID }}
