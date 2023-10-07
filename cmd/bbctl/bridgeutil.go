@@ -20,6 +20,7 @@ var officialBridges = map[string]string{
 	"googlechat":     "googlechat",
 	"gchat":          "googlechat",
 	"imessage":       "imessage",
+	"imessagego":     "imessagego",
 	"instagram":      "instagram",
 	"linkedin":       "linkedin",
 	"signal":         "signal",
@@ -43,6 +44,7 @@ var websocketBridges = map[string]bool{
 	"gmessages":    true,
 	"heisenbridge": true,
 	"imessage":     true,
+	"imessagego":   true,
 	"signal":       true,
 }
 

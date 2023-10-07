@@ -238,12 +238,21 @@ func generateBridgeConfig(ctx *cli.Context) error {
 			startupCommand += " -c " + outputPath
 		}
 		installInstructions = fmt.Sprintf("https://docs.mau.fi/bridges/go/setup.html?bridge=%s#installation", cfg.BridgeType)
+	case "imessagego":
+		startupCommand = "beeper-imessage"
+		if outputPath != "config.yaml" && outputPath != "<config file>" {
+			startupCommand += " -c " + outputPath
+		}
 	case "heisenbridge":
 		heisenHomeserverURL := strings.Replace(cfg.HomeserverURL, "https://", "wss://", 1)
 		startupCommand = fmt.Sprintf("python -m heisenbridge -c %s -o %s %s", outputPath, cfg.YourUserID, heisenHomeserverURL)
 		installInstructions = "https://github.com/beeper/bridge-manager/wiki/Heisenbridge"
 	}
-	_, _ = fmt.Fprintf(os.Stderr, "\n%s: %s\n", color.YellowString("Startup command"), color.CyanString(startupCommand))
-	_, _ = fmt.Fprintf(os.Stderr, "See %s for bridge installation instructions\n", hyper.Link(installInstructions, installInstructions, false))
+	if startupCommand != "" {
+		_, _ = fmt.Fprintf(os.Stderr, "\n%s: %s\n", color.YellowString("Startup command"), color.CyanString(startupCommand))
+	}
+	if installInstructions != "" {
+		_, _ = fmt.Fprintf(os.Stderr, "See %s for bridge installation instructions\n", hyper.Link(installInstructions, installInstructions, false))
+	}
 	return nil
 }

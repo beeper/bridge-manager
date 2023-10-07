@@ -204,6 +204,10 @@ func runBridge(ctx *cli.Context) error {
 		heisenHomeserverURL := strings.Replace(cfg.HomeserverURL, "https://", "wss://", 1)
 		bridgeCmd = filepath.Join(bridgeDir, "venv", "bin", "python3")
 		bridgeArgs = []string{"-m", "heisenbridge", "-c", "config.yaml", "-o", cfg.YourUserID.String(), heisenHomeserverURL}
+	default:
+		if overrideBridgeCmd == "" {
+			return UserError{"Unsupported bridge type for bbctl run"}
+		}
 	}
 	if overrideBridgeCmd != "" {
 		bridgeCmd = overrideBridgeCmd
