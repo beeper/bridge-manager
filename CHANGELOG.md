@@ -1,3 +1,12 @@
+# v0.8.0 (unreleased)
+
+* Added `--local-dev` flag to `bbctl run` for running a local git cloned bridge,
+  instead of downloading a CI binary or using pip install.
+* Added config template for the new Signal bridge written in Go.
+* Switched bridges to use `as_token` double puppeting (the new method mentioned
+  in [the docs](https://docs.mau.fi/bridges/general/double-puppeting.html#appservice-method-new)).
+* Fixed bugs in Slack and Google Messages config templates.
+
 # v0.7.1 (2023-08-26)
 
 * Updated to use new hungryserv URL field in whoami response.

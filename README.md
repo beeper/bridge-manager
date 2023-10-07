@@ -13,9 +13,7 @@ self-hosting support room linked below or in GitHub issues here</sub>
 
 You can also self-host the official bridges for maximum security using this
 tool (so that message re-encryption happens on a machine you control rather
-than on Beeper servers). However, not all the official bridges are supported
-yet. See the "Official bridges" section below for instructions and the list of
-supported bridges.
+than on Beeper servers).
 
 Please note that self-hosted bridges are not entitled to the usual level of
 customer support on Beeper. If you need help with self-hosting bridges using
