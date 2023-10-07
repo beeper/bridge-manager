@@ -244,6 +244,19 @@ func runBridge(ctx *cli.Context) error {
 			}
 		}
 		bridgeArgs = []string{"-c", configFileName}
+	case "imessagego":
+		binaryName := "beeper-imessage"
+		if localDev && overrideBridgeCmd == "" {
+			bridgeCmd = filepath.Join(bridgeDir, binaryName)
+			log.Printf("Compiling [cyan]%s[reset] with ./build.sh", binaryName)
+			err = makeCmd(ctx.Context, bridgeDir, "./build.sh").Run()
+			if err != nil {
+				return fmt.Errorf("failed to compile bridge: %w", err)
+			}
+		} else if overrideBridgeCmd == "" {
+			return UserError{"imessagego only supports --local-dev currently"}
+		}
+		bridgeArgs = []string{"-c", configFileName}
 	case "telegram", "facebook", "googlechat", "instagram", "twitter":
 		if overrideBridgeCmd == "" {
 			var venvPath string
