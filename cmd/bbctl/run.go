@@ -46,6 +46,24 @@ var runCommand = &cli.Command{
 			Usage:   "Don't update the bridge even if it is out of date.",
 			EnvVars: []string{"BEEPER_BRIDGE_NO_UPDATE"},
 		},
+		&cli.BoolFlag{
+			Name:    "local-dev",
+			Aliases: []string{"l"},
+			Usage:   "Run the bridge in your current working directory instead of downloading and installing a new copy. Useful for developing bridges.",
+			EnvVars: []string{"BEEPER_BRIDGE_LOCAL"},
+		},
+		&cli.StringFlag{
+			Name:    "config-file",
+			Aliases: []string{"c"},
+			Value:   "config.yaml",
+			EnvVars: []string{"BEEPER_BRIDGE_CONFIG_FILE"},
+			Usage:   "File name to save the config to. Mostly relevant for local dev mode.",
+		},
+		&cli.BoolFlag{
+			Name:    "no-override-config",
+			Usage:   "Don't override the config file if it already exists. Defaults to true with --local-dev mode, otherwise false (always override)",
+			EnvVars: []string{"BEEPER_BRIDGE_NO_OVERRIDE_CONFIG"},
+		},
 		&cli.StringFlag{
 			Name:    "custom-startup-command",
 			Usage:   "A custom binary or script to run for startup. Disables checking for updates entirely.",
@@ -100,18 +118,25 @@ func updateGoBridge(ctx context.Context, binaryPath, bridgeType string, noUpdate
 	return gitlab.DownloadMautrixBridgeBinary(ctx, bridgeType, binaryPath, noUpdate, "", currentVersion.Commit)
 }
 
-func setupPythonVenv(ctx context.Context, bridgeDir, bridgeType string) error {
+func setupPythonVenv(ctx context.Context, bridgeDir, bridgeType string, localDev bool) (string, error) {
 	var installPackage string
+	localRequirements := []string{"-r", "requirements.txt"}
 	switch bridgeType {
 	case "heisenbridge":
 		installPackage = "heisenbridge"
 	case "telegram", "facebook", "googlechat", "instagram", "twitter":
 		//installPackage = fmt.Sprintf("mautrix-%s[all]", bridgeType)
 		installPackage = fmt.Sprintf("mautrix-%s[all] @ git+https://github.com/mautrix/%s.git@master", bridgeType, bridgeType)
+		localRequirements = append(localRequirements, "-r", "optional-requirements.txt")
 	default:
-		return fmt.Errorf("unknown python bridge type %s", bridgeType)
+		return "", fmt.Errorf("unknown python bridge type %s", bridgeType)
 	}
-	venvPath := filepath.Join(bridgeDir, "venv")
+	var venvPath string
+	if localDev {
+		venvPath = filepath.Join(bridgeDir, ".venv")
+	} else {
+		venvPath = filepath.Join(bridgeDir, "venv")
+	}
 	log.Printf("Creating Python virtualenv at [magenta]%s[reset]", venvPath)
 	venvArgs := []string{"-m", "venv"}
 	if os.Getenv("SYSTEM_SITE_PACKAGES") == "true" {
@@ -120,16 +145,21 @@ func setupPythonVenv(ctx context.Context, bridgeDir, bridgeType string) error {
 	venvArgs = append(venvArgs, venvPath)
 	err := makeCmd(ctx, bridgeDir, "python3", venvArgs...).Run()
 	if err != nil {
-		return fmt.Errorf("failed to create venv: %w", err)
+		return venvPath, fmt.Errorf("failed to create venv: %w", err)
 	}
-	log.Printf("Installing [cyan]%s[reset] into virtualenv", installPackage)
+	packages := []string{installPackage}
+	if localDev {
+		packages = localRequirements
+	}
+	log.Printf("Installing [cyan]%s[reset] into virtualenv", strings.Join(packages, " "))
 	pipPath := filepath.Join(venvPath, "bin", "pip3")
-	err = makeCmd(ctx, bridgeDir, pipPath, "install", "--upgrade", installPackage).Run()
+	installArgs := append([]string{"install", "--upgrade"}, packages...)
+	err = makeCmd(ctx, bridgeDir, pipPath, installArgs...).Run()
 	if err != nil {
-		return fmt.Errorf("failed to install package: %w", err)
+		return venvPath, fmt.Errorf("failed to install package: %w", err)
 	}
 	log.Printf("[green]Installation complete[reset]")
-	return nil
+	return venvPath, nil
 }
 
 func makeCmd(ctx context.Context, pwd, path string, args ...string) *exec.Cmd {
@@ -155,10 +185,19 @@ func runBridge(ctx *cli.Context) error {
 	}
 
 	dataDir := GetEnvConfig(ctx).BridgeDataDir
-	bridgeDir := filepath.Join(dataDir, bridgeName)
-	err = os.MkdirAll(bridgeDir, 0700)
-	if err != nil {
-		return err
+	var bridgeDir string
+	localDev := ctx.Bool("local-dev")
+	if localDev {
+		bridgeDir, err = os.Getwd()
+		if err != nil {
+			return fmt.Errorf("failed to get working directory: %w", err)
+		}
+	} else {
+		bridgeDir = filepath.Join(dataDir, bridgeName)
+		err = os.MkdirAll(bridgeDir, 0700)
+		if err != nil {
+			return fmt.Errorf("failed to create bridge directory: %w", err)
+		}
 	}
 	// TODO creating this here feels a bit hacky
 	err = os.MkdirAll(filepath.Join(bridgeDir, "logs"), 0700)
@@ -166,9 +205,21 @@ func runBridge(ctx *cli.Context) error {
 		return err
 	}
 
-	err = os.WriteFile(filepath.Join(bridgeDir, "config.yaml"), []byte(cfg.Config), 0600)
-	if err != nil {
-		return fmt.Errorf("failed to save config: %w", err)
+	configFileName := ctx.String("config-file")
+	configPath := filepath.Join(bridgeDir, configFileName)
+	noOverrideConfig := ctx.Bool("no-override-config") || localDev
+	doWriteConfig := true
+	if noOverrideConfig {
+		_, err = os.Stat(configPath)
+		doWriteConfig = errors.Is(err, fs.ErrNotExist)
+	}
+	if doWriteConfig {
+		err = os.WriteFile(configPath, []byte(cfg.Config), 0600)
+		if err != nil {
+			return fmt.Errorf("failed to save config: %w", err)
+		}
+	} else {
+		log.Printf("Config already exists, not overriding - if you want to regenerate it, delete [cyan]%s[reset]", configPath)
 	}
 
 	overrideBridgeCmd := ctx.String("custom-startup-command")
@@ -177,33 +228,43 @@ func runBridge(ctx *cli.Context) error {
 	var needsWebsocketProxy bool
 	switch cfg.BridgeType {
 	case "imessage", "whatsapp", "discord", "slack", "gmessages":
-		bridgeCmd = filepath.Join(dataDir, "binaries", fmt.Sprintf("mautrix-%s", cfg.BridgeType))
-		if overrideBridgeCmd == "" {
+		binaryName := fmt.Sprintf("mautrix-%s", cfg.BridgeType)
+		bridgeCmd = filepath.Join(dataDir, "binaries", binaryName)
+		if localDev && overrideBridgeCmd == "" {
+			bridgeCmd = filepath.Join(bridgeDir, binaryName)
+			err = makeCmd(ctx.Context, bridgeDir, "./build.sh").Run()
+			if err != nil {
+				return fmt.Errorf("failed to compile bridge: %w", err)
+			}
+		} else if overrideBridgeCmd == "" {
 			err = updateGoBridge(ctx.Context, bridgeCmd, cfg.BridgeType, ctx.Bool("no-update"))
 			if err != nil {
 				return fmt.Errorf("failed to update bridge: %w", err)
 			}
 		}
+		bridgeArgs = []string{"-c", configFileName}
 	case "telegram", "facebook", "googlechat", "instagram", "twitter":
 		if overrideBridgeCmd == "" {
-			err = setupPythonVenv(ctx.Context, bridgeDir, cfg.BridgeType)
+			var venvPath string
+			venvPath, err = setupPythonVenv(ctx.Context, bridgeDir, cfg.BridgeType, localDev)
 			if err != nil {
 				return fmt.Errorf("failed to update bridge: %w", err)
 			}
+			bridgeCmd = filepath.Join(venvPath, "bin", "python3")
 		}
-		bridgeCmd = filepath.Join(bridgeDir, "venv", "bin", "python3")
-		bridgeArgs = []string{"-m", "mautrix_" + cfg.BridgeType}
+		bridgeArgs = []string{"-m", "mautrix_" + cfg.BridgeType, "-c", configFileName}
 		needsWebsocketProxy = true
 	case "heisenbridge":
 		if overrideBridgeCmd == "" {
-			err = setupPythonVenv(ctx.Context, bridgeDir, cfg.BridgeType)
+			var venvPath string
+			venvPath, err = setupPythonVenv(ctx.Context, bridgeDir, cfg.BridgeType, localDev)
 			if err != nil {
 				return fmt.Errorf("failed to update bridge: %w", err)
 			}
+			bridgeCmd = filepath.Join(venvPath, "bin", "python3")
 		}
 		heisenHomeserverURL := strings.Replace(cfg.HomeserverURL, "https://", "wss://", 1)
-		bridgeCmd = filepath.Join(bridgeDir, "venv", "bin", "python3")
-		bridgeArgs = []string{"-m", "heisenbridge", "-c", "config.yaml", "-o", cfg.YourUserID.String(), heisenHomeserverURL}
+		bridgeArgs = []string{"-m", "heisenbridge", "-c", configFileName, "-o", cfg.YourUserID.String(), heisenHomeserverURL}
 	default:
 		if overrideBridgeCmd == "" {
 			return UserError{"Unsupported bridge type for bbctl run"}
