@@ -5,7 +5,7 @@ import (
 	"encoding/base64"
 	"encoding/hex"
 	"fmt"
-	"math/rand"
+	"hash/crc32"
 	"os"
 	"path/filepath"
 	"strings"
@@ -122,6 +122,21 @@ type generatedBridgeConfig struct {
 	*RegisterJSON
 }
 
+// These should match the last 2 digits of https://mau.fi/ports
+var bridgeIPSuffix = map[string]string{
+	"telegram":   "17",
+	"whatsapp":   "18",
+	"facebook":   "19",
+	"googlechat": "20",
+	"twitter":    "27",
+	"signal":     "28",
+	"instagram":  "30",
+	"discord":    "34",
+	"slack":      "35",
+	"gmessages":  "36",
+	"imessagego": "37",
+}
+
 func doGenerateBridgeConfig(ctx *cli.Context, bridge string) (*generatedBridgeConfig, error) {
 	if err := validateBridgeName(ctx, bridge); err != nil {
 		return nil, err
@@ -181,9 +196,12 @@ func doGenerateBridgeConfig(ctx *cli.Context, bridge string) (*generatedBridgeCo
 	var listenAddress string
 	var listenPort uint16
 	if !websocket {
-		listenAddress = "127.29.3.1"
-		// TODO use something less hacky?
-		listenPort = uint16(30000 + rand.Intn(30000))
+		ipSuffix := bridgeIPSuffix[bridgeType]
+		if ipSuffix == "" {
+			ipSuffix = "1"
+		}
+		listenAddress = "127.29.3." + ipSuffix
+		listenPort = uint16(30000 + (crc32.ChecksumIEEE([]byte(bridge)) % 30000))
 		reg.Registration.URL = fmt.Sprintf("http://%s:%d", listenAddress, listenPort)
 	}
 	cfg, err := bridgeconfig.Generate(bridgeType, bridgeconfig.Params{
