@@ -232,6 +232,7 @@ func runBridge(ctx *cli.Context) error {
 		bridgeCmd = filepath.Join(dataDir, "binaries", binaryName)
 		if localDev && overrideBridgeCmd == "" {
 			bridgeCmd = filepath.Join(bridgeDir, binaryName)
+			log.Printf("Compiling [cyan]%s[reset] with ./build.sh", binaryName)
 			err = makeCmd(ctx.Context, bridgeDir, "./build.sh").Run()
 			if err != nil {
 				return fmt.Errorf("failed to compile bridge: %w", err)
