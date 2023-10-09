@@ -23,7 +23,8 @@ var officialBridges = map[string]string{
 	"imessagego":     "imessagego",
 	"instagram":      "instagram",
 	"linkedin":       "linkedin",
-	"signal":         "signal",
+	"signal":         "signal",,
+	"signalgo":       "signalgo",
 	"slack":          "slack",
 	"telegram":       "telegram",
 	"twitter":        "twitter",
@@ -46,6 +47,7 @@ var websocketBridges = map[string]bool{
 	"imessage":     true,
 	"imessagego":   true,
 	"signal":       true,
+	"signalgo":       true,
 }
 
 func doOutputFile(ctx *cli.Context, name, data string) error {
