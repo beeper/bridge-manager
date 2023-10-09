@@ -227,7 +227,7 @@ func runBridge(ctx *cli.Context) error {
 	var bridgeArgs []string
 	var needsWebsocketProxy bool
 	switch cfg.BridgeType {
-	case "imessage", "whatsapp", "discord", "slack", "gmessages":
+	case "imessage", "whatsapp", "discord", "slack", "gmessages", "signal":
 		binaryName := fmt.Sprintf("mautrix-%s", cfg.BridgeType)
 		bridgeCmd = filepath.Join(dataDir, "binaries", binaryName)
 		if localDev && overrideBridgeCmd == "" {
