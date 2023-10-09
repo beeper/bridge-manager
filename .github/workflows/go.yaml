@@ -91,6 +91,7 @@ jobs:
           cache-from: ${{ env.GHCR_REGISTRY_IMAGE }}:latest
           pull: true
           file: docker/Dockerfile
+          platforms: linux/amd64,linux/arm64
           tags: ${{ env.GHCR_REGISTRY_IMAGE }}:${{ github.sha }}
           push: true
           build-args: |
