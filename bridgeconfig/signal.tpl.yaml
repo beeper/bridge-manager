@@ -43,7 +43,7 @@ appservice:
         #           https://github.com/mattn/go-sqlite3#connection-string
         #   Postgres: Connection string. For example, postgres://user:password@host/database?sslmode=disable
         #             To connect via Unix socket, use something like postgres:///dbname?host=/var/run/postgresql
-        uri: file:{{.DatabasePrefix}}mautrix-whatsapp.db?_txlock=immediate
+        uri: file:{{.DatabasePrefix}}mautrix-signal.db?_txlock=immediate
         # Maximum number of connections. Mostly relevant for Postgres.
         max_open_conns: 5
         max_idle_conns: 2
@@ -194,7 +194,7 @@ bridge:
         #   verified - Require manual per-device verification
         #              (currently only possible by modifying the `trust` column in the `crypto_device` database table).
         verification_levels:
-            # Minimum level for which the bridge should send keys to when bridging messages from WhatsApp to Matrix.
+            # Minimum level for which the bridge should send keys to when bridging messages from Signal to Matrix.
             receive: cross-signed-tofu
             # Minimum level that the bridge should accept for incoming Matrix messages.
             send: cross-signed-tofu
