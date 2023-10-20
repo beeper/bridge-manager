@@ -73,7 +73,7 @@ analytics:
 # Bridge config
 bridge:
     # Localpart template of MXIDs for iMessage users.
-    username_template: imessage_{{ "{{.}}" }}
+    username_template: {{ .BridgeName }}_{{ "{{.}}" }}
     # Displayname template for iMessage users.
     displayname_template: "{{ "{{.}}" }}"
     # Should the bridge create a space and add bridged rooms to it?
