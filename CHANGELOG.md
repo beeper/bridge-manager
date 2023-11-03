@@ -1,4 +1,4 @@
-# v0.8.0 (unreleased)
+# v0.8.0 (2023-11-03)
 
 * Added `--local-dev` flag to `bbctl run` for running a local git cloned bridge,
   instead of downloading a CI binary or using pip install.
