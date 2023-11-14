@@ -15,11 +15,10 @@ You can also self-host the official bridges for maximum security using this
 tool (so that message re-encryption happens on a machine you control rather
 than on Beeper servers).
 
-> **Note**
-Self-hosted bridges are not entitled to the usual level of
-customer support on Beeper. If you need help with self-hosting bridges using
-this tool, please join [#self-hosting:beeper.com] instead of asking in your
-support room.
+> [!NOTE]
+> Self-hosted bridges are not entitled to the usual level of customer support
+> on Beeper. If you need help with self-hosting bridges using this tool, please
+> join [#self-hosting:beeper.com] instead of asking in your support room.
 
 [#self-hosting:beeper.com]: https://matrix.to/#/#self-hosting:beeper.com
 
@@ -62,9 +61,12 @@ After installing relevant dependencies:
    chat networks dialog will be available in the future. Spaces and starting
    chats are also not yet available, although you can start chats using the
    `pm` command with the bridge bot.
-   
-   > **Note**
-   Heisenbridge does not support encryption so you will have to creat the DM to the bridge bot in a different matrix client than beeper
+
+There is currently a bug in Beeper Desktop that causes it to create encrypted
+DMs even if the recipient doesn't support it. This means that for non-e2ee-
+capable bridges like Heisenbridge, you'll have to create the DM with the bridge
+bot in another Matrix client, or using the create group chat button in Beeper
+Desktop.
 
 Currently the bridge will run in foreground, so you'll have to keep `bbctl run`
 active somewhere (tmux is a good option). In the future, a service mode will be
