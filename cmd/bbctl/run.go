@@ -128,6 +128,9 @@ func setupPythonVenv(ctx context.Context, bridgeDir, bridgeType string, localDev
 		//installPackage = fmt.Sprintf("mautrix-%s[all]", bridgeType)
 		installPackage = fmt.Sprintf("mautrix-%s[all] @ git+https://github.com/mautrix/%s.git@master", bridgeType, bridgeType)
 		localRequirements = append(localRequirements, "-r", "optional-requirements.txt")
+	case "linkedin":
+		installPackage = fmt.Sprintf("%s-matrix[all] @ git+https://github.com/beeper/%s.git@master", bridgeType, bridgeType)
+		localRequirements = append(localRequirements, "-r", "optional-requirements.txt")
 	default:
 		return "", fmt.Errorf("unknown python bridge type %s", bridgeType)
 	}
@@ -267,6 +270,17 @@ func runBridge(ctx *cli.Context) error {
 			bridgeCmd = filepath.Join(venvPath, "bin", "python3")
 		}
 		bridgeArgs = []string{"-m", "mautrix_" + cfg.BridgeType, "-c", configFileName}
+		needsWebsocketProxy = true
+	case "linkedin":
+		if overrideBridgeCmd == "" {
+			var venvPath string
+			venvPath, err = setupPythonVenv(ctx.Context, bridgeDir, cfg.BridgeType, localDev)
+			if err != nil {
+				return fmt.Errorf("failed to update bridge: %w", err)
+			}
+			bridgeCmd = filepath.Join(venvPath, "bin", "python3")
+		}
+		bridgeArgs = []string{"-m", cfg.BridgeType + "_matrix", "-c", configFileName}
 		needsWebsocketProxy = true
 	case "heisenbridge":
 		if overrideBridgeCmd == "" {
