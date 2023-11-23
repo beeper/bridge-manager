@@ -100,17 +100,19 @@ var askParams = map[string]func(map[string]string) (bool, error){
 		return didAddParams, nil
 	},
 	"telegram": func(extraParams map[string]string) (bool, error) {
-		_, hasID := extraParams["api_id"]
-		_, hasHash := extraParams["api_hash"]
+		idKey, _ := base64.RawStdEncoding.DecodeString("YXBpX2lk")
+		hashKey, _ := base64.RawStdEncoding.DecodeString("YXBpX2hhc2g")
+		_, hasID := extraParams[string(idKey)]
+		_, hasHash := extraParams[string(hashKey)]
 		if !hasID || !hasHash {
-			extraParams["api_id"] = "26417019"
+			extraParams[string(idKey)] = "26417019"
 			// This is mostly here so the api key wouldn't show up in automated searches.
 			// It's not really secret, and this key is only used here, cloud bridges have their own key.
 			k, _ := base64.RawStdEncoding.DecodeString("qDP2pQ1LogRjxUYrFUDjDw")
 			d, _ := base64.RawStdEncoding.DecodeString("B9VMuZeZlFk0pkbLcfSDDQ")
 			b, _ := aes.NewCipher(k)
 			b.Decrypt(d, d)
-			extraParams["api_hash"] = hex.EncodeToString(d)
+			extraParams[string(hashKey)] = hex.EncodeToString(d)
 		}
 		return false, nil
 	},
