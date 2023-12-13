@@ -1,3 +1,14 @@
+# v0.9.0 (unreleased)
+
+* Added support for the LinkedIn bridge.
+* Added `--compile` flag to `bbctl run` for automatically cloning the bridge
+  repo and compiling it locally.
+  * This is meant for architectures which the CI does not build binaries for,
+    `--local-dev` is better for actually modifying the bridge code.
+* Marked `darwin/amd64` as unsupported for downloading bridge CI binaries.
+* Fixed CI binary downloading not checking HTTP status code and trying to
+  execute HTML error pages instead.
+
 # v0.8.0 (2023-11-03)
 
 * Added `--local-dev` flag to `bbctl run` for running a local git cloned bridge,
