@@ -52,6 +52,11 @@ var runCommand = &cli.Command{
 			Usage:   "Run the bridge in your current working directory instead of downloading and installing a new copy. Useful for developing bridges.",
 			EnvVars: []string{"BEEPER_BRIDGE_LOCAL"},
 		},
+		&cli.BoolFlag{
+			Name:    "compile",
+			Usage:   "Clone the bridge repository and compile it locally instead of downloading a binary from CI. Useful for architectures that aren't built in CI. Not meant for development/modifying the bridge, use --local-dev for that instead.",
+			EnvVars: []string{"BEEPER_BRIDGE_COMPILE"},
+		},
 		&cli.StringFlag{
 			Name:    "config-file",
 			Aliases: []string{"c"},
@@ -116,6 +121,44 @@ func updateGoBridge(ctx context.Context, binaryPath, bridgeType string, noUpdate
 		}
 	}
 	return gitlab.DownloadMautrixBridgeBinary(ctx, bridgeType, binaryPath, noUpdate, "", currentVersion.Commit)
+}
+
+func compileGoBridge(ctx context.Context, buildDir, binaryPath, bridgeType string, noUpdate bool) error {
+	buildDirParent := filepath.Dir(buildDir)
+	err := os.MkdirAll(buildDirParent, 0700)
+	if err != nil {
+		return err
+	}
+
+	if _, err = os.Stat(buildDir); err != nil && errors.Is(err, fs.ErrNotExist) {
+		repo := fmt.Sprintf("https://github.com/mautrix/%s.git", bridgeType)
+		log.Printf("Cloning [cyan]%s[reset] to [cyan]%s[reset]", repo, buildDir)
+		err = makeCmd(ctx, buildDirParent, "git", "clone", repo, buildDir).Run()
+		if err != nil {
+			return fmt.Errorf("failed to clone repo: %w", err)
+		}
+	} else {
+		if _, err = os.Stat(binaryPath); err == nil || !errors.Is(err, fs.ErrNotExist) {
+			if _, err = exec.Command(binaryPath, "--version-json").Output(); err != nil {
+				log.Printf("Failed to get current bridge version: [red]%v[reset] - reinstalling", err)
+			} else if noUpdate {
+				log.Printf("Not updating bridge because --no-update was specified")
+				return nil
+			}
+		}
+		log.Printf("Pulling [cyan]%s[reset]", buildDir)
+		err = makeCmd(ctx, buildDir, "git", "pull").Run()
+		if err != nil {
+			return fmt.Errorf("failed to pull repo: %w", err)
+		}
+	}
+	log.Printf("Compiling bridge with ./build.sh")
+	err = makeCmd(ctx, buildDir, "./build.sh").Run()
+	if err != nil {
+		return fmt.Errorf("failed to compile bridge: %w", err)
+	}
+	log.Printf("Successfully compiled bridge")
+	return nil
 }
 
 func setupPythonVenv(ctx context.Context, bridgeDir, bridgeType string, localDev bool) (string, error) {
@@ -189,8 +232,12 @@ func runBridge(ctx *cli.Context) error {
 
 	dataDir := GetEnvConfig(ctx).BridgeDataDir
 	var bridgeDir string
+	compile := ctx.Bool("compile")
 	localDev := ctx.Bool("local-dev")
 	if localDev {
+		if compile {
+			log.Printf("--compile does nothing when using --local-dev")
+		}
 		bridgeDir, err = os.Getwd()
 		if err != nil {
 			return fmt.Errorf("failed to get working directory: %w", err)
@@ -226,6 +273,14 @@ func runBridge(ctx *cli.Context) error {
 	}
 
 	overrideBridgeCmd := ctx.String("custom-startup-command")
+	if overrideBridgeCmd != "" {
+		if localDev {
+			log.Printf("--local-dev does nothing when using --custom-startup-command")
+		}
+		if compile {
+			log.Printf("--compile does nothing when using --custom-startup-command")
+		}
+	}
 	var bridgeCmd string
 	var bridgeArgs []string
 	var needsWebsocketProxy bool
@@ -237,6 +292,13 @@ func runBridge(ctx *cli.Context) error {
 			bridgeCmd = filepath.Join(bridgeDir, binaryName)
 			log.Printf("Compiling [cyan]%s[reset] with ./build.sh", binaryName)
 			err = makeCmd(ctx.Context, bridgeDir, "./build.sh").Run()
+			if err != nil {
+				return fmt.Errorf("failed to compile bridge: %w", err)
+			}
+		} else if compile && overrideBridgeCmd == "" {
+			buildDir := filepath.Join(dataDir, "compile", binaryName)
+			bridgeCmd = filepath.Join(buildDir, binaryName)
+			err = compileGoBridge(ctx.Context, buildDir, bridgeCmd, cfg.BridgeType, ctx.Bool("no-update"))
 			if err != nil {
 				return fmt.Errorf("failed to compile bridge: %w", err)
 			}
