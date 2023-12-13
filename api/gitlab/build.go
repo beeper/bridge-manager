@@ -2,6 +2,7 @@ package gitlab
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -75,6 +76,8 @@ func getRefFromBridge(bridge string) (string, error) {
 	}
 }
 
+var ErrNotBuiltInCI = errors.New("not built in the CI")
+
 func getJobFromBridge(bridge string) (string, error) {
 	switch bridge {
 	case "imessage":
@@ -91,15 +94,13 @@ func getJobFromBridge(bridge string) (string, error) {
 			return "build arm64", nil
 		case "linux/arm":
 			if bridge == "signal" {
-				return "", fmt.Errorf("mautrix-signal does not support 32-bit arm")
+				return "", fmt.Errorf("mautrix-signal binaries for 32-bit arm are %w", ErrNotBuiltInCI)
 			}
 			return "build arm", nil
 		case "darwin/arm64":
 			return "build macos arm64", nil
-		case "darwin/amd64":
-			return "build macos amd64", nil
 		default:
-			return "", fmt.Errorf("binaries for %s are not yet built in the CI", osAndArch)
+			return "", fmt.Errorf("binaries for %s are %w", osAndArch, ErrNotBuiltInCI)
 		}
 	}
 }

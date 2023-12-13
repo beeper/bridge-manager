@@ -242,7 +242,9 @@ func runBridge(ctx *cli.Context) error {
 			}
 		} else if overrideBridgeCmd == "" {
 			err = updateGoBridge(ctx.Context, bridgeCmd, cfg.BridgeType, ctx.Bool("no-update"))
-			if err != nil {
+			if errors.Is(err, gitlab.ErrNotBuiltInCI) {
+				return UserError{fmt.Sprintf("Binaries for %s are not built in the CI. Use --compile to tell bbctl to build the bridge locally.", binaryName)}
+			} else if err != nil {
 				return fmt.Errorf("failed to update bridge: %w", err)
 			}
 		}
