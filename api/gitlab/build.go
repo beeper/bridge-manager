@@ -141,6 +141,9 @@ func downloadFile(ctx context.Context, artifactURL, path string) error {
 		return fmt.Errorf("failed to download artifact: %w", err)
 	}
 	defer resp.Body.Close()
+	if resp.StatusCode != http.StatusOK {
+		return fmt.Errorf("failed to download artifact: unexpected response status %d", resp.StatusCode)
+	}
 	bar := progressbar.DefaultBytes(
 		resp.ContentLength,
 		fmt.Sprintf("Downloading %s", color.CyanString(fileName)),
