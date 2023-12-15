@@ -53,7 +53,7 @@ After installing relevant dependencies:
      Otherwise pass the type with `--type <type>`.
    * Currently supported types: `discord`, `whatsapp`, `imessage`, `slack`,
      `heisenbridge`, `gmessages`, `telegram`, `facebook`, `instagram`,
-     `googlechat`, `twitter`, `signal`
+     `googlechat`, `twitter`, `signal`, `linkedin`
    * The bridge will be installed to `~/.local/share/bbctl`. You can change the
      directory in the config file at `~/.config/bbctl.json`.
 4. For now, you'll have to configure the bridge by sending a DM to the bridge
