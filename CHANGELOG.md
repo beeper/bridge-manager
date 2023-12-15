@@ -6,6 +6,7 @@
   * This is meant for architectures which the CI does not build binaries for,
     `--local-dev` is better for actually modifying the bridge code.
 * Marked `darwin/amd64` as unsupported for downloading bridge CI binaries.
+* Fixed downloading Signal bridge binaries from CI.
 * Fixed CI binary downloading not checking HTTP status code and trying to
   execute HTML error pages instead.
 
