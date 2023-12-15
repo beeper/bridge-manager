@@ -1,4 +1,4 @@
-# v0.9.0 (unreleased)
+# v0.9.0 (2023-12-15)
 
 * Added support for the LinkedIn bridge.
 * Added `--compile` flag to `bbctl run` for automatically cloning the bridge
