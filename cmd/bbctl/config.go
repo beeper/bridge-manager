@@ -8,6 +8,7 @@ import (
 	"hash/crc32"
 	"os"
 	"path/filepath"
+	"runtime"
 	"strings"
 
 	"github.com/AlecAivazis/survey/v2"
@@ -203,6 +204,11 @@ func doGenerateBridgeConfig(ctx *cli.Context, bridge string) (*generatedBridgeCo
 			ipSuffix = "1"
 		}
 		listenAddress = "127.29.3." + ipSuffix
+		// macOS is weird and doesn't support loopback addresses properly,
+		// it only routes 127.0.0.1/32 rather than 127.0.0.0/8
+		if runtime.GOOS == "darwin" {
+			listenAddress = "127.0.0.1"
+		}
 		listenPort = uint16(30000 + (crc32.ChecksumIEEE([]byte(bridge)) % 30000))
 		reg.Registration.URL = fmt.Sprintf("http://%s:%d", listenAddress, listenPort)
 	}
