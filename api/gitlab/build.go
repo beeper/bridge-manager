@@ -177,10 +177,6 @@ func DownloadMautrixBridgeBinary(ctx context.Context, bridge, path string, noUpd
 	domain := "mau.dev"
 	repo := fmt.Sprintf("mautrix/%s", bridge)
 	fileName := filepath.Base(path)
-	// TODO remove after signalgo is merged into the main repo
-	if bridge == "signal" {
-		repo = "mautrix/signalgo"
-	}
 	ref, err := getRefFromBridge(bridge)
 	if err != nil {
 		return err
