@@ -1,3 +1,9 @@
+# v0.9.1 (unreleased)
+
+* Fixed `bbctl run`ning bridges with websocket proxy on macOS.
+* Updated bridge downloader to pull from main mautrix/ignal repo instead of the
+  signalgo fork.
+
 # v0.9.0 (2023-12-15)
 
 * Added support for the LinkedIn bridge.
