@@ -112,9 +112,10 @@ bridge:
         {{ .BeeperDomain }}: "as_token:{{ .ASToken }}"
 
     # A URL to fetch validation data from. Use this option or the nac_plist option
-    nac_validation_data_url: https://api.{{ .BeeperDomain }}/bridgebox/{{ .Username }}/bridge/{{ .BridgeName }}/validation_data
+    nac_validation_data_url: {{ .Params.nac_url }}
     # Optional auth token to use when fetching validation data. If null, defaults to passing the as_token.
-    nac_validation_data_token:
+    nac_validation_data_token: {{ .Params.nac_token }}
+    nac_validation_is_relay: true
 
     # Backfill settings
     backfill:

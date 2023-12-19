@@ -67,6 +67,33 @@ func simpleDescriptions(descs map[string]string) func(string, int) string {
 }
 
 var askParams = map[string]func(map[string]string) (bool, error){
+	"imessagego": func(extraParams map[string]string) (bool, error) {
+		nacURL := extraParams["nac_url"]
+		nacToken := extraParams["nac_token"]
+		var didAddParams bool
+		if nacURL == "" {
+			err := survey.AskOne(&survey.Input{
+				Message: "Enter registration relay address",
+				Default: "https://registration-relay.beeper.com",
+			}, &nacURL)
+			if err != nil {
+				return didAddParams, err
+			}
+			extraParams["nac_url"] = nacURL
+			didAddParams = true
+		}
+		if nacToken == "" {
+			err := survey.AskOne(&survey.Input{
+				Message: "Enter iMessage registration token",
+			}, &nacToken)
+			if err != nil {
+				return didAddParams, err
+			}
+			extraParams["nac_token"] = nacToken
+			didAddParams = true
+		}
+		return didAddParams, nil
+	},
 	"imessage": func(extraParams map[string]string) (bool, error) {
 		platform := extraParams["imessage_platform"]
 		barcelonaPath := extraParams["barcelona_path"]
