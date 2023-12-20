@@ -285,8 +285,11 @@ func runBridge(ctx *cli.Context) error {
 	var bridgeArgs []string
 	var needsWebsocketProxy bool
 	switch cfg.BridgeType {
-	case "imessage", "whatsapp", "discord", "slack", "gmessages", "signal":
+	case "imessage", "imessagego", "whatsapp", "discord", "slack", "gmessages", "signal":
 		binaryName := fmt.Sprintf("mautrix-%s", cfg.BridgeType)
+		if cfg.BridgeType == "imessagego" {
+			binaryName = "beeper-imessage"
+		}
 		bridgeCmd = filepath.Join(dataDir, "binaries", binaryName)
 		if localDev && overrideBridgeCmd == "" {
 			bridgeCmd = filepath.Join(bridgeDir, binaryName)
@@ -309,19 +312,6 @@ func runBridge(ctx *cli.Context) error {
 			} else if err != nil {
 				return fmt.Errorf("failed to update bridge: %w", err)
 			}
-		}
-		bridgeArgs = []string{"-c", configFileName}
-	case "imessagego":
-		binaryName := "beeper-imessage"
-		if localDev && overrideBridgeCmd == "" {
-			bridgeCmd = filepath.Join(bridgeDir, binaryName)
-			log.Printf("Compiling [cyan]%s[reset] with ./build.sh", binaryName)
-			err = makeCmd(ctx.Context, bridgeDir, "./build.sh").Run()
-			if err != nil {
-				return fmt.Errorf("failed to compile bridge: %w", err)
-			}
-		} else if overrideBridgeCmd == "" {
-			return UserError{"imessagego only supports --local-dev currently"}
 		}
 		bridgeArgs = []string{"-c", configFileName}
 	case "telegram", "facebook", "googlechat", "instagram", "twitter":
