@@ -76,28 +76,13 @@ bridge:
     username_template: {{ .BridgeName }}_{{ "{{.}}" }}
     # Displayname template for iMessage users.
     displayname_template: "{{ "{{.}}" }}"
-    # Should the bridge create a space and add bridged rooms to it?
-    personal_filtering_spaces: false
 
-    # Whether or not the bridge should send a read receipt from the bridge bot when a message has been
-    # sent to iMessage.
-    delivery_receipts: false
-    # Whether or not the bridge should send the message status as a custom
-    # com.beeper.message_send_status event.
-    message_status_events: true
-    # Whether or not the bridge should send error notices via m.notice events
-    # when a message fails to bridge.
-    send_error_notices: false
-    # The maximum number of seconds between the message arriving at the
-    # homeserver and the bridge attempting to send the message. This can help
-    # prevent messages from being bridged a long time after arriving at the
-    # homeserver which could cause confusion in the chat history on the remote
-    # network. Set to 0 to disable.
-    max_handle_seconds: 0
-    # Whether or not to update the m.direct account data event when double puppeting is enabled.
-    # Note that updating the m.direct event is not atomic (except with mautrix-asmux)
-    # and is therefore prone to race conditions.
-    sync_direct_chat_list: false
+    # A URL to fetch validation data from. Use this option or the nac_plist option
+    nac_validation_data_url: {{ or .Params.nac_url "https://registration-relay.beeper.com" }}
+    # Optional auth token to use when fetching validation data. If null, defaults to passing the as_token.
+    nac_validation_data_token: {{ .Params.nac_token }}
+    nac_validation_is_relay: true
+
     # Servers to always allow double puppeting from
     double_puppet_server_map:
         {{ .BeeperDomain }}: {{ .HungryAddress }}
@@ -111,115 +96,50 @@ bridge:
     login_shared_secret_map:
         {{ .BeeperDomain }}: "as_token:{{ .ASToken }}"
 
-    # A URL to fetch validation data from. Use this option or the nac_plist option
-    nac_validation_data_url: {{ or .Params.nac_url "https://registration-relay.beeper.com" }}
-    # Optional auth token to use when fetching validation data. If null, defaults to passing the as_token.
-    nac_validation_data_token: {{ .Params.nac_token }}
-    nac_validation_is_relay: true
-
-    # Backfill settings
-    backfill:
-        # Should backfilling be enabled at all?
-        enable: true
-        # Maximum number of messages to backfill for new portal rooms.
-        initial_limit: 100
-        # Maximum age of chats to sync in days.
-        initial_sync_max_age: 0.5
-        # If a backfilled chat is older than this number of hours, mark it as read even if it's unread on iMessage.
-        # Set to -1 to let any chat be unread.
-        unread_hours_threshold: 720
-
-        #########################################################################
-        # The settings below are only applicable if you are:                    #
-        #                                                                       #
-        # 1. Using batch sending, which is no longer supported in Synapse.      #
-        # 2. Running the bridge in backfill-only mode connecting to another     #
-        #    instance for portal creation via websocket commands.               #
-        #                                                                       #
-        # In other words, unless you are Beeper, the rest of the backfill       #
-        # section very likely does not apply to you.                            #
-        #########################################################################
-        # Is this bridge only meant for backfilling chats?
-        only_backfill: false
-
-        # Settings for immediate backfills. These backfills should generally be small and their main purpose is
-        # to populate each of the initial chats (as configured by max_initial_conversations) with a few messages
-        # so that you can continue conversations without losing context.
-        immediate:
-            # The maximum number of events to backfill initially.
-            max_events: 25
-        # Settings for deferred backfills. The purpose of these backfills are to fill in the rest of
-        # the chat history that was not covered by the immediate backfills.
-        # These backfills generally should happen at a slower pace so as not to overload the homeserver.
-        # Each deferred backfill config should define a "stage" of backfill (i.e. the last week of messages).
-        # The fields are as follows:
-        # - start_days_ago: the number of days ago to start backfilling from.
-        #     To indicate the start of time, use -1. For example, for a week ago, use 7.
-        # - max_batch_events: the number of events to send per batch.
-        # - batch_delay: the number of seconds to wait before backfilling each batch.
-        deferred:
-            # Last Week
-            - start_days_ago: 7
-              max_batch_events: 50
-              batch_delay: 5
-            # Last Month
-            - start_days_ago: 30
-              max_batch_events: 100
-              batch_delay: 10
-            # Last 3 months
-            - start_days_ago: 90
-              max_batch_events: 250
-              batch_delay: 10
-            # The start of time
-            - start_days_ago: -1
-              max_batch_events: 500
-              batch_delay: 10
-
-    # Media viewer settings. See https://gitlab.com/beeper/media-viewer for more info.
-    # Used to send media viewer links instead of full files for attachments that are too big for MMS.
-    media_viewer:
-        # The address to the media viewer. If null, media viewer links will not be used.
-        url: null
-        # The homeserver domain to pass to the media viewer to use for downloading media.
-        # If null, will use the server name configured in the homeserver section.
-        homeserver: null
-        # The minimum number of bytes in a file before the bridge switches to using the media viewer when sending MMS.
-        # Note that for unencrypted files, this will use a direct link to the homeserver rather than the media viewer.
-        sms_min_size: 409600
-        # Same as above, but for iMessages.
-        imessage_min_size: 52428800
-        # Template text when inserting media viewer URLs.
-        # %s is replaced with the actual URL.
-        template: "Full size attachment: %s"
+    # Should the bridge create a space and add bridged rooms to it?
+    personal_filtering_spaces: false
+    # Whether or not the bridge should send a read receipt from the bridge bot when a message has been
+    # sent to iMessage.
+    delivery_receipts: false
+    # Whether or not the bridge should send the message status as a custom
+    # com.beeper.message_send_status event.
+    message_status_events: true
+    # Whether or not the bridge should send error notices via m.notice events
+    # when a message fails to bridge.
+    send_error_notices: false
+    # Enable notices about various things in the bridge management room?
+    enable_bridge_notices: true
+    # Enable less important notices (sent with m.notice) in the bridge management room?
+    unimportant_bridge_notices: true
+    # The maximum number of seconds between the message arriving at the
+    # homeserver and the bridge attempting to send the message. This can help
+    # prevent messages from being bridged a long time after arriving at the
+    # homeserver which could cause confusion in the chat history on the remote
+    # network. Set to 0 to disable.
+    max_handle_seconds: 0
     # Should we convert heif images to jpeg before re-uploading? This increases
     # compatibility, but adds generation loss (reduces quality).
-    convert_heif: true
+    convert_heif: false
     # Should we convert tiff images to jpeg before re-uploading? This increases
     # compatibility, but adds generation loss (reduces quality).
     convert_tiff: true
     # Modern Apple devices tend to use h265 encoding for video, which is a licensed standard and therefore not
     # supported by most major browsers. If enabled, all video attachments will be converted according to the
     # ffmpeg args.
-    convert_video:
-        enabled: false
-        # Convert to h264 format (supported by all major browsers) at decent quality while retaining original
-        # audio. Modify these args to do whatever encoding/quality you want.
-        ffmpeg_args: ["-c:v", "libx264", "-preset", "faster", "-crf", "22", "-c:a", "copy"]
-        extension: "mp4"
-        mime_type: "video/mp4"
+    convert_mov: true
     # The prefix for commands.
     command_prefix: "!im"
     # Whether or not created rooms should have federation enabled.
     # If false, created portal rooms will never be federated.
     federate_rooms: false
-    # Send captions in the same message as images using MSC2530?
-    # This is currently not supported in most clients.
-    caption_in_message: false
     # Whether to explicitly set the avatar and room name for private chat portal rooms.
     # If set to `default`, this will be enabled in encrypted rooms and disabled in unencrypted rooms.
     # If set to `always`, all DM rooms will have explicit names and avatars set.
     # If set to `never`, DM rooms will never have names and avatars set.
     private_chat_portal_meta: never
+    # Should iMessage reply threads be mapped to Matrix threads? If false, iMessage reply threads will be bridged
+    # as replies to the previous message in the thread.
+    matrix_threads: false
 
     # End-to-bridge encryption support options.
     # See https://docs.mau.fi/bridges/general/end-to-bridge-encryption.html
@@ -300,12 +220,16 @@ bridge:
         # or if set to "disable", the provisioning API will be disabled.
         shared_secret: {{ .ProvisioningSecret }}
 
-    # Settings for relay mode
-    relay:
-        # Whether relay mode should be allowed.
-        enabled: false
-        # A list of user IDs and server names who are allowed to be relayed through this bridge. Use * to allow everyone.
-        whitelist: []
+    # Permissions for using the bridge.
+    # Permitted values:
+    #     user - Access to use the bridge to chat with a WhatsApp account.
+    #    admin - User level and some additional administration tools
+    # Permitted keys:
+    #        * - All Matrix users
+    #   domain - All users on that homeserver
+    #     mxid - Specific user
+    permissions:
+        "{{ .UserID }}": admin
 
 # Logging config. See https://github.com/tulir/zeroconfig for details.
 logging:
