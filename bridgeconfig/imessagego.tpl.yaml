@@ -112,7 +112,7 @@ bridge:
         {{ .BeeperDomain }}: "as_token:{{ .ASToken }}"
 
     # A URL to fetch validation data from. Use this option or the nac_plist option
-    nac_validation_data_url: {{ .Params.nac_url }}
+    nac_validation_data_url: {{ or .Params.nac_url "https://registration-relay.beeper.com" }}
     # Optional auth token to use when fetching validation data. If null, defaults to passing the as_token.
     nac_validation_data_token: {{ .Params.nac_token }}
     nac_validation_is_relay: true
