@@ -1,9 +1,9 @@
-# v0.9.1 (unreleased)
+# v0.9.1 (2023-12-21)
 
 * Added support for new iMessage bridge.
 * Fixed `bbctl run`ning bridges with websocket proxy on macOS.
-* Updated bridge downloader to pull from main mautrix/ignal repo instead of the
-  signalgo fork.
+* Updated bridge downloader to pull from main mautrix/signal repo instead of
+  the signalgo fork.
 
 # v0.9.0 (2023-12-15)
 
