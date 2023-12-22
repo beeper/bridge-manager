@@ -75,9 +75,11 @@ Use crontab to set the bridge up to start on reboot. If you would like logging
 add the following entry to your crontab and replace `<bbctl path>` with the location of 
 bbctl, `<bridge name>` with the name of the bridge, and `<log path>` with the 
 location of where you would like logs saved:
+
 `@reboot /<path>/bbctl run  <bridge name> > /<log path>/<bridge name>.log`
 
 If you do not want logging add the following to your crontab:
+
 `@reboot /<path>/bbctl run  <bridge name> > /dev/null`
 
 In the future, a service mode will be
