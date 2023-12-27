@@ -613,7 +613,7 @@ telegram:
     # Device info sent to Telegram.
     device_info:
         # "auto" = OS name+version.
-        device_model: Beeper (self-hosted)
+        device_model: {{ or .Params.device_name "Beeper (self-hosted)" }}
         # "auto" = Telethon version.
         system_version: auto
         # "auto" = mautrix-telegram version.

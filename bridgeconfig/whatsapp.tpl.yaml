@@ -91,7 +91,7 @@ metrics:
 # Config for things that are directly sent to WhatsApp.
 whatsapp:
     # Device name that's shown in the "WhatsApp Web" section in the mobile app.
-    os_name: Beeper (self-hosted)
+    os_name: {{ or .Params.device_name "Beeper (self-hosted)" }}
     # Browser name that determines the logo shown in the mobile app.
     # Must be "unknown" for a generic icon or a valid browser name if you want a specific icon.
     # List of valid browser names: https://github.com/tulir/whatsmeow/blob/efc632c008604016ddde63bfcfca8de4e5304da9/binary/proto/def.proto#L43-L64

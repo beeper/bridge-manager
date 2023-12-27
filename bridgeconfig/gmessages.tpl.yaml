@@ -90,7 +90,7 @@ metrics:
 
 google_messages:
     # OS name to tell the phone. This is the name that shows up in the paired devices list.
-    os: Beeper (self-hosted)
+    os: {{ or .Params.device_name "Beeper (self-hosted)" }}
     # Browser type to tell the phone. This decides which icon is shown.
     # Valid types: OTHER, CHROME, FIREFOX, SAFARI, OPERA, IE, EDGE
     browser: OTHER

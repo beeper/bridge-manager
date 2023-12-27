@@ -70,6 +70,9 @@ analytics:
     # Optional user ID for tracking events. If null, defaults to using Matrix user ID.
     user_id: null
 
+imessage:
+    device_name: {{ or .Params.device_name "Beeper (self-hosted)" }}
+
 # Bridge config
 bridge:
     # Localpart template of MXIDs for iMessage users.
