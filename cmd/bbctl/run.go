@@ -132,6 +132,9 @@ func compileGoBridge(ctx context.Context, buildDir, binaryPath, bridgeType strin
 
 	if _, err = os.Stat(buildDir); err != nil && errors.Is(err, fs.ErrNotExist) {
 		repo := fmt.Sprintf("https://github.com/mautrix/%s.git", bridgeType)
+		if bridgeType == "imessagego" {
+			repo = "https://github.com/beeper/imessage.git"
+		}
 		log.Printf("Cloning [cyan]%s[reset] to [cyan]%s[reset]", repo, buildDir)
 		err = makeCmd(ctx, buildDirParent, "git", "clone", repo, buildDir).Run()
 		if err != nil {
