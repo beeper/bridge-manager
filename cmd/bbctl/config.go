@@ -85,14 +85,21 @@ var askParams = map[string]func(map[string]string) (bool, error){
 	"imessage": func(extraParams map[string]string) (bool, error) {
 		platform := extraParams["imessage_platform"]
 		barcelonaPath := extraParams["barcelona_path"]
+		bbURL := extraParams["bluebubbles_url"]
+		bbPassword := extraParams["bluebubbles_password"]
 		var didAddParams bool
+		if runtime.GOOS != "darwin" && platform == "" {
+			// Linux can't run the other connectors
+			platform = "bluebubbles"
+		}
 		if platform == "" {
 			err := survey.AskOne(&survey.Select{
 				Message: "Select iMessage connector:",
-				Options: []string{"mac", "mac-nosip"},
+				Options: []string{"mac", "mac-nosip", "bluebubbles"},
 				Description: simpleDescriptions(map[string]string{
-					"mac":       "Use AppleScript to send messages and read chat.db for incoming data - only requires Full Disk Access (from system settings)",
-					"mac-nosip": "Use Barcelona to interact with private APIs - requires disabling SIP and AMFI",
+					"mac":         "Use AppleScript to send messages and read chat.db for incoming data - only requires Full Disk Access (from system settings)",
+					"mac-nosip":   "Use Barcelona to interact with private APIs - requires disabling SIP and AMFI",
+					"bluebubbles": "Work in progress - Connect to a BlueBubbles instance",
 				}),
 				Default: "mac",
 			}, &platform)
@@ -112,6 +119,28 @@ var askParams = map[string]func(map[string]string) (bool, error){
 			}
 			extraParams["barcelona_path"] = barcelonaPath
 			didAddParams = true
+		}
+		if platform == "bluebubbles" {
+			if bbURL == "" {
+				err := survey.AskOne(&survey.Input{
+					Message: "Enter BlueBubbles API address:",
+				}, &bbURL)
+				if err != nil {
+					return didAddParams, err
+				}
+				extraParams["bluebubbles_url"] = bbURL
+				didAddParams = true
+			}
+			if bbPassword == "" {
+				err := survey.AskOne(&survey.Input{
+					Message: "Enter BlueBubbles password:",
+				}, &bbPassword)
+				if err != nil {
+					return didAddParams, err
+				}
+				extraParams["bluebubbles_password"] = bbPassword
+				didAddParams = true
+			}
 		}
 		return didAddParams, nil
 	},

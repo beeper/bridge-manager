@@ -79,29 +79,27 @@ func getRefFromBridge(bridge string) (string, error) {
 var ErrNotBuiltInCI = errors.New("not built in the CI")
 
 func getJobFromBridge(bridge string) (string, error) {
-	switch bridge {
-	case "imessage":
-		if runtime.GOOS != "darwin" {
-			return "", fmt.Errorf("mautrix-imessage can only run on Macs")
+	osAndArch := fmt.Sprintf("%s/%s", runtime.GOOS, runtime.GOARCH)
+	switch osAndArch {
+	case "linux/amd64":
+		return "build amd64", nil
+	case "linux/arm64":
+		return "build arm64", nil
+	case "linux/arm":
+		if bridge == "signal" {
+			return "", fmt.Errorf("mautrix-signal binaries for 32-bit arm are %w", ErrNotBuiltInCI)
 		}
-		return "build universal", nil
+		return "build arm", nil
+	case "darwin/arm64":
+		if bridge == "imessage" {
+			return "build universal", nil
+		}
+		return "build macos arm64", nil
 	default:
-		osAndArch := fmt.Sprintf("%s/%s", runtime.GOOS, runtime.GOARCH)
-		switch osAndArch {
-		case "linux/amd64":
-			return "build amd64", nil
-		case "linux/arm64":
-			return "build arm64", nil
-		case "linux/arm":
-			if bridge == "signal" {
-				return "", fmt.Errorf("mautrix-signal binaries for 32-bit arm are %w", ErrNotBuiltInCI)
-			}
-			return "build arm", nil
-		case "darwin/arm64":
-			return "build macos arm64", nil
-		default:
-			return "", fmt.Errorf("binaries for %s are %w", osAndArch, ErrNotBuiltInCI)
+		if bridge == "imessage" {
+			return "build universal", nil
 		}
+		return "", fmt.Errorf("binaries for %s are %w", osAndArch, ErrNotBuiltInCI)
 	}
 }
 

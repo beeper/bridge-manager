@@ -86,6 +86,9 @@ imessage:
     # Interval to ping Barcelona at. The process will exit if Barcelona doesn't respond in time.
     ping_interval_seconds: 15
 
+    bluebubbles_url: {{ .Params.bluebbles_url }}
+    bluebubbles_password: {{ .Params.bluebbles_password }}
+
 # Segment settings for collecting some debug data.
 segment:
     key: null
