@@ -66,25 +66,31 @@ func simpleDescriptions(descs map[string]string) func(string, int) string {
 	}
 }
 
-var askParams = map[string]func(map[string]string) (bool, error){
-	"meta": func(extraParams map[string]string) (bool, error) {
+var askParams = map[string]func(string, map[string]string) (bool, error){
+	"meta": func(bridgeName string, extraParams map[string]string) (bool, error) {
 		metaPlatform := extraParams["meta_platform"]
 		if metaPlatform == "" {
-			err := survey.AskOne(&survey.Select{
-				Message: "Which Meta platform do you want to bridge?",
-				Options: []string{"instagram", "facebook"},
-			}, &metaPlatform)
-			if err != nil {
-				return false, err
+			if strings.Contains(bridgeName, "facebook") {
+				extraParams["meta_platform"] = "facebook"
+			} else if strings.Contains(bridgeName, "instagram") {
+				extraParams["meta_platform"] = "instagram"
+			} else {
+				err := survey.AskOne(&survey.Select{
+					Message: "Which Meta platform do you want to bridge?",
+					Options: []string{"instagram", "facebook"},
+				}, &metaPlatform)
+				if err != nil {
+					return false, err
+				}
+				extraParams["meta_platform"] = metaPlatform
+				return true, nil
 			}
-			extraParams["meta_platform"] = metaPlatform
-			return true, nil
 		} else if metaPlatform != "instagram" && metaPlatform != "facebook" {
 			return false, UserError{"Invalid Meta platform specified"}
 		}
 		return false, nil
 	},
-	"imessagego": func(extraParams map[string]string) (bool, error) {
+	"imessagego": func(bridgeName string, extraParams map[string]string) (bool, error) {
 		nacToken := extraParams["nac_token"]
 		var didAddParams bool
 		if nacToken == "" {
@@ -99,7 +105,7 @@ var askParams = map[string]func(map[string]string) (bool, error){
 		}
 		return didAddParams, nil
 	},
-	"imessage": func(extraParams map[string]string) (bool, error) {
+	"imessage": func(bridgeName string, extraParams map[string]string) (bool, error) {
 		platform := extraParams["imessage_platform"]
 		barcelonaPath := extraParams["barcelona_path"]
 		bbURL := extraParams["bluebubbles_url"]
@@ -161,7 +167,7 @@ var askParams = map[string]func(map[string]string) (bool, error){
 		}
 		return didAddParams, nil
 	},
-	"telegram": func(extraParams map[string]string) (bool, error) {
+	"telegram": func(bridgeName string, extraParams map[string]string) (bool, error) {
 		idKey, _ := base64.RawStdEncoding.DecodeString("YXBpX2lk")
 		hashKey, _ := base64.RawStdEncoding.DecodeString("YXBpX2hhc2g")
 		_, hasID := extraParams[string(idKey)]
@@ -233,7 +239,7 @@ func doGenerateBridgeConfig(ctx *cli.Context, bridge string) (*generatedBridgeCo
 	cliParams := maps.Clone(extraParams)
 	if extraParamAsker != nil {
 		var didAddParams bool
-		didAddParams, err = extraParamAsker(extraParams)
+		didAddParams, err = extraParamAsker(bridge, extraParams)
 		if err != nil {
 			return nil, err
 		}
