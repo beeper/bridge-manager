@@ -76,22 +76,42 @@ appservice:
     as_token: {{ .ASToken }}
     hs_token: {{ .HSToken }}
 
+# Prometheus config.
+metrics:
+    # Enable prometheus metrics?
+    enabled: false
+    # IP and port where the metrics listener should be. The path is always /metrics
+    listen: 127.0.0.1:8000
+
+signal:
+    # Default device name that shows up in the Signal app.
+    device_name: {{ or .Params.device_name "Beeper (self-hosted)" }}
+
 # Bridge config
 bridge:
     # Localpart template of MXIDs for Signal users.
-    # {{.}} is replaced with the internal ID of the Signal user.
     username_template: {{ .BridgeName }}_{{ "{{.}}" }}
     # Displayname template for Signal users. This is also used as the room name in DMs if private_chat_portal_meta is enabled.
-    # Available variables: TODO
-    displayname_template:  {{ `"{{or .ContactName .ProfileName .Phone .UUID }}"` }}
+    displayname_template:  {{ `"{{or .ContactName .ProfileName .PhoneNumber "Unknown user" }}"` }}
     # Whether to explicitly set the avatar and room name for private chat portal rooms.
     # If set to `default`, this will be enabled in encrypted rooms and disabled in unencrypted rooms.
     # If set to `always`, all DM rooms will have explicit names and avatars set.
     # If set to `never`, DM rooms will never have names and avatars set.
     private_chat_portal_meta: never
+    # Should avatars from the user's contact list be used? This is not safe on multi-user instances.
+    use_contact_avatars: true
+    # Should the Signal user's phone number be included in the room topic in private chat portal rooms?
+    number_in_topic: true
+    # Avatar image for the Note to Self room.
+    note_to_self_avatar: mxc://maunium.net/REBIVrqjZwmaWpssCZpBlmlL
 
     portal_message_buffer: 128
 
+    # Should the bridge create a space for each logged-in user and add bridged rooms to it?
+    # Users who logged in before turning this on should run `!signal sync-space` to create and fill the space for the first time.
+    personal_filtering_spaces: true
+    # Should Matrix m.notice-type messages be bridged?
+    bridge_notices: true
     # Should the bridge send a read receipt from the bridge bot when a message has been sent to Signal?
     delivery_receipts: false
     # Whether the bridge should send the message status as a custom com.beeper.message_send_status event.
@@ -105,9 +125,9 @@ bridge:
     # Set this to true to tell the bridge to re-send m.bridge events to all rooms on the next run.
     # This field will automatically be changed back to false after it, except if the config file is not writable.
     resend_bridge_info: false
-    # Whether or not created rooms should have federation enabled.
-    # If false, created portal rooms will never be federated.
-    federate_rooms: false
+    # Send captions in the same message as images. This will send data compatible with both MSC2530.
+    # This is currently not supported in most clients.
+    caption_in_message: true
     # Servers to always allow double puppeting from
     double_puppet_server_map:
         {{ .BeeperDomain }}: {{ .HungryAddress }}
