@@ -67,6 +67,23 @@ func simpleDescriptions(descs map[string]string) func(string, int) string {
 }
 
 var askParams = map[string]func(map[string]string) (bool, error){
+	"meta": func(extraParams map[string]string) (bool, error) {
+		metaPlatform := extraParams["meta_platform"]
+		if metaPlatform == "" {
+			err := survey.AskOne(&survey.Select{
+				Message: "Which Meta platform do you want to bridge?",
+				Options: []string{"instagram", "facebook"},
+			}, &metaPlatform)
+			if err != nil {
+				return false, err
+			}
+			extraParams["meta_platform"] = metaPlatform
+			return true, nil
+		} else if metaPlatform != "instagram" && metaPlatform != "facebook" {
+			return false, UserError{"Invalid Meta platform specified"}
+		}
+		return false, nil
+	},
 	"imessagego": func(extraParams map[string]string) (bool, error) {
 		nacToken := extraParams["nac_token"]
 		var didAddParams bool
@@ -174,6 +191,7 @@ var bridgeIPSuffix = map[string]string{
 	"telegram":   "17",
 	"whatsapp":   "18",
 	"facebook":   "19",
+	"meta":       "19",
 	"googlechat": "20",
 	"twitter":    "27",
 	"signal":     "28",
@@ -303,7 +321,7 @@ func generateBridgeConfig(ctx *cli.Context) error {
 	}
 	var startupCommand, installInstructions string
 	switch cfg.BridgeType {
-	case "imessage", "whatsapp", "discord", "slack", "gmessages", "signal":
+	case "imessage", "whatsapp", "discord", "slack", "gmessages", "signal", "meta":
 		startupCommand = fmt.Sprintf("mautrix-%s", cfg.BridgeType)
 		if outputPath != "config.yaml" && outputPath != "<config file>" {
 			startupCommand += " -c " + outputPath

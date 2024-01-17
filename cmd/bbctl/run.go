@@ -288,7 +288,7 @@ func runBridge(ctx *cli.Context) error {
 	var bridgeArgs []string
 	var needsWebsocketProxy bool
 	switch cfg.BridgeType {
-	case "imessage", "imessagego", "whatsapp", "discord", "slack", "gmessages", "signal":
+	case "imessage", "imessagego", "whatsapp", "discord", "slack", "gmessages", "signal", "meta":
 		binaryName := fmt.Sprintf("mautrix-%s", cfg.BridgeType)
 		if cfg.BridgeType == "imessagego" {
 			binaryName = "beeper-imessage"

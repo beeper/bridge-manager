@@ -14,27 +14,28 @@ import (
 )
 
 var allowedBridgeRegex = regexp.MustCompile("^[a-z0-9-]{1,32}$")
-var officialBridges = map[string]string{
-	"discord":        "discord",
-	"facebook":       "facebook",
-	"googlechat":     "googlechat",
-	"gchat":          "googlechat",
-	"imessage":       "imessage",
-	"imessagego":     "imessagego",
-	"instagram":      "instagram",
-	"linkedin":       "linkedin",
-	"signal":         "signal",
-	"slack":          "slack",
-	"telegram":       "telegram",
-	"twitter":        "twitter",
-	"whatsapp":       "whatsapp",
-	"irc":            "heisenbridge",
-	"heisenbridge":   "heisenbridge",
-	"androidsms":     "androidsms",
-	"gmessages":      "gmessages",
-	"sms":            "gmessages",
-	"rcs":            "gmessages",
-	"googlemessages": "gmessages",
+
+type bridgeTypeToNames struct {
+	typeName string
+	names    []string
+}
+
+var officialBridges = []bridgeTypeToNames{
+	{"discord", []string{"discord"}},
+	{"meta", []string{"meta", "instagramgo", "facebookgo"}},
+	{"facebook", []string{"facebook"}},
+	{"googlechat", []string{"googlechat", "gchat"}},
+	{"imessagego", []string{"imessagego"}},
+	{"imessage", []string{"imessage"}},
+	{"instagram", []string{"instagram"}},
+	{"linkedin", []string{"linkedin"}},
+	{"signal", []string{"signal"}},
+	{"slack", []string{"slack"}},
+	{"telegram", []string{"telegram"}},
+	{"twitter", []string{"twitter"}},
+	{"whatsapp", []string{"whatsapp"}},
+	{"heisenbridge", []string{"irc", "heisenbridge"}},
+	{"gmessages", []string{"gmessages", "googlemessages", "rcs", "sms"}},
 }
 
 var websocketBridges = map[string]bool{
@@ -46,6 +47,7 @@ var websocketBridges = map[string]bool{
 	"imessage":     true,
 	"imessagego":   true,
 	"signal":       true,
+	"meta":         true,
 }
 
 func doOutputFile(ctx *cli.Context, name, data string) error {
@@ -77,19 +79,14 @@ func validateBridgeName(ctx *cli.Context, bridge string) error {
 }
 
 func guessOrAskBridgeType(bridge, bridgeType string) (string, error) {
-	// Hack because the officialBridges map is unordered
 	if bridgeType == "" {
-		if strings.Contains(bridge, "imessagego") {
-			bridgeType = "imessagego"
-		} else if strings.Contains(bridge, "imessage") {
-			bridgeType = "imessage"
-		}
-	}
-	if bridgeType == "" {
-		for key, value := range officialBridges {
-			if strings.Contains(bridge, key) {
-				bridgeType = value
-				break
+	Outer:
+		for _, br := range officialBridges {
+			for _, name := range br.names {
+				if strings.Contains(bridge, name) {
+					bridgeType = br.typeName
+					break Outer
+				}
 			}
 		}
 	}
