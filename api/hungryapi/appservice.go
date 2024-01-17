@@ -1,6 +1,7 @@
 package hungryapi
 
 import (
+	"context"
 	"net/http"
 	"time"
 
@@ -30,23 +31,24 @@ type ReqRegisterAppService struct {
 }
 
 func (cli *Client) RegisterAppService(
+	ctx context.Context,
 	bridge string,
 	req ReqRegisterAppService,
 ) (resp appservice.Registration, err error) {
 	url := cli.BuildURL(mautrix.BaseURLPath{"_matrix", "asmux", "mxauth", "appservice", cli.Username, bridge})
-	_, err = cli.MakeRequest(http.MethodPut, url, &req, &resp)
+	_, err = cli.MakeRequest(ctx, http.MethodPut, url, &req, &resp)
 	return
 }
 
-func (cli *Client) GetAppService(bridge string) (resp appservice.Registration, err error) {
+func (cli *Client) GetAppService(ctx context.Context, bridge string) (resp appservice.Registration, err error) {
 	url := cli.BuildURL(mautrix.BaseURLPath{"_matrix", "asmux", "mxauth", "appservice", cli.Username, bridge})
-	_, err = cli.MakeRequest(http.MethodGet, url, nil, &resp)
+	_, err = cli.MakeRequest(ctx, http.MethodGet, url, nil, &resp)
 	return
 }
 
-func (cli *Client) DeleteAppService(bridge string) (err error) {
+func (cli *Client) DeleteAppService(ctx context.Context, bridge string) (err error) {
 	url := cli.BuildURL(mautrix.BaseURLPath{"_matrix", "asmux", "mxauth", "appservice", cli.Username, bridge})
-	_, err = cli.MakeRequest(http.MethodDelete, url, nil, nil)
+	_, err = cli.MakeRequest(ctx, http.MethodDelete, url, nil, nil)
 	return
 }
 
@@ -54,10 +56,10 @@ type respGetSystemTime struct {
 	Time jsontime.UnixMilli `json:"time_ms"`
 }
 
-func (cli *Client) GetServerTime() (resp time.Time, precision time.Duration, err error) {
+func (cli *Client) GetServerTime(ctx context.Context) (resp time.Time, precision time.Duration, err error) {
 	var respData respGetSystemTime
 	start := time.Now()
-	_, err = cli.MakeFullRequest(mautrix.FullRequest{
+	_, err = cli.MakeFullRequest(ctx, mautrix.FullRequest{
 		Method:       http.MethodGet,
 		URL:          cli.BuildURL(mautrix.BaseURLPath{"_matrix", "client", "unstable", "com.beeper.timesync"}),
 		ResponseJSON: &respData,

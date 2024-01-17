@@ -97,9 +97,9 @@ func doRegisterBridge(ctx *cli.Context, bridge, bridgeType string, onlyGet bool)
 		if req.Address != "" {
 			return nil, UserError{"You can't use --get with --address"}
 		}
-		resp, err = hungryAPI.GetAppService(bridge)
+		resp, err = hungryAPI.GetAppService(ctx.Context, bridge)
 	} else {
-		resp, err = hungryAPI.RegisterAppService(bridge, req)
+		resp, err = hungryAPI.RegisterAppService(ctx.Context, bridge, req)
 	}
 	if err != nil {
 		return nil, fmt.Errorf("failed to register appservice: %w", err)

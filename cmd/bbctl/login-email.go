@@ -75,7 +75,7 @@ func doMatrixLogin(ctx *cli.Context, req *mautrix.ReqLogin, whoami *beeperapi.Re
 
 	homeserver := ctx.String("homeserver")
 	api := NewMatrixAPI(homeserver, "", "")
-	resp, err := api.Login(req)
+	resp, err := api.Login(ctx.Context, req)
 	if err != nil {
 		return fmt.Errorf("failed to log in: %w", err)
 	}
@@ -83,7 +83,7 @@ func doMatrixLogin(ctx *cli.Context, req *mautrix.ReqLogin, whoami *beeperapi.Re
 	if whoami == nil {
 		whoami, err = beeperapi.Whoami(homeserver, resp.AccessToken)
 		if err != nil {
-			_, _ = api.Logout()
+			_, _ = api.Logout(ctx.Context)
 			return fmt.Errorf("failed to get user details: %w", err)
 		}
 	}
@@ -95,7 +95,7 @@ func doMatrixLogin(ctx *cli.Context, req *mautrix.ReqLogin, whoami *beeperapi.Re
 	envCfg.BridgeDataDir = filepath.Join(UserDataDir, "bbctl", ctx.String("env"))
 	err = cfg.Save()
 	if err != nil {
-		_, _ = api.Logout()
+		_, _ = api.Logout(ctx.Context)
 		return fmt.Errorf("failed to save config: %w", err)
 	}
 	return nil

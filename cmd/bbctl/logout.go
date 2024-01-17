@@ -22,7 +22,7 @@ var logoutCommand = &cli.Command{
 }
 
 func beeperLogout(ctx *cli.Context) error {
-	_, err := GetMatrixClient(ctx).Logout()
+	_, err := GetMatrixClient(ctx).Logout(ctx.Context)
 	if err != nil && !ctx.Bool("force") {
 		return fmt.Errorf("error logging out: %w", err)
 	}
