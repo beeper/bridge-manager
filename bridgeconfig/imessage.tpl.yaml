@@ -87,7 +87,7 @@ imessage:
     ping_interval_seconds: 15
 
     bluebubbles_url: {{ .Params.bluebubbles_url }}
-    bluebubbles_password: {{ .Params.bluebbles_password }}
+    bluebubbles_password: {{ .Params.bluebubbles_password }}
 
 # Segment settings for collecting some debug data.
 segment:
