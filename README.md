@@ -51,9 +51,7 @@ After installing relevant dependencies:
    * `<name>`  should start with `sh-` and consist of a-z, 0-9 and -.
    * If `<name>` contains the bridge type, it will be automatically detected.
      Otherwise pass the type with `--type <type>`.
-   * Currently supported types: `discord`, `whatsapp`, `slack`, `heisenbridge`,
-     `gmessages`, `telegram`, `facebook`, `instagram`, `googlechat`, `twitter`,
-     `signal`, `linkedin`, `imessage` (legacy), `imessagego` (new)
+   * See the table below for supported official bridges.
    * The bridge will be installed to `~/.local/share/bbctl`. You can change the
      directory in the config file at `~/.config/bbctl.json`.
 4. For now, you'll have to configure the bridge by sending a DM to the bridge
@@ -72,6 +70,45 @@ Currently the bridge will run in foreground, so you'll have to keep `bbctl run`
 active somewhere (tmux is a good option). In the future, a service mode will be
 added where the bridge is registered as a systemd or launchd service to be
 started automatically by the OS.
+
+#### Official bridge list
+When using `bbctl run` or `bbctl config` and the provided `<name>` contains one
+of the identifiers (second column) listed below, bbctl will automatically guess
+that type. A substring match is sufficient, e.g. `sh-mywhatsappbridge` will
+match `whatsapp`. The first listed identifier is the "primary" one that can be
+used with the `--type` flag.
+
+| Bridge               | Identifier                           |
+|----------------------|--------------------------------------|
+| [mautrix-telegram]   | telegram                             |
+| [mautrix-whatsapp]   | whatsapp                             |
+| [mautrix-signal]     | signal                               |
+| [mautrix-discord]    | discord                              |
+| [mautrix-slack]      | slack                                |
+| [mautrix-gmessages]  | gmessages,  googlemessages, rcs, sms |
+| †[mautrix-meta]      | meta, instagramgo, facebookgo        |
+| [mautrix-facebook]   | facebook                             |
+| [mautrix-instagram]  | instagram                            |
+| [mautrix-googlechat] | googlechat, gchat                    |
+| [mautrix-twitter]    | twitter                              |
+| [beeper-imessage]    | imessagego                           |
+| [heisenbridge]       | heisenbridge, irc                    |
+
+† indicates a new/experimental bridge that will likely have bugs
+
+[mautrix-telegram]: https://github.com/mautrix/telegram
+[mautrix-whatsapp]: https://github.com/mautrix/whatsapp
+[mautrix-signal]: https://github.com/mautrix/signal
+[mautrix-discord]: https://github.com/mautrix/discord
+[mautrix-slack]: https://github.com/mautrix/slack
+[mautrix-gmessages]: https://github.com/mautrix/gmessages
+[mautrix-meta]: https://github.com/mautrix/meta
+[mautrix-facebook]: https://github.com/mautrix/facebook
+[mautrix-instagram]: https://github.com/mautrix/instagram
+[mautrix-googlechat]: https://github.com/mautrix/googlechat
+[mautrix-twitter]: https://github.com/mautrix/twitter
+[beeper-imessage]: https://github.com/beeper/imessage
+[heisenbridge]: https://github.com/hifi/heisenbridge
 
 ### 3rd party bridges
 3. Run `bbctl register <name>` to generate an appservice registration file.
