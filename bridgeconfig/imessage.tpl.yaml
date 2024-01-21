@@ -113,7 +113,7 @@ bridge:
     # {{ "{{.}}" }} is replaced with the contact list name (if available) or username (phone number or email) of the iMessage user.
     displayname_template: "{{ "{{.}}" }}"
     # Should the bridge create a space and add bridged rooms to it?
-    personal_filtering_spaces: false
+    personal_filtering_spaces: true
 
     # Whether or not the bridge should send a read receipt from the bridge bot when a message has been
     # sent to iMessage.

@@ -100,7 +100,7 @@ bridge:
         {{ .BeeperDomain }}: "as_token:{{ .ASToken }}"
 
     # Should the bridge create a space and add bridged rooms to it?
-    personal_filtering_spaces: false
+    personal_filtering_spaces: true
     # Whether or not the bridge should send a read receipt from the bridge bot when a message has been
     # sent to iMessage.
     delivery_receipts: false
