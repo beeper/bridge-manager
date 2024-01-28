@@ -91,6 +91,7 @@ used with the `--type` flag.
 | [mautrix-instagram]  | instagram                            |
 | [mautrix-googlechat] | googlechat, gchat                    |
 | [mautrix-twitter]    | twitter                              |
+| [mautrix-imessage]   | imessage                             |
 | [beeper-imessage]    | imessagego                           |
 | [heisenbridge]       | heisenbridge, irc                    |
 
@@ -107,6 +108,7 @@ used with the `--type` flag.
 [mautrix-instagram]: https://github.com/mautrix/instagram
 [mautrix-googlechat]: https://github.com/mautrix/googlechat
 [mautrix-twitter]: https://github.com/mautrix/twitter
+[mautrix-imessage]: https://github.com/mautrix/imessage
 [beeper-imessage]: https://github.com/beeper/imessage
 [heisenbridge]: https://github.com/hifi/heisenbridge
 
