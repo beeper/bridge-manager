@@ -153,7 +153,7 @@ bridge:
         # Maximum number of messages to backfill for new portal rooms.
         initial_limit: 100
         # Maximum age of chats to sync in days.
-        initial_sync_max_age: 0.5
+        initial_sync_max_age: 14
         # If a backfilled chat is older than this number of hours, mark it as read even if it's unread on iMessage.
         # Set to -1 to let any chat be unread.
         unread_hours_threshold: 720
