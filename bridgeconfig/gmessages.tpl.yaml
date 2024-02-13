@@ -150,7 +150,7 @@ bridge:
     # If set to `default`, this will be enabled in encrypted rooms and disabled in unencrypted rooms.
     # If set to `always`, all DM rooms will have explicit names and avatars set.
     # If set to `never`, DM rooms will never have names and avatars set.
-    private_chat_portal_meta: never
+    private_chat_portal_meta: default
     # Should Matrix m.notice-type messages be bridged?
     bridge_notices: true
     # Set this to true to tell the bridge to re-send m.bridge events to all rooms on the next run.
