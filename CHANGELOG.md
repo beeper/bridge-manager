@@ -1,9 +1,11 @@
-# v0.10.0 (unreleased)
+# v0.10.0 (2024-02-17)
 
 * Added option to configure the device name that bridges expose to the remote
   network using `--param device_name="..."`
 * Added support for new Meta bridge (Instagram/Facebook).
 * Added support for the new BlueBubbles connector on the old iMessage bridge.
+* Enabled Matrix spaces by default in all bridges that support them.
+* Changed all bridge configs to set room name/avatar explicitly in DM rooms.
 * Fixed quoting issue in Signal bridge config template.
 
 # v0.9.1 (2023-12-21)
