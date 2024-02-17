@@ -14,7 +14,7 @@ RUN apk add --no-cache bash curl jq git ffmpeg \
 	py3-magic py3-ruamel.yaml py3-aiohttp py3-pillow py3-olm py3-pycryptodome
 
 COPY --from=lottie /cryptg-*.whl /tmp/
-RUN pip3 install /tmp/cryptg-*.whl && rm -f /tmp/cryptg-*.whl
+RUN pip3 install --break-system-packages /tmp/cryptg-*.whl && rm -f /tmp/cryptg-*.whl
 
 COPY --from=builder /build/bbctl /usr/local/bin/bbctl
 COPY --from=lottie /usr/lib/librlottie.so* /usr/lib/
