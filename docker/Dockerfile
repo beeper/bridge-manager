@@ -1,11 +1,11 @@
-FROM dock.mau.dev/tulir/lottieconverter:alpine-3.18 AS lottie
+FROM dock.mau.dev/tulir/lottieconverter:alpine-3.19 AS lottie
 
-FROM golang:1.21-alpine3.18 AS builder
+FROM golang:1.22-alpine3.19 AS builder
 
 COPY . /build/
 RUN cd /build && ./build.sh
 
-FROM alpine:3.18
+FROM alpine:3.19
 
 RUN apk add --no-cache bash curl jq git ffmpeg \
 	# Python for python bridges
