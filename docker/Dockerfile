@@ -1,11 +1,11 @@
-FROM dock.mau.dev/tulir/lottieconverter:alpine-3.18 AS lottie
+FROM dock.mau.dev/tulir/lottieconverter:alpine-3.19 AS lottie
 
-FROM golang:1.21-alpine3.18 AS builder
+FROM golang:1.22-alpine3.19 AS builder
 
 COPY . /build/
 RUN cd /build && ./build.sh
 
-FROM alpine:3.18
+FROM alpine:3.19
 
 RUN apk add --no-cache bash curl jq git ffmpeg \
 	# Python for python bridges
@@ -14,7 +14,7 @@ RUN apk add --no-cache bash curl jq git ffmpeg \
 	py3-magic py3-ruamel.yaml py3-aiohttp py3-pillow py3-olm py3-pycryptodome
 
 COPY --from=lottie /cryptg-*.whl /tmp/
-RUN pip3 install /tmp/cryptg-*.whl && rm -f /tmp/cryptg-*.whl
+RUN pip3 install --break-system-packages /tmp/cryptg-*.whl && rm -f /tmp/cryptg-*.whl
 
 COPY --from=builder /build/bbctl /usr/local/bin/bbctl
 COPY --from=lottie /usr/lib/librlottie.so* /usr/lib/

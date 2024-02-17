@@ -3,7 +3,7 @@ name: Go
 on: [push, pull_request]
 
 env:
-  GO_VERSION: "1.21"
+  GO_VERSION: "1.22"
   GHCR_REGISTRY: ghcr.io
   GHCR_REGISTRY_IMAGE: "ghcr.io/${{ github.repository }}"
 
@@ -11,10 +11,10 @@ jobs:
   lint:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Set up Go ${{ env.GO_VERSION }}
-        uses: actions/setup-go@v3
+        uses: actions/setup-go@v5
         with:
           go-version: ${{ env.GO_VERSION }}
           cache: true
@@ -26,17 +26,17 @@ jobs:
           export PATH="$HOME/go/bin:$PATH"
 
       - name: Run pre-commit
-        uses: pre-commit/action@v3.0.0
+        uses: pre-commit/action@v3.0.1
 
   build:
     runs-on: ubuntu-latest
     env:
       CGO_ENABLED: "0"
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
 
       - name: Set up Go ${{ env.GO_VERSION }}
-        uses: actions/setup-go@v3
+        uses: actions/setup-go@v5
         with:
           go-version: ${{ env.GO_VERSION }}
           cache: true
@@ -45,28 +45,28 @@ jobs:
         run: ./ci-build-all.sh
 
       - name: Upload linux/amd64 artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: bbctl-linux-amd64
           path: bbctl-linux-amd64
           if-no-files-found: error
 
       - name: Upload linux/arm64 artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: bbctl-linux-arm64
           path: bbctl-linux-arm64
           if-no-files-found: error
 
       - name: Upload macos/amd64 artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: bbctl-macos-amd64
           path: bbctl-macos-amd64
           if-no-files-found: error
 
       - name: Upload macos/arm64 artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: bbctl-macos-arm64
           path: bbctl-macos-arm64
@@ -76,17 +76,17 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v2
+        uses: docker/setup-buildx-action@v3
 
       - name: Login to registry
-        uses: docker/login-action@v2
+        uses: docker/login-action@v3
         with:
           registry: ${{ env.GHCR_REGISTRY }}
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Docker Build
-        uses: docker/build-push-action@v4
+        uses: docker/build-push-action@v5
         with:
           cache-from: ${{ env.GHCR_REGISTRY_IMAGE }}:latest
           pull: true
@@ -103,7 +103,7 @@ jobs:
     if: github.ref == 'refs/heads/main'
     steps:
       - name: Login to registry
-        uses: docker/login-action@v2
+        uses: docker/login-action@v3
         with:
           registry: ${{ env.GHCR_REGISTRY }}
           username: ${{ github.actor }}
