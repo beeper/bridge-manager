@@ -93,6 +93,7 @@ used with the `--type` flag.
 | [mautrix-twitter]    | twitter                              |
 | [mautrix-imessage]   | imessage                             |
 | †[beeper-imessage]   | imessagego                           |
+| [linkedin-matrix]    | linkedin                             |
 | [heisenbridge]       | heisenbridge, irc                    |
 
 † indicates legacy bridge that is no longer actively maintained
@@ -110,6 +111,7 @@ used with the `--type` flag.
 [mautrix-twitter]: https://github.com/mautrix/twitter
 [mautrix-imessage]: https://github.com/mautrix/imessage
 [beeper-imessage]: https://github.com/beeper/imessage
+[linkedin-matrix]: https://github.com/beeper/linkedin
 [heisenbridge]: https://github.com/hifi/heisenbridge
 
 ### 3rd party bridges
