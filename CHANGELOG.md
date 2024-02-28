@@ -1,3 +1,8 @@
+# v0.10.1 (2024-02-28)
+
+* Bumped minimum Go version to 1.21.
+* Updated Meta and Signal bridge configs.
+
 # v0.10.0 (2024-02-17)
 
 * Added option to configure the device name that bridges expose to the remote
