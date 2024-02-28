@@ -87,13 +87,21 @@ meta:
     # Which service is this bridge for? Either "facebook" or "instagram".
     # Remember to change the appservice id, bot profile info and bridge username_template too.
     mode: {{ .Params.meta_platform }}
+    # When in Instagram mode, should the bridge connect to WhatsApp servers for encrypted chats?
+    # In FB/Messenger mode encryption is always enabled, this option only affects Instagram mode.
+    ig_e2ee: true
+    # Static proxy address (HTTP or SOCKS5) for connecting to Meta.
+    proxy:
+    # HTTP endpoint to request new proxy address from, for dynamically assigned proxies.
+    # The endpoint must return a JSON body with a string field called proxy_url.
+    get_proxy_from:
 
 # Bridge config
 bridge:
     # Localpart template of MXIDs for FB/IG users.
     username_template: {{ .BridgeName }}_{{ "{{.}}" }}
     # Displayname template for FB/IG users. This is also used as the room name in DMs if private_chat_portal_meta is enabled.
-    displayname_template: {{ `'{{or .ContactName .ProfileName .PhoneNumber "Unknown user" }}'` }}
+    displayname_template: {{ `'{{or .DisplayName .Username "Unknown user" }}'` }}
     # Whether to explicitly set the avatar and room name for private chat portal rooms.
     # If set to `default`, this will be enabled in encrypted rooms and disabled in unencrypted rooms.
     # If set to `always`, all DM rooms will have explicit names and avatars set.
@@ -113,6 +121,9 @@ bridge:
     message_status_events: true
     # Whether the bridge should send error notices via m.notice events when a message fails to bridge.
     message_error_notices: false
+    # Should the bridge never send alerts to the bridge management room?
+    # These are mostly things like the user being logged out.
+    disable_bridge_alerts: true
     # Should the bridge update the m.direct account data event when double puppeting is enabled.
     # Note that updating the m.direct event is not atomic (except with mautrix-asmux)
     # and is therefore prone to race conditions.
@@ -123,6 +134,12 @@ bridge:
     # Send captions in the same message as images. This will send data compatible with both MSC2530.
     # This is currently not supported in most clients.
     caption_in_message: true
+    # Whether or not created rooms should have federation enabled.
+    # If false, created portal rooms will never be federated.
+    federate_rooms: false
+    # Should mute status be bridged? Allowed options: always, on-create, never
+    mute_bridging: on-create
+
     # Servers to always allow double puppeting from
     double_puppet_server_map:
         {{ .BeeperDomain }}: {{ .HungryAddress }}
@@ -149,6 +166,36 @@ bridge:
 
     # The prefix for commands. Only required in non-management rooms.
     command_prefix: default
+
+    backfill:
+        # If disabled, old messages will never be bridged.
+        enabled: true
+        # By default, Meta sends info about approximately 20 recent threads. If this is set to something else than 0,
+        # the bridge will request more threads on first login, until it reaches the specified number of pages
+        # or the end of the inbox.
+        inbox_fetch_pages: 0
+        # By default, Meta only sends one old message per thread. If this is set to a something else than 0,
+        # the bridge will delay handling the one automatically received message and request more messages to backfill.
+        # One page usually contains 20 messages. This can technically be set to -1 to fetch all messages,
+        # but that will block bridging messages until the entire backfill is completed.
+        history_fetch_pages: 0
+        # Same as above, but for catchup backfills (i.e. when the bridge is restarted).
+        catchup_fetch_pages: 5
+        # Maximum age of chats to leave as unread when backfilling. 0 means all chats can be left as unread.
+        # If non-zero, chats that are older than this will be marked as read, even if they're still unread on Meta.
+        unread_hours_threshold: 720
+        # Backfill queue settings. Only relevant for Beeper, because standard Matrix servers
+        # don't support inserting messages into room history.
+        queue:
+            # How many pages of messages to request in one go (without sleeping between requests)?
+            pages_at_once: 5
+            # Maximum number of pages to fetch. -1 to fetch all pages until the start of the chat.
+            max_pages: -1
+            # How long to sleep after fetching a bunch of pages ("bunch" defined by pages_at_once).
+            sleep_between_tasks: 180s
+            # Disable fetching XMA media (reels, stories, etc) when backfilling.
+            dont_fetch_xma: true
+
     # Messages sent upon joining a management room.
     # Markdown is supported. The defaults are listed below.
     management_room_text:
@@ -244,6 +291,8 @@ bridge:
         # Shared secret for authentication. If set to "generate", a random secret will be generated,
         # or if set to "disable", the provisioning API will be disabled.
         shared_secret: {{ .ProvisioningSecret }}
+        # Enable debug API at /debug with provisioning authentication.
+        debug_endpoints: false
 
     # Permissions for using the bridge.
     # Permitted values:
