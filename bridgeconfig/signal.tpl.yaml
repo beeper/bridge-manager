@@ -100,6 +100,8 @@ bridge:
     private_chat_portal_meta: default
     # Should avatars from the user's contact list be used? This is not safe on multi-user instances.
     use_contact_avatars: true
+    # Should the bridge sync ghost user info even if profile fetching fails? This is not safe on multi-user instances.
+    use_outdated_profiles: true
     # Should the Signal user's phone number be included in the room topic in private chat portal rooms?
     number_in_topic: true
     # Avatar image for the Note to Self room.
