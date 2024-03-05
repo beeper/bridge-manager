@@ -174,7 +174,7 @@ bridge:
         url: https://media.beeper.com
         # The homeserver domain to pass to the media viewer to use for downloading media.
         # If null, will use the server name configured in the homeserver section.
-        homeserver: null
+        homeserver: https://matrix.beeper.com
         # The minimum number of bytes in a file before the bridge switches to using the media viewer when sending MMS.
         # Note that for unencrypted files, this will use a direct link to the homeserver rather than the media viewer.
         sms_min_size: 409600
