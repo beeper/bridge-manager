@@ -67,9 +67,9 @@ func GetLastBuild(domain, repo, mainBranch, job string) (*LastBuild, error) {
 
 func getRefFromBridge(bridge string) (string, error) {
 	switch bridge {
-	case "imessage", "whatsapp":
+	case "imessage":
 		return "master", nil
-	case "discord", "slack", "gmessages", "signal", "imessagego", "meta":
+	case "whatsapp", "discord", "slack", "gmessages", "signal", "imessagego", "meta":
 		return "main", nil
 	default:
 		return "", fmt.Errorf("unknown bridge %s", bridge)
