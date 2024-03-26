@@ -228,11 +228,7 @@ func runBridge(ctx *cli.Context) error {
 	}
 	bridgeName := ctx.Args().Get(0)
 
-	cfg, err := doGenerateBridgeConfig(ctx, bridgeName)
-	if err != nil {
-		return err
-	}
-
+	var err error
 	dataDir := GetEnvConfig(ctx).BridgeDataDir
 	var bridgeDir string
 	compile := ctx.Bool("compile")
@@ -266,7 +262,34 @@ func runBridge(ctx *cli.Context) error {
 		_, err = os.Stat(configPath)
 		doWriteConfig = errors.Is(err, fs.ErrNotExist)
 	}
+
+	var cfg *generatedBridgeConfig
+	if !doWriteConfig {
+		whoami, err := getCachedWhoami(ctx)
+		if err != nil {
+			return fmt.Errorf("failed to get whoami: %w", err)
+		}
+		existingBridge, ok := whoami.User.Bridges[bridgeName]
+		if !ok || existingBridge.BridgeState.BridgeType == "" {
+			log.Printf("Existing bridge type not found, falling back to generating new config")
+			doWriteConfig = true
+		} else if reg, err := doRegisterBridge(ctx, bridgeName, existingBridge.BridgeState.BridgeType, true); err != nil {
+			log.Printf("Failed to get existing bridge registration: %v", err)
+			log.Printf("Falling back to generating new config")
+			doWriteConfig = true
+		} else {
+			cfg = &generatedBridgeConfig{
+				BridgeType:   existingBridge.BridgeState.BridgeType,
+				RegisterJSON: reg,
+			}
+		}
+	}
+
 	if doWriteConfig {
+		cfg, err = doGenerateBridgeConfig(ctx, bridgeName)
+		if err != nil {
+			return err
+		}
 		err = os.WriteFile(configPath, []byte(cfg.Config), 0600)
 		if err != nil {
 			return fmt.Errorf("failed to save config: %w", err)
