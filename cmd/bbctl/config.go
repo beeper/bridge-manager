@@ -122,7 +122,7 @@ var askParams = map[string]func(string, map[string]string) (bool, error){
 				Description: simpleDescriptions(map[string]string{
 					"mac":         "Use AppleScript to send messages and read chat.db for incoming data - only requires Full Disk Access (from system settings)",
 					"mac-nosip":   "Use Barcelona to interact with private APIs - requires disabling SIP and AMFI",
-					"bluebubbles": "Work in progress - Connect to a BlueBubbles instance",
+					"bluebubbles": "Connect to a BlueBubbles instance",
 				}),
 				Default: "mac",
 			}, &platform)
