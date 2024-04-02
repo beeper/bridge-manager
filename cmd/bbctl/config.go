@@ -72,12 +72,14 @@ var askParams = map[string]func(string, map[string]string) (bool, error){
 		if metaPlatform == "" {
 			if strings.Contains(bridgeName, "facebook") {
 				extraParams["meta_platform"] = "facebook"
+			} else if strings.Contains(bridgeName, "messenger") {
+				extraParams["meta_platform"] = "messenger"
 			} else if strings.Contains(bridgeName, "instagram") {
 				extraParams["meta_platform"] = "instagram"
 			} else {
 				err := survey.AskOne(&survey.Select{
 					Message: "Which Meta platform do you want to bridge?",
-					Options: []string{"instagram", "facebook"},
+					Options: []string{"instagram", "facebook", "facebook-tor", "messenger"},
 				}, &metaPlatform)
 				if err != nil {
 					return false, err
@@ -85,7 +87,7 @@ var askParams = map[string]func(string, map[string]string) (bool, error){
 				extraParams["meta_platform"] = metaPlatform
 				return true, nil
 			}
-		} else if metaPlatform != "instagram" && metaPlatform != "facebook" {
+		} else if metaPlatform != "instagram" && metaPlatform != "facebook" && metaPlatform != "facebook-tor" && metaPlatform != "messenger" {
 			return false, UserError{"Invalid Meta platform specified"}
 		}
 		return false, nil
