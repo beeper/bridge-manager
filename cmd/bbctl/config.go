@@ -69,8 +69,11 @@ func simpleDescriptions(descs map[string]string) func(string, int) string {
 var askParams = map[string]func(string, map[string]string) (bool, error){
 	"meta": func(bridgeName string, extraParams map[string]string) (bool, error) {
 		metaPlatform := extraParams["meta_platform"]
+		changed := false
 		if metaPlatform == "" {
-			if strings.Contains(bridgeName, "facebook") {
+			if strings.Contains(bridgeName, "facebook-tor") || strings.Contains(bridgeName, "facebooktor") {
+				extraParams["meta_platform"] = "facebook-tor"
+			} else if strings.Contains(bridgeName, "facebook") {
 				extraParams["meta_platform"] = "facebook"
 			} else if strings.Contains(bridgeName, "messenger") {
 				extraParams["meta_platform"] = "messenger"
@@ -85,12 +88,26 @@ var askParams = map[string]func(string, map[string]string) (bool, error){
 					return false, err
 				}
 				extraParams["meta_platform"] = metaPlatform
-				return true, nil
+				changed = true
 			}
 		} else if metaPlatform != "instagram" && metaPlatform != "facebook" && metaPlatform != "facebook-tor" && metaPlatform != "messenger" {
 			return false, UserError{"Invalid Meta platform specified"}
 		}
-		return false, nil
+		if metaPlatform == "facebook-tor" {
+			proxy := extraParams["proxy"]
+			if proxy == "" {
+				err := survey.AskOne(&survey.Input{
+					Message: "Enter Tor proxy address",
+					Default: "socks5://localhost:1080",
+				}, &proxy)
+				if err != nil {
+					return false, err
+				}
+				extraParams["proxy"] = proxy
+				changed = true
+			}
+		}
+		return changed, nil
 	},
 	"imessagego": func(bridgeName string, extraParams map[string]string) (bool, error) {
 		nacToken := extraParams["nac_token"]

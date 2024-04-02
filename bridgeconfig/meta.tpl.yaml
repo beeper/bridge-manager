@@ -91,7 +91,7 @@ meta:
     # In FB/Messenger mode encryption is always enabled, this option only affects Instagram mode.
     ig_e2ee: true
     # Static proxy address (HTTP or SOCKS5) for connecting to Meta.
-    proxy:
+    proxy: {{ .Params.proxy }}
     # HTTP endpoint to request new proxy address from, for dynamically assigned proxies.
     # The endpoint must return a JSON body with a string field called proxy_url.
     get_proxy_from:
