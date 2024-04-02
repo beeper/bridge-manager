@@ -86,17 +86,13 @@ used with the `--type` flag.
 | [mautrix-discord]    | discord                              |
 | [mautrix-slack]      | slack                                |
 | [mautrix-gmessages]  | gmessages,  googlemessages, rcs, sms |
-| [mautrix-meta]       | meta, instagramgo, facebookgo        |
-| †[mautrix-facebook]  | facebook                             |
-| †[mautrix-instagram] | instagram                            |
+| [mautrix-meta]       | meta, instagram, facebook            |
 | [mautrix-googlechat] | googlechat, gchat                    |
 | [mautrix-twitter]    | twitter                              |
 | [mautrix-imessage]   | imessage                             |
-| †[beeper-imessage]   | imessagego                           |
+| [beeper-imessage]   | imessagego                           |
 | [linkedin-matrix]    | linkedin                             |
 | [heisenbridge]       | heisenbridge, irc                    |
-
-† indicates legacy bridge that is no longer actively maintained
 
 [mautrix-telegram]: https://github.com/mautrix/telegram
 [mautrix-whatsapp]: https://github.com/mautrix/whatsapp

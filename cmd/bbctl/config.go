@@ -215,12 +215,10 @@ type generatedBridgeConfig struct {
 var bridgeIPSuffix = map[string]string{
 	"telegram":   "17",
 	"whatsapp":   "18",
-	"facebook":   "19",
 	"meta":       "19",
 	"googlechat": "20",
 	"twitter":    "27",
 	"signal":     "28",
-	"instagram":  "30",
 	"discord":    "34",
 	"slack":      "35",
 	"gmessages":  "36",

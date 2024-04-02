@@ -22,12 +22,10 @@ type bridgeTypeToNames struct {
 
 var officialBridges = []bridgeTypeToNames{
 	{"discord", []string{"discord"}},
-	{"meta", []string{"meta", "instagramgo", "facebookgo"}},
-	{"facebook", []string{"facebook"}},
+	{"meta", []string{"meta", "instagram", "facebook"}},
 	{"googlechat", []string{"googlechat", "gchat"}},
 	{"imessagego", []string{"imessagego"}},
 	{"imessage", []string{"imessage"}},
-	{"instagram", []string{"instagram"}},
 	{"linkedin", []string{"linkedin"}},
 	{"signal", []string{"signal"}},
 	{"slack", []string{"slack"}},
