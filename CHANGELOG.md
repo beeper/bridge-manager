@@ -1,3 +1,10 @@
+# v0.11.0 (unreleased)
+
+* Fixed mautrix-imessage media viewer config.
+* Updated main branch name for mautrix-whatsapp.
+* Updated Meta config to allow choosing messenger and facebook-tor modes.
+* Dropped support for legacy Facebook and Instagram bridges.
+
 # v0.10.1 (2024-02-28)
 
 * Bumped minimum Go version to 1.21.
