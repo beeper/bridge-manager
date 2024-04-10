@@ -284,18 +284,7 @@ func doGenerateBridgeConfig(ctx *cli.Context, bridge string) (*generatedBridgeCo
 	var listenAddress string
 	var listenPort uint16
 	if !websocket {
-		ipSuffix := bridgeIPSuffix[bridgeType]
-		if ipSuffix == "" {
-			ipSuffix = "1"
-		}
-		listenAddress = "127.29.3." + ipSuffix
-		// macOS is weird and doesn't support loopback addresses properly,
-		// it only routes 127.0.0.1/32 rather than 127.0.0.0/8
-		if runtime.GOOS == "darwin" {
-			listenAddress = "127.0.0.1"
-		}
-		listenPort = uint16(30000 + (crc32.ChecksumIEEE([]byte(bridge)) % 30000))
-		reg.Registration.URL = fmt.Sprintf("http://%s:%d", listenAddress, listenPort)
+		listenAddress, listenPort, reg.Registration.URL = getBridgeWebsocketProxyConfig(bridge, bridgeType)
 	}
 	cfg, err := bridgeconfig.Generate(bridgeType, bridgeconfig.Params{
 		HungryAddress:  reg.HomeserverURL,
@@ -320,6 +309,22 @@ func doGenerateBridgeConfig(ctx *cli.Context, bridge string) (*generatedBridgeCo
 		Config:       cfg,
 		RegisterJSON: reg,
 	}, err
+}
+
+func getBridgeWebsocketProxyConfig(bridgeName, bridgeType string) (listenAddress string, listenPort uint16, url string) {
+	ipSuffix := bridgeIPSuffix[bridgeType]
+	if ipSuffix == "" {
+		ipSuffix = "1"
+	}
+	listenAddress = "127.29.3." + ipSuffix
+	// macOS is weird and doesn't support loopback addresses properly,
+	// it only routes 127.0.0.1/32 rather than 127.0.0.0/8
+	if runtime.GOOS == "darwin" {
+		listenAddress = "127.0.0.1"
+	}
+	listenPort = uint16(30000 + (crc32.ChecksumIEEE([]byte(bridgeName)) % 30000))
+	url = fmt.Sprintf("http://%s:%d", listenAddress, listenPort)
+	return
 }
 
 func generateBridgeConfig(ctx *cli.Context) error {

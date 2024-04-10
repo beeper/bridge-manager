@@ -395,6 +395,9 @@ func runBridge(ctx *cli.Context) error {
 	var cancelWS context.CancelFunc
 	wsProxyClosed := make(chan struct{})
 	if needsWebsocketProxy {
+		if cfg.Registration.URL == "" {
+			_, _, cfg.Registration.URL = getBridgeWebsocketProxyConfig(bridgeName, cfg.BridgeType)
+		}
 		wg.Add(2)
 		log.Printf("Starting websocket proxy")
 		as = appservice.Create()
