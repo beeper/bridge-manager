@@ -4,6 +4,7 @@
 * Updated main branch name for mautrix-whatsapp.
 * Updated Meta config to allow choosing messenger and facebook-tor modes.
 * Dropped support for legacy Facebook and Instagram bridges.
+* Removed "Work in progress" warning from iMessage BlueBubbles connector.
 
 # v0.10.1 (2024-02-28)
 
