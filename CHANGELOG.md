@@ -1,4 +1,4 @@
-# v0.11.0 (unreleased)
+# v0.11.0 (2024-04-17)
 
 * Fixed mautrix-imessage media viewer config.
 * Updated main branch name for mautrix-whatsapp.
