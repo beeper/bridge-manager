@@ -10,6 +10,7 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
+	"strings"
 
 	"github.com/fatih/color"
 	"github.com/schollz/progressbar/v3"
@@ -173,6 +174,8 @@ func needsLibolmDylib(bridge string) bool {
 
 func DownloadMautrixBridgeBinary(ctx context.Context, bridge, path string, noUpdate bool, branchOverride, currentCommit string) error {
 	domain := "mau.dev"
+	v2 := strings.HasSuffix(bridge, "v2")
+	bridge = strings.TrimSuffix(bridge, "v2")
 	repo := fmt.Sprintf("mautrix/%s", bridge)
 	fileName := filepath.Base(path)
 	ref, err := getRefFromBridge(bridge)
@@ -185,6 +188,9 @@ func DownloadMautrixBridgeBinary(ctx context.Context, bridge, path string, noUpd
 	job, err := getJobFromBridge(bridge)
 	if err != nil {
 		return err
+	}
+	if v2 {
+		job += " v2"
 	}
 
 	if currentCommit == "" {

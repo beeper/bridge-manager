@@ -124,6 +124,8 @@ func updateGoBridge(ctx context.Context, binaryPath, bridgeType string, noUpdate
 }
 
 func compileGoBridge(ctx context.Context, buildDir, binaryPath, bridgeType string, noUpdate bool) error {
+	v2 := strings.HasSuffix(bridgeType, "v2")
+	bridgeType = strings.TrimSuffix(bridgeType, "v2")
 	buildDirParent := filepath.Dir(buildDir)
 	err := os.MkdirAll(buildDirParent, 0700)
 	if err != nil {
@@ -155,8 +157,12 @@ func compileGoBridge(ctx context.Context, buildDir, binaryPath, bridgeType strin
 			return fmt.Errorf("failed to pull repo: %w", err)
 		}
 	}
-	log.Printf("Compiling bridge with ./build.sh")
-	err = makeCmd(ctx, buildDir, "./build.sh").Run()
+	buildScript := "./build.sh"
+	if v2 {
+		buildScript = "./build-v2.sh"
+	}
+	log.Printf("Compiling bridge with %s", buildScript)
+	err = makeCmd(ctx, buildDir, buildScript).Run()
 	if err != nil {
 		return fmt.Errorf("failed to compile bridge: %w", err)
 	}
@@ -311,16 +317,26 @@ func runBridge(ctx *cli.Context) error {
 	var bridgeArgs []string
 	var needsWebsocketProxy bool
 	switch cfg.BridgeType {
-	case "imessage", "imessagego", "whatsapp", "discord", "slack", "gmessages", "signal", "meta":
+	case "imessage", "imessagego", "whatsapp", "discord", "slack", "gmessages", "signal", "signalv2", "meta":
 		binaryName := fmt.Sprintf("mautrix-%s", cfg.BridgeType)
+		v2 := false
+		if strings.HasSuffix(cfg.BridgeType, "v2") {
+			needsWebsocketProxy = true
+			binaryName = fmt.Sprintf("mautrix-%s-v2", strings.TrimSuffix(cfg.BridgeType, "v2"))
+			v2 = true
+		}
 		if cfg.BridgeType == "imessagego" {
 			binaryName = "beeper-imessage"
 		}
 		bridgeCmd = filepath.Join(dataDir, "binaries", binaryName)
 		if localDev && overrideBridgeCmd == "" {
 			bridgeCmd = filepath.Join(bridgeDir, binaryName)
-			log.Printf("Compiling [cyan]%s[reset] with ./build.sh", binaryName)
-			err = makeCmd(ctx.Context, bridgeDir, "./build.sh").Run()
+			buildScript := "./build.sh"
+			if v2 {
+				buildScript = "./build-v2.sh"
+			}
+			log.Printf("Compiling [cyan]%s[reset] with %s", binaryName, buildScript)
+			err = makeCmd(ctx.Context, bridgeDir, buildScript).Run()
 			if err != nil {
 				return fmt.Errorf("failed to compile bridge: %w", err)
 			}

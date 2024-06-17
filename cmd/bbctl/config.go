@@ -219,6 +219,7 @@ var bridgeIPSuffix = map[string]string{
 	"googlechat": "20",
 	"twitter":    "27",
 	"signal":     "28",
+	"signalv2":   "28",
 	"discord":    "34",
 	"slack":      "35",
 	"gmessages":  "36",
@@ -355,6 +356,11 @@ func generateBridgeConfig(ctx *cli.Context) error {
 			startupCommand += " -c " + outputPath
 		}
 		installInstructions = fmt.Sprintf("https://docs.mau.fi/bridges/go/setup.html?bridge=%s#installation", cfg.BridgeType)
+	case "signalv2":
+		startupCommand = fmt.Sprintf("mautrix-%s-v2", strings.TrimSuffix(cfg.BridgeType, "v2"))
+		if outputPath != "config.yaml" && outputPath != "<config file>" {
+			startupCommand += " -c " + outputPath
+		}
 	case "imessagego":
 		startupCommand = "beeper-imessage"
 		if outputPath != "config.yaml" && outputPath != "<config file>" {

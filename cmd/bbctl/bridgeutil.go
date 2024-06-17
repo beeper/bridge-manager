@@ -27,6 +27,7 @@ var officialBridges = []bridgeTypeToNames{
 	{"imessagego", []string{"imessagego"}},
 	{"imessage", []string{"imessage"}},
 	{"linkedin", []string{"linkedin"}},
+	{"signalv2", []string{"signalv2"}},
 	{"signal", []string{"signal"}},
 	{"slack", []string{"slack"}},
 	{"telegram", []string{"telegram"}},
