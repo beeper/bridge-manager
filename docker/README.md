@@ -21,3 +21,20 @@ docker run \
 The container should work fine as any user (as long as the mounted `/data`
 directory is writable), so you can just use the standard `--user` flag to
 change the UID/GID.
+
+## Docker Compose
+Or rather, on personal VPS, use this compose file for easier management.
+
+```yaml
+version: '3'
+services:
+  beeper-bridge-manager:
+    image: ghcr.io/beeper/bridge-manager:latest
+    volumes:
+      - ./data:/data
+    environment:
+      - MATRIX_ACCESS_TOKEN=...
+    entrypoint:
+      - /usr/local/bin/run-bridge.sh
+      - sh-heisenbridge
+```
