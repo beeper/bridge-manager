@@ -93,7 +93,6 @@ jobs:
           tags: |
             type=raw,value=latest,enable=${{  github.ref == 'refs/heads/main' }}
             type=sha,format=long
-            type=ref
 
       - name: Docker Build
         uses: docker/build-push-action@v5
