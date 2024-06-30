@@ -85,6 +85,15 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Extract Docker metadata
+        id: metadata
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/${{ github.repository }}
+          tags: |
+            type=raw,value=latest,enable=${{  github.ref == 'refs/heads/main' }}
+            type=semver,pattern={{version}}
+
       - name: Docker Build
         uses: docker/build-push-action@v5
         with:
@@ -92,24 +101,8 @@ jobs:
           pull: true
           platforms: linux/amd64,linux/arm64
           file: docker/Dockerfile
-          tags: ${{ env.GHCR_REGISTRY_IMAGE }}:${{ github.sha }}
+          tags: ${{ steps.metadata.outputs.tags }}
+          labels: ${{ steps.metadata.outputs.labels }}
           push: true
           build-args: |
             COMMIT_HASH=${{ github.sha }}
-
-  deploy-docker:
-    runs-on: ubuntu-latest
-    needs:
-      - build-docker
-    if: github.ref == 'refs/heads/main'
-    steps:
-      - name: Login to registry
-        uses: docker/login-action@v3
-        with:
-          registry: ${{ env.GHCR_REGISTRY }}
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      - uses: beeper/docker-retag-push-latest@main
-        with:
-          image: ${{ env.GHCR_REGISTRY_IMAGE }}
