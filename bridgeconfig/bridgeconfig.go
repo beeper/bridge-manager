@@ -3,11 +3,19 @@ package bridgeconfig
 import (
 	"embed"
 	"fmt"
+	"reflect"
 	"strings"
 	"text/template"
 
 	"maunium.net/go/mautrix/id"
 )
+
+type BridgeV2Name struct {
+	DatabaseFileName string
+	CommandPrefix    string
+	BridgeTypeName   string
+	BridgeTypeIcon   string
+}
 
 type Params struct {
 	HungryAddress string
@@ -28,6 +36,8 @@ type Params struct {
 
 	DatabasePrefix string
 
+	BridgeV2Name
+
 	Params map[string]string
 }
 
@@ -36,8 +46,16 @@ var configs embed.FS
 var tpl *template.Template
 var SupportedBridges []string
 
-var tplFuncs = map[string]any{
+var tplFuncs = template.FuncMap{
 	"replace": strings.ReplaceAll,
+	"setfield": func(obj any, field string, value any) any {
+		val := reflect.ValueOf(obj)
+		for val.Kind() == reflect.Pointer {
+			val = val.Elem()
+		}
+		val.FieldByName(field).Set(reflect.ValueOf(value))
+		return ""
+	},
 }
 
 func init() {
