@@ -85,6 +85,9 @@ homeserver:
 appservice:
     # The address that the homeserver can use to connect to this appservice.
     address: irrelevant
+    # A public address that external services can use to reach this appservice.
+    # This value doesn't affect the registration file.
+    public_address:
 
     # The hostname and port where this appservice should listen.
     # For Docker, you generally have to change the hostname to 0.0.0.0.
