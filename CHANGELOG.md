@@ -1,3 +1,9 @@
+# v0.11.1 (unreleased)
+
+* Added support for generating generic bridgev2/megabridge configs.
+* Added support for signalv2 and slackv2.
+* Updated hungryserv URL template to work with megahungry.
+
 # v0.11.0 (2024-04-17)
 
 * Fixed mautrix-imessage media viewer config.

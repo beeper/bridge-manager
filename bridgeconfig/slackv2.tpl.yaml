@@ -1,0 +1,61 @@
+network:
+    # Displayname template for Slack users. Available variables:
+    #  .Name - The username of the user
+    #  .ID - The internal ID of the user
+    #  .IsBot - Whether the user is a bot
+    #  .Profile.DisplayName - The username or real name of the user (depending on settings)
+    # Variables only available for users (not bots):
+    #  .TeamID - The internal ID of the workspace the user is in
+    #  .TZ - The timezone region of the user (e.g. Europe/London)
+    #  .TZLabel - The label of the timezone of the user (e.g. Greenwich Mean Time)
+    #  .TZOffset - The UTC offset of the timezone of the user (e.g. 0)
+    #  .Profile.RealName - The real name of the user
+    #  .Profile.FirstName - The first name of the user
+    #  .Profile.LastName - The last name of the user
+    #  .Profile.Title - The job title of the user
+    #  .Profile.Pronouns - The pronouns of the user
+    #  .Profile.Email - The email address of the user
+    #  .Profile.Phone - The formatted phone number of the user
+    displayname_template: '{{.Profile.DisplayName}}{{if .IsBot}} (bot){{end}}'
+    # Channel name template for Slack channels (all types). Available variables:
+    #  .Name - The name of the channel
+    #  .TeamName - The name of the team the channel is in
+    #  .TeamDomain - The Slack subdomain of the team the channel is in
+    #  .ID - The internal ID of the channel
+    #  .IsNoteToSelf - Whether the channel is a DM with yourself
+    #  .IsGeneral - Whether the channel is the #general channel
+    #  .IsChannel - Whether the channel is a channel (rather than a DM)
+    #  .IsPrivate - Whether the channel is private
+    #  .IsIM - Whether the channel is a one-to-one DM
+    #  .IsMpIM - Whether the channel is a group DM
+    #  .IsShared - Whether the channel is shared with another workspace.
+    #  .IsExtShared - Whether the channel is shared with an external organization.
+    #  .IsOrgShared - Whether the channel is shared with an organization in the same enterprise grid.
+    channel_name_template: '{{if or .IsNoteToSelf (not .IsIM)}}{{if and .IsChannel (not .IsPrivate)}}#{{end}}{{.Name}}{{if .IsNoteToSelf}} (you){{end}}{{end}}'
+    # Displayname template for Slack workspaces. Available variables:
+    #  .Name - The name of the team
+    #  .Domain - The Slack subdomain of the team
+    #  .ID - The internal ID of the team
+    team_name_template: "{{ .Name }}"
+    # Should incoming custom emoji reactions be bridged as mxc:// URIs?
+    # If set to false, custom emoji reactions will be bridged as the shortcode instead, and the image won't be available.
+    custom_emoji_reactions: true
+    # Should channels and group DMs have the workspace icon as the Matrix room avatar?
+    workspace_avatar_in_rooms: false
+    # Number of participants to sync in channels (doesn't affect group DMs)
+    participant_sync_count: 5
+    # Should channel participants only be synced when creating the room?
+    # If you want participants to always be accurately synced, set participant_sync_count to a high value and this to false.
+    participant_sync_only_on_create: true
+    # Options for backfilling messages from Slack.
+    backfill:
+        # Number of conversations to fetch from Slack when syncing workspace.
+        # This option applies even if message backfill is disabled below.
+        # If set to -1, all chats in the client.boot response will be bridged, and nothing will be fetched separately.
+        conversation_count: -1
+
+{{ setfield . "CommandPrefix" "!slack" -}}
+{{ setfield . "DatabaseFileName" "mautrix-slack" -}}
+{{ setfield . "BridgeTypeName" "Slack" -}}
+{{ setfield . "BridgeTypeIcon" "mxc://maunium.net/pVtzLmChZejGxLqmXtQjFxem" -}}
+{{ template "bridgev2.tpl.yaml" . }}
