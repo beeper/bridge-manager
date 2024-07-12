@@ -321,8 +321,10 @@ func runBridge(ctx *cli.Context) error {
 		binaryName := fmt.Sprintf("mautrix-%s", cfg.BridgeType)
 		v2 := false
 		if strings.HasSuffix(cfg.BridgeType, "v2") {
-			needsWebsocketProxy = true
-			binaryName = fmt.Sprintf("mautrix-%s-v2", strings.TrimSuffix(cfg.BridgeType, "v2"))
+			binaryName = fmt.Sprintf("mautrix-%s", strings.TrimSuffix(cfg.BridgeType, "v2"))
+			if cfg.BridgeType == "signalv2" {
+				binaryName += "-v2"
+			}
 			v2 = true
 		}
 		if cfg.BridgeType == "imessagego" {

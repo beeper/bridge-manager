@@ -202,12 +202,21 @@ func DownloadMautrixBridgeBinary(ctx context.Context, bridge, path string, noUpd
 	if err != nil {
 		return fmt.Errorf("failed to get last build info: %w", err)
 	}
+	// TODO remove this hack after slackv2 is merged to main
+	if build.JobURL == "" && ref == "main" && repo == "mautrix/slack" {
+		build, err = GetLastBuild(domain, repo, "refactor", job)
+		if err != nil {
+			return fmt.Errorf("failed to get last build info: %w", err)
+		}
+	}
 	if build.Commit == currentCommit {
 		log.Printf("[cyan]%s[reset] is up to date (commit: %s)", fileName, linkifyCommit(repo, currentCommit))
 		return nil
 	} else if currentCommit != "" && noUpdate {
 		log.Printf("[cyan]%s[reset] [yellow]is out of date, latest commit is %s (diff: %s)[reset]", fileName, linkifyCommit(repo, build.Commit), linkifyDiff(repo, currentCommit, build.Commit))
 		return nil
+	} else if build.JobURL == "" {
+		return fmt.Errorf("failed to find URL for job %q on branch %s of %s", job, ref, repo)
 	}
 	if currentCommit == "" {
 		log.Printf("Installing [cyan]%s[reset] (commit: %s)", fileName, linkifyCommit(repo, build.Commit))
