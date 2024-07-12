@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"path"
+	"strings"
 	"time"
 
 	"github.com/fatih/color"
@@ -82,7 +83,7 @@ func prepareApp(ctx *cli.Context) error {
 	ctx.Context = context.WithValue(ctx.Context, contextKeyConfig, cfg)
 	ctx.Context = context.WithValue(ctx.Context, contextKeyEnvConfig, envConfig)
 	if envConfig.HasCredentials() {
-		if envConfig.HungryAddress == "" || envConfig.ClusterID == "" || envConfig.Username == "" {
+		if envConfig.HungryAddress == "" || envConfig.ClusterID == "" || envConfig.Username == "" || !strings.Contains(envConfig.HungryAddress, "/_hungryserv") {
 			log.Printf("Fetching whoami to fill missing env config details")
 			_, err = getCachedWhoami(ctx)
 			if err != nil {
