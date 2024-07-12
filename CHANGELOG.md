@@ -1,4 +1,4 @@
-# v0.11.1 (unreleased)
+# v0.12.0 (2024-07-12)
 
 * Added support for generating generic bridgev2/megabridge configs.
 * Added support for signalv2 and slackv2.
