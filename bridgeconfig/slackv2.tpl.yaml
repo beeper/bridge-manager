@@ -16,7 +16,7 @@ network:
     #  .Profile.Pronouns - The pronouns of the user
     #  .Profile.Email - The email address of the user
     #  .Profile.Phone - The formatted phone number of the user
-    displayname_template: '{{.Profile.DisplayName}}{{if .IsBot}} (bot){{end}}'
+    displayname_template: '{{ `{{.Profile.DisplayName}}{{if .IsBot}} (bot){{end}}` }}'
     # Channel name template for Slack channels (all types). Available variables:
     #  .Name - The name of the channel
     #  .TeamName - The name of the team the channel is in
@@ -31,12 +31,12 @@ network:
     #  .IsShared - Whether the channel is shared with another workspace.
     #  .IsExtShared - Whether the channel is shared with an external organization.
     #  .IsOrgShared - Whether the channel is shared with an organization in the same enterprise grid.
-    channel_name_template: '{{if or .IsNoteToSelf (not .IsIM)}}{{if and .IsChannel (not .IsPrivate)}}#{{end}}{{.Name}}{{if .IsNoteToSelf}} (you){{end}}{{end}}'
+    channel_name_template: '{{ `{{if or .IsNoteToSelf (not .IsIM)}}{{if and .IsChannel (not .IsPrivate)}}#{{end}}{{.Name}}{{if .IsNoteToSelf}} (you){{end}}{{end}}` }}'
     # Displayname template for Slack workspaces. Available variables:
     #  .Name - The name of the team
     #  .Domain - The Slack subdomain of the team
     #  .ID - The internal ID of the team
-    team_name_template: "{{ .Name }}"
+    team_name_template: '{{ `{{.Name}}` }}'
     # Should incoming custom emoji reactions be bridged as mxc:// URIs?
     # If set to false, custom emoji reactions will be bridged as the shortcode instead, and the image won't be available.
     custom_emoji_reactions: true
