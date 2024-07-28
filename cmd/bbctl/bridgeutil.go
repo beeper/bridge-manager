@@ -29,7 +29,6 @@ var officialBridges = []bridgeTypeToNames{
 	{"linkedin", []string{"linkedin"}},
 	{"signalv2", []string{"signalv2"}},
 	{"signal", []string{"signal"}},
-	{"slackv2", []string{"slackv2"}},
 	{"slack", []string{"slack"}},
 	{"telegram", []string{"telegram"}},
 	{"twitter", []string{"twitter"}},
@@ -48,7 +47,6 @@ var websocketBridges = map[string]bool{
 	"imessagego":   true,
 	"signal":       true,
 	"signalv2":     true,
-	"slackv2":      true,
 	"bridgev2":     true,
 	"meta":         true,
 }

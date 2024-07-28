@@ -105,7 +105,7 @@ type VersionJSONOutput struct {
 	}
 }
 
-func updateGoBridge(ctx context.Context, binaryPath, bridgeType string, noUpdate bool) error {
+func updateGoBridge(ctx context.Context, binaryPath, bridgeType string, v2, noUpdate bool) error {
 	var currentVersion VersionJSONOutput
 
 	err := os.MkdirAll(filepath.Dir(binaryPath), 0700)
@@ -120,7 +120,7 @@ func updateGoBridge(ctx context.Context, binaryPath, bridgeType string, noUpdate
 			log.Printf("Failed to get parse bridge version: [red]%v[reset] - reinstalling", err)
 		}
 	}
-	return gitlab.DownloadMautrixBridgeBinary(ctx, bridgeType, binaryPath, noUpdate, "", currentVersion.Commit)
+	return gitlab.DownloadMautrixBridgeBinary(ctx, bridgeType, binaryPath, v2, noUpdate, "", currentVersion.Commit)
 }
 
 func compileGoBridge(ctx context.Context, buildDir, binaryPath, bridgeType string, noUpdate bool) error {
@@ -317,9 +317,13 @@ func runBridge(ctx *cli.Context) error {
 	var bridgeArgs []string
 	var needsWebsocketProxy bool
 	switch cfg.BridgeType {
-	case "imessage", "imessagego", "whatsapp", "discord", "slack", "slackv2", "gmessages", "signal", "signalv2", "meta":
+	case "imessage", "imessagego", "whatsapp", "discord", "slack", "gmessages", "signal", "signalv2", "meta":
 		binaryName := fmt.Sprintf("mautrix-%s", cfg.BridgeType)
 		v2 := false
+		switch cfg.BridgeType {
+		case "slack":
+			v2 = true
+		}
 		if strings.HasSuffix(cfg.BridgeType, "v2") {
 			binaryName = fmt.Sprintf("mautrix-%s", strings.TrimSuffix(cfg.BridgeType, "v2"))
 			if cfg.BridgeType == "signalv2" {
@@ -350,7 +354,7 @@ func runBridge(ctx *cli.Context) error {
 				return fmt.Errorf("failed to compile bridge: %w", err)
 			}
 		} else if overrideBridgeCmd == "" {
-			err = updateGoBridge(ctx.Context, bridgeCmd, cfg.BridgeType, ctx.Bool("no-update"))
+			err = updateGoBridge(ctx.Context, bridgeCmd, cfg.BridgeType, v2, ctx.Bool("no-update"))
 			if errors.Is(err, gitlab.ErrNotBuiltInCI) {
 				return UserError{fmt.Sprintf("Binaries for %s are not built in the CI. Use --compile to tell bbctl to build the bridge locally.", binaryName)}
 			} else if err != nil {

@@ -172,9 +172,8 @@ func needsLibolmDylib(bridge string) bool {
 	}
 }
 
-func DownloadMautrixBridgeBinary(ctx context.Context, bridge, path string, noUpdate bool, branchOverride, currentCommit string) error {
+func DownloadMautrixBridgeBinary(ctx context.Context, bridge, path string, v2, noUpdate bool, branchOverride, currentCommit string) error {
 	domain := "mau.dev"
-	v2 := strings.HasSuffix(bridge, "v2")
 	bridge = strings.TrimSuffix(bridge, "v2")
 	repo := fmt.Sprintf("mautrix/%s", bridge)
 	fileName := filepath.Base(path)
@@ -201,13 +200,6 @@ func DownloadMautrixBridgeBinary(ctx context.Context, bridge, path string, noUpd
 	build, err := GetLastBuild(domain, repo, ref, job)
 	if err != nil {
 		return fmt.Errorf("failed to get last build info: %w", err)
-	}
-	// TODO remove this hack after slackv2 is merged to main
-	if build.JobURL == "" && ref == "main" && repo == "mautrix/slack" {
-		build, err = GetLastBuild(domain, repo, "refactor", job)
-		if err != nil {
-			return fmt.Errorf("failed to get last build info: %w", err)
-		}
 	}
 	if build.Commit == currentCommit {
 		log.Printf("[cyan]%s[reset] is up to date (commit: %s)", fileName, linkifyCommit(repo, currentCommit))
