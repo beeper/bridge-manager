@@ -15,6 +15,7 @@ type BridgeV2Name struct {
 	CommandPrefix    string
 	BridgeTypeName   string
 	BridgeTypeIcon   string
+	DefaultPickleKey string
 }
 
 type Params struct {

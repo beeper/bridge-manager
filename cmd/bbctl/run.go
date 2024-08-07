@@ -317,19 +317,12 @@ func runBridge(ctx *cli.Context) error {
 	var bridgeArgs []string
 	var needsWebsocketProxy bool
 	switch cfg.BridgeType {
-	case "imessage", "imessagego", "whatsapp", "discord", "slack", "gmessages", "signal", "signalv2", "meta":
+	case "imessage", "imessagego", "whatsapp", "discord", "slack", "gmessages", "signal", "meta":
 		binaryName := fmt.Sprintf("mautrix-%s", cfg.BridgeType)
-		v2 := false
+		ciV2 := false
 		switch cfg.BridgeType {
-		case "slack":
-			v2 = true
-		}
-		if strings.HasSuffix(cfg.BridgeType, "v2") {
-			binaryName = fmt.Sprintf("mautrix-%s", strings.TrimSuffix(cfg.BridgeType, "v2"))
-			if cfg.BridgeType == "signalv2" {
-				binaryName += "-v2"
-			}
-			v2 = true
+		case "gmessages":
+			ciV2 = true
 		}
 		if cfg.BridgeType == "imessagego" {
 			binaryName = "beeper-imessage"
@@ -338,7 +331,7 @@ func runBridge(ctx *cli.Context) error {
 		if localDev && overrideBridgeCmd == "" {
 			bridgeCmd = filepath.Join(bridgeDir, binaryName)
 			buildScript := "./build.sh"
-			if v2 {
+			if ciV2 {
 				buildScript = "./build-v2.sh"
 			}
 			log.Printf("Compiling [cyan]%s[reset] with %s", binaryName, buildScript)
@@ -354,7 +347,7 @@ func runBridge(ctx *cli.Context) error {
 				return fmt.Errorf("failed to compile bridge: %w", err)
 			}
 		} else if overrideBridgeCmd == "" {
-			err = updateGoBridge(ctx.Context, bridgeCmd, cfg.BridgeType, v2, ctx.Bool("no-update"))
+			err = updateGoBridge(ctx.Context, bridgeCmd, cfg.BridgeType, ciV2, ctx.Bool("no-update"))
 			if errors.Is(err, gitlab.ErrNotBuiltInCI) {
 				return UserError{fmt.Sprintf("Binaries for %s are not built in the CI. Use --compile to tell bbctl to build the bridge locally.", binaryName)}
 			} else if err != nil {
