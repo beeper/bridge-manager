@@ -115,25 +115,17 @@ used with the `--type` flag.
    * `<name>` is a short name for the bridge (a-z, 0-9, -). The name should
      start with `sh-`. The bridge user ID namespace will be `@<name>_.+:beeper.local`
      and the bridge bot will be `@<name>bot:beeper.local`.
-   * Optionally you can pass `-a <address>` to have the Beeper server push
-     events directly to the bridge. However, this requires that the bridge is
-     publicly accessible. The proxy option below is easier.
 4. Now you can configure and run the bridge by following the bridge's own
    documentation.
-5. If you didn't pass an address to `register`, modify the registration file to
-   point at where the bridge will listen locally (e.g. `url: http://localhost:8080`),
-   then run `bbctl proxy -r registration.yaml` to start the proxy.
+5. Modify the registration file to point at where the bridge will listen locally
+   (e.g. `url: http://localhost:8080`), then run `bbctl proxy -r registration.yaml`
+   to start the proxy.
    * The proxy will connect to the Beeper server using a websocket and push
      received events to the bridge via HTTP. Since the HTTP requests are all on
      localhost, you don't need port forwarding or TLS certificates.
 
 Note that the homeserver URL may change if you're moved to a different cluster.
 In general, that shouldn't happen, but it's not impossible.
-
-If you want to get the registration again later, you can add the `--get` flag.
-Just re-running `register` is allowed too, but you need to provide the address
-again if you do that (which also means if you want to change the address, just
-re-run register with the new address).
 
 You can use `--json` with `register` to get the whole response as JSON instead
 of registration YAML and pretty-printed extra details. This may be useful if
