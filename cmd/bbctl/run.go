@@ -321,7 +321,7 @@ func runBridge(ctx *cli.Context) error {
 		binaryName := fmt.Sprintf("mautrix-%s", cfg.BridgeType)
 		ciV2 := false
 		switch cfg.BridgeType {
-		case "gmessages":
+		case "gmessages", "meta":
 			ciV2 = true
 		}
 		if cfg.BridgeType == "imessagego" {
