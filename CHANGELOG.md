@@ -1,3 +1,9 @@
+# v0.12.1 (2024-08-17)
+
+* Bumped minimum Go version to 1.22.
+* Removed separate v2 versions of Signal and Slack. The normal bridges default to v2 now.
+* Switched Google Messages and Meta to v2.
+
 # v0.12.0 (2024-07-12)
 
 * Added support for generating generic bridgev2/megabridge configs.
