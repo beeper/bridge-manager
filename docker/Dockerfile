@@ -1,4 +1,4 @@
-FROM dock.mau.dev/tulir/lottieconverter:alpine-3.19 AS lottie
+FROM dock.mau.dev/tulir/lottieconverter:alpine-3.20 AS lottie
 
 FROM golang:1.22-alpine3.20 AS builder
 
