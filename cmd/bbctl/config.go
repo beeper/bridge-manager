@@ -80,6 +80,7 @@ var askParams = map[string]func(string, map[string]string) (bool, error){
 			} else if strings.Contains(bridgeName, "instagram") {
 				metaPlatform = "instagram"
 			} else {
+				extraParams["meta_platform"] = ""
 				return false, nil
 			}
 			extraParams["meta_platform"] = metaPlatform
