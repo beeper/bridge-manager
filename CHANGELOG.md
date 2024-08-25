@@ -1,3 +1,8 @@
+# unreleased
+
+* Added support for Google Voice bridge.
+* Fixed running Meta bridge without specifying platform.
+
 # v0.12.1 (2024-08-17)
 
 * Bumped minimum Go version to 1.22.
