@@ -70,7 +70,7 @@ func getRefFromBridge(bridge string) (string, error) {
 	switch bridge {
 	case "imessage":
 		return "master", nil
-	case "whatsapp", "discord", "slack", "gmessages", "signal", "imessagego", "meta":
+	case "whatsapp", "discord", "slack", "gmessages", "gvoice", "signal", "imessagego", "meta":
 		return "main", nil
 	default:
 		return "", fmt.Errorf("unknown bridge %s", bridge)
@@ -165,7 +165,7 @@ func downloadFile(ctx context.Context, artifactURL, path string) error {
 
 func needsLibolmDylib(bridge string) bool {
 	switch bridge {
-	case "imessage", "whatsapp", "discord", "slack", "gmessages", "signal", "imessagego", "meta":
+	case "imessage", "whatsapp", "discord", "slack", "gmessages", "gvoice", "signal", "imessagego", "meta":
 		return runtime.GOOS == "darwin"
 	default:
 		return false

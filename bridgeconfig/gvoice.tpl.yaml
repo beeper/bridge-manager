@@ -1,0 +1,15 @@
+# Network-specific config options
+network:
+    # Displayname template for SMS users. Available variables:
+    #  .Name (same as phone number in most cases)
+    #  .PhoneNumber
+    displayname_template: {{ `"{{.Name}}"` }}
+
+{{ setfield . "CommandPrefix" "!gv" -}}
+{{ setfield . "DatabaseFileName" "mautrix-gvoice" -}}
+{{ setfield . "BridgeTypeName" "Google Voice" -}}
+{{ setfield . "BridgeTypeIcon" "mxc://maunium.net/VOPtYGBzHLRfPTEzGgNMpeKo" -}}
+{{ setfield . "DefaultPickleKey" "go.mau.fi/mautrix-gvoice" -}}
+{{ setfield . "MaxInitialMessages" 10 -}}
+{{ setfield . "MaxBackwardMessages" 100 -}}
+{{ template "bridgev2.tpl.yaml" . }}

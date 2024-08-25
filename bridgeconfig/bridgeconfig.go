@@ -16,6 +16,9 @@ type BridgeV2Name struct {
 	BridgeTypeName   string
 	BridgeTypeIcon   string
 	DefaultPickleKey string
+
+	MaxInitialMessages  int
+	MaxBackwardMessages int
 }
 
 type Params struct {

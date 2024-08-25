@@ -221,7 +221,7 @@ backfill:
     # Whether to do backfilling at all.
     enabled: true
     # Maximum number of messages to backfill in empty rooms.
-    max_initial_messages: 50
+    max_initial_messages: {{ or .MaxInitialMessages 50 }}
     # Maximum number of missed messages to backfill after bridge restarts.
     max_catchup_messages: 500
     # If a backfilled chat is older than this number of hours,
@@ -237,7 +237,7 @@ backfill:
         # Should the backfill queue be enabled?
         enabled: true
         # Number of messages to backfill in one batch.
-        batch_size: 50
+        batch_size: {{ or .MaxBackwardMessages 50 }}
         # Delay between batches in seconds.
         batch_delay: 20
         # Maximum number of batches to backfill per portal.
