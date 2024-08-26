@@ -1,4 +1,4 @@
-# unreleased
+# v0.12.2 (2024-08-26)
 
 * Added support for Google Voice bridge.
 * Fixed running Meta bridge without specifying platform.
