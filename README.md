@@ -86,11 +86,12 @@ used with the `--type` flag.
 | [mautrix-discord]    | discord                              |
 | [mautrix-slack]      | slack                                |
 | [mautrix-gmessages]  | gmessages,  googlemessages, rcs, sms |
+| [mautrix-gvoice]     | gvoice, googlevoice                  |
 | [mautrix-meta]       | meta, instagram, facebook            |
 | [mautrix-googlechat] | googlechat, gchat                    |
 | [mautrix-twitter]    | twitter                              |
 | [mautrix-imessage]   | imessage                             |
-| [beeper-imessage]   | imessagego                           |
+| [beeper-imessage]    | imessagego                           |
 | [linkedin-matrix]    | linkedin                             |
 | [heisenbridge]       | heisenbridge, irc                    |
 
@@ -100,6 +101,7 @@ used with the `--type` flag.
 [mautrix-discord]: https://github.com/mautrix/discord
 [mautrix-slack]: https://github.com/mautrix/slack
 [mautrix-gmessages]: https://github.com/mautrix/gmessages
+[mautrix-gvoice]: https://github.com/mautrix/gvoice
 [mautrix-meta]: https://github.com/mautrix/meta
 [mautrix-facebook]: https://github.com/mautrix/facebook
 [mautrix-instagram]: https://github.com/mautrix/instagram
