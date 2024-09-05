@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"os"
 	"path"
-	"strings"
 	"time"
 
 	"github.com/fatih/color"
@@ -83,16 +82,15 @@ func prepareApp(ctx *cli.Context) error {
 	ctx.Context = context.WithValue(ctx.Context, contextKeyConfig, cfg)
 	ctx.Context = context.WithValue(ctx.Context, contextKeyEnvConfig, envConfig)
 	if envConfig.HasCredentials() {
-		if envConfig.HungryAddress == "" || envConfig.ClusterID == "" || envConfig.Username == "" || !strings.Contains(envConfig.HungryAddress, "/_hungryserv") {
+		if envConfig.Username == "" {
 			log.Printf("Fetching whoami to fill missing env config details")
 			_, err = getCachedWhoami(ctx)
 			if err != nil {
 				return fmt.Errorf("failed to get whoami: %w", err)
 			}
 		}
-		homeserver := ctx.String("homeserver")
 		ctx.Context = context.WithValue(ctx.Context, contextKeyMatrixClient, NewMatrixAPI(homeserver, envConfig.Username, envConfig.AccessToken))
-		ctx.Context = context.WithValue(ctx.Context, contextKeyHungryClient, hungryapi.NewClient(homeserver, envConfig.HungryAddress, envConfig.Username, envConfig.AccessToken))
+		ctx.Context = context.WithValue(ctx.Context, contextKeyHungryClient, hungryapi.NewClient(homeserver, envConfig.Username, envConfig.AccessToken))
 	}
 	return nil
 }

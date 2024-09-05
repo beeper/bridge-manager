@@ -126,8 +126,8 @@ used with the `--type` flag.
      received events to the bridge via HTTP. Since the HTTP requests are all on
      localhost, you don't need port forwarding or TLS certificates.
 
-Note that the homeserver URL may change if you're moved to a different cluster.
-In general, that shouldn't happen, but it's not impossible.
+Note that the homeserver URL is not guaranteed to be stable forever, it has
+changed in the past, and it may change again in the future.
 
 You can use `--json` with `register` to get the whole response as JSON instead
 of registration YAML and pretty-printed extra details. This may be useful if

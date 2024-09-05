@@ -188,7 +188,7 @@ func prepareAppserviceWebsocketProxy(ctx *cli.Context, as *appservice.AppService
 		}
 		return proxyWebsocketRequest(parsedURL, cmd)
 	})
-	_ = as.SetHomeserverURL(GetEnvConfig(ctx).HungryAddress)
+	_ = as.SetHomeserverURL(GetHungryClient(ctx).HomeserverURL.String())
 }
 
 type wsPingData struct {

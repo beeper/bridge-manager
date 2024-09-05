@@ -27,7 +27,6 @@ type EnvConfig struct {
 	ClusterID     string `json:"cluster_id"`
 	Username      string `json:"username"`
 	AccessToken   string `json:"access_token"`
-	HungryAddress string `json:"hungry_address"`
 	BridgeDataDir string `json:"bridge_data_dir"`
 	DatabaseDir   string `json:"database_dir,omitempty"`
 }

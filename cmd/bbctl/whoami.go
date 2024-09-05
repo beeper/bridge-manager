@@ -3,7 +3,6 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"net/url"
 	"regexp"
 	"sort"
 	"strings"
@@ -170,15 +169,6 @@ func getCachedWhoami(ctx *cli.Context) (*beeperapi.RespWhoami, error) {
 	}
 	if ec.ClusterID != resp.UserInfo.BridgeClusterID {
 		ec.ClusterID = resp.UserInfo.BridgeClusterID
-		changed = true
-	}
-	publicHungryURL := url.URL{
-		Scheme: "https",
-		Host:   "matrix." + ctx.String("homeserver"),
-		Path:   "/_hungryserv/" + resp.UserInfo.Username,
-	}
-	if ec.HungryAddress != publicHungryURL.String() {
-		ec.HungryAddress = publicHungryURL.String()
 		changed = true
 	}
 	if changed {

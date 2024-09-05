@@ -90,7 +90,6 @@ func doMatrixLogin(ctx *cli.Context, req *mautrix.ReqLogin, whoami *beeperapi.Re
 	envCfg := GetEnvConfig(ctx)
 	envCfg.ClusterID = whoami.UserInfo.BridgeClusterID
 	envCfg.Username = whoami.UserInfo.Username
-	envCfg.HungryAddress = whoami.UserInfo.HungryURL
 	envCfg.AccessToken = resp.AccessToken
 	envCfg.BridgeDataDir = filepath.Join(UserDataDir, "bbctl", ctx.String("env"))
 	err = cfg.Save()

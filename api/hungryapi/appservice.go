@@ -3,6 +3,7 @@ package hungryapi
 import (
 	"context"
 	"net/http"
+	"net/url"
 	"time"
 
 	"go.mau.fi/util/jsontime"
@@ -16,8 +17,13 @@ type Client struct {
 	Username string
 }
 
-func NewClient(baseDomain, homeserverURL, username, accessToken string) *Client {
-	client, err := mautrix.NewClient(homeserverURL, id.NewUserID(username, baseDomain), accessToken)
+func NewClient(baseDomain, username, accessToken string) *Client {
+	hungryURL := url.URL{
+		Scheme: "https",
+		Host:   "matrix." + baseDomain,
+		Path:   "/_hungryserv/" + username,
+	}
+	client, err := mautrix.NewClient(hungryURL.String(), id.NewUserID(username, baseDomain), accessToken)
 	if err != nil {
 		panic(err)
 	}
