@@ -3,9 +3,10 @@ name: Go
 on: [push, pull_request]
 
 env:
-  GO_VERSION: "1.22"
+  GO_VERSION: "1.23"
   GHCR_REGISTRY: ghcr.io
   GHCR_REGISTRY_IMAGE: "ghcr.io/${{ github.repository }}"
+  GOTOOLCHAIN: local
 
 jobs:
   lint:
