@@ -1,3 +1,7 @@
+# v0.12.3 (unreleased)
+
+* Updated WhatsApp bridge config to v2.
+
 # v0.12.2 (2024-08-26)
 
 * Added support for Google Voice bridge.
