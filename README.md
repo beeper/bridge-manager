@@ -2,7 +2,7 @@
 A tool for running self-hosted bridges with the Beeper Matrix server.
 
 The primary use case is running custom/3rd-party bridges with Beeper. You can
-connect any<sup>†</sup> standard Matrix application service to your Beeper
+connect any<sup>†</sup> spec-compliant Matrix application service to your Beeper
 account without having to self-host a whole Matrix homeserver. Note that if you
 run 3rd party bridges that don't support end-to-bridge encryption, message
 contents will be visible to Beeper servers.
