@@ -176,7 +176,7 @@ func setupPythonVenv(ctx context.Context, bridgeDir, bridgeType string, localDev
 	switch bridgeType {
 	case "heisenbridge":
 		installPackage = "heisenbridge"
-	case "telegram", "googlechat", "twitter":
+	case "telegram", "googlechat":
 		//installPackage = fmt.Sprintf("mautrix-%s[all]", bridgeType)
 		installPackage = fmt.Sprintf("mautrix-%s[all] @ git+https://github.com/mautrix/%s.git@master", bridgeType, bridgeType)
 		localRequirements = append(localRequirements, "-r", "optional-requirements.txt")
@@ -317,7 +317,7 @@ func runBridge(ctx *cli.Context) error {
 	var bridgeArgs []string
 	var needsWebsocketProxy bool
 	switch cfg.BridgeType {
-	case "imessage", "imessagego", "whatsapp", "discord", "slack", "gmessages", "gvoice", "signal", "meta":
+	case "imessage", "imessagego", "whatsapp", "discord", "slack", "gmessages", "gvoice", "signal", "meta", "twitter":
 		binaryName := fmt.Sprintf("mautrix-%s", cfg.BridgeType)
 		ciV2 := false
 		switch cfg.BridgeType {
@@ -355,7 +355,7 @@ func runBridge(ctx *cli.Context) error {
 			}
 		}
 		bridgeArgs = []string{"-c", configFileName}
-	case "telegram", "googlechat", "twitter":
+	case "telegram", "googlechat":
 		if overrideBridgeCmd == "" {
 			var venvPath string
 			venvPath, err = setupPythonVenv(ctx.Context, bridgeDir, cfg.BridgeType, localDev)

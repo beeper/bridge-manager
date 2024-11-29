@@ -344,7 +344,7 @@ func generateBridgeConfig(ctx *cli.Context) error {
 	}
 	var startupCommand, installInstructions string
 	switch cfg.BridgeType {
-	case "imessage", "whatsapp", "discord", "slack", "gmessages", "gvoice", "signal", "meta":
+	case "imessage", "whatsapp", "discord", "slack", "gmessages", "gvoice", "signal", "meta", "twitter":
 		startupCommand = fmt.Sprintf("mautrix-%s", cfg.BridgeType)
 		if outputPath != "config.yaml" && outputPath != "<config file>" {
 			startupCommand += " -c " + outputPath
