@@ -3,7 +3,7 @@ network:
     # Displayname template for Twitter users.
     #   .DisplayName is replaced with the display name of the Twitter user.
     #   .Username is replaced with the username of the Twitter user.
-    displayname_template: {{ `"{{ .Displayname }}"` }}
+    displayname_template: {{ `"{{ .DisplayName }}"` }}
 
 {{ setfield . "CommandPrefix" "!tw" -}}
 {{ setfield . "DatabaseFileName" "mautrix-twitter" -}}
