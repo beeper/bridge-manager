@@ -177,8 +177,7 @@ func setupPythonVenv(ctx context.Context, bridgeDir, bridgeType string, localDev
 	case "heisenbridge":
 		installPackage = "heisenbridge"
 	case "telegram", "googlechat":
-		//installPackage = fmt.Sprintf("mautrix-%s[all]", bridgeType)
-		installPackage = fmt.Sprintf("mautrix-%s[all] @ git+https://github.com/mautrix/%s.git@master", bridgeType, bridgeType)
+		installPackage = fmt.Sprintf("mautrix-%s[all]", bridgeType)
 		localRequirements = append(localRequirements, "-r", "optional-requirements.txt")
 	case "linkedin":
 		installPackage = fmt.Sprintf("%s-matrix[all] @ git+https://github.com/beeper/%s.git@master", bridgeType, bridgeType)
