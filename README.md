@@ -90,6 +90,7 @@ used with the `--type` flag.
 | [mautrix-meta]       | meta, instagram, facebook            |
 | [mautrix-googlechat] | googlechat, gchat                    |
 | [mautrix-twitter]    | twitter                              |
+| [mautrix-bluesky]    | bluesky                              |
 | [mautrix-imessage]   | imessage                             |
 | [beeper-imessage]    | imessagego                           |
 | [linkedin-matrix]    | linkedin                             |
@@ -107,6 +108,7 @@ used with the `--type` flag.
 [mautrix-instagram]: https://github.com/mautrix/instagram
 [mautrix-googlechat]: https://github.com/mautrix/googlechat
 [mautrix-twitter]: https://github.com/mautrix/twitter
+[mautrix-bluesky]: https://github.com/mautrix/bluesky
 [mautrix-imessage]: https://github.com/mautrix/imessage
 [beeper-imessage]: https://github.com/beeper/imessage
 [linkedin-matrix]: https://github.com/beeper/linkedin

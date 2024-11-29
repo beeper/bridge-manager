@@ -1,0 +1,14 @@
+# Network-specific config options
+network:
+    # Displayname template for Bluesky users. Available variables:
+    #   .DisplayName - displayname set by the user. Not required, may be empty.
+    #   .Handle - username (domain) of the user. Always present.
+    #   .DID - internal user ID starting with `did:`. Always present.
+    displayname_template: {{ `"{{or .DisplayName .Handle}}"` }}
+
+{{ setfield . "CommandPrefix" "!bsky" -}}
+{{ setfield . "DatabaseFileName" "mautrix-bluesky" -}}
+{{ setfield . "BridgeTypeName" "Bluesky" -}}
+{{ setfield . "BridgeTypeIcon" "mxc://maunium.net/ezAjjDxhiJWGEohmhkpfeHYf" -}}
+{{ setfield . "DefaultPickleKey" "go.mau.fi/mautrix-bluesky" -}}
+{{ template "bridgev2.tpl.yaml" . }}

@@ -35,6 +35,7 @@ var officialBridges = []bridgeTypeToNames{
 	{"heisenbridge", []string{"irc", "heisenbridge"}},
 	{"gmessages", []string{"gmessages", "googlemessages", "rcs", "sms"}},
 	{"gvoice", []string{"gvoice", "googlevoice"}},
+	{"bluesky", []string{"bluesky", "bsky"}},
 }
 
 var websocketBridges = map[string]bool{
@@ -50,6 +51,7 @@ var websocketBridges = map[string]bool{
 	"bridgev2":     true,
 	"meta":         true,
 	"twitter":      true,
+	"bluesky":      true,
 }
 
 func doOutputFile(ctx *cli.Context, name, data string) error {
