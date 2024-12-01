@@ -90,7 +90,7 @@ used with the `--type` flag.
 | [mautrix-meta]       | meta, instagram, facebook            |
 | [mautrix-googlechat] | googlechat, gchat                    |
 | [mautrix-twitter]    | twitter                              |
-| [mautrix-bluesky]    | bluesky                              |
+| [mautrix-bluesky]    | bluesky, bsky                        |
 | [mautrix-imessage]   | imessage                             |
 | [beeper-imessage]    | imessagego                           |
 | [linkedin-matrix]    | linkedin                             |
