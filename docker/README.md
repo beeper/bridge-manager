@@ -26,9 +26,8 @@ change the UID/GID.
 Or rather, on personal VPS, use this compose file for easier management.
 
 ```yaml
-version: '3'
 services:
-  beeper-bridge-manager:
+  sh-heisenbridge:
     image: ghcr.io/beeper/bridge-manager:latest
     volumes:
       - ./data:/data
