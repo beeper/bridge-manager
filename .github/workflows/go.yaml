@@ -89,6 +89,7 @@ jobs:
       - name: Docker Build
         uses: docker/build-push-action@v5
         with:
+          platforms: linux/amd64,linux/arm64
           cache-from: ${{ env.GHCR_REGISTRY_IMAGE }}:latest
           pull: true
           file: docker/Dockerfile
