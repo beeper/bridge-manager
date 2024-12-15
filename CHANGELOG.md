@@ -1,6 +1,8 @@
-# v0.12.3 (unreleased)
+# v0.13.0 (2024-12-15)
 
-* Updated WhatsApp bridge config to v2.
+* Added support for Bluesky DM bridge.
+* Updated WhatsApp and Twitter bridge configs to v2.
+* Switched Python bridges to be installed from PyPI instead of GitHub.
 
 # v0.12.2 (2024-08-26)
 
