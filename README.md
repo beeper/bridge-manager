@@ -15,6 +15,13 @@ You can also self-host the official bridges for maximum security using this
 tool (so that message re-encryption happens on a machine you control rather
 than on Beeper servers).
 
+This tool can not be used with any other Matrix homeserver, like self-hosted
+Synapse instances. It is only for connecting self-hosted bridges to the
+beeper.com server. For self-hosting the entire stack, refer to the official
+documentation of the various projects
+([Synapse](https://element-hq.github.io/synapse/latest/),
+[mautrix bridges](https://docs.mau.fi/bridges/)).
+
 > [!NOTE]
 > Self-hosted bridges are not entitled to the usual level of customer support
 > on Beeper. If you need help with self-hosting bridges using this tool, please
