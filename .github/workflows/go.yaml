@@ -82,6 +82,7 @@ jobs:
           target: amd64
         - runs-on: ubuntu-arm64
           target: arm64
+    name: build-docker (${{ matrix.target }})
     steps:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
