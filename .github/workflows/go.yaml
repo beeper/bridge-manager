@@ -123,7 +123,7 @@ jobs:
           docker manifest create ${{ env.GHCR_REGISTRY_IMAGE }}:${{ github.sha }} ${{ inputs.image }}:${{ github.sha }}-amd64 ${{ inputs.image }}:${{ github.sha }}-arm64
           docker manifest push ${{ env.GHCR_REGISTRY_IMAGE }}:${{ github.sha }}
 
-      - uses: Create :latest manifest
+      - name: Create :latest manifest
         if: github.ref == 'refs/heads/main'
         run: |
           docker manifest create ${{ env.GHCR_REGISTRY_IMAGE }}:latest ${{ inputs.image }}:${{ github.sha }}-amd64 ${{ inputs.image }}:${{ github.sha }}-arm64
