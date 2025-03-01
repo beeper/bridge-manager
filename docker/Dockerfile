@@ -1,6 +1,6 @@
 FROM dock.mau.dev/tulir/lottieconverter:alpine-3.21 AS lottie
 
-FROM golang:1.23-alpine3.21 AS builder
+FROM golang:1.24-alpine3.21 AS builder
 
 COPY . /build/
 RUN cd /build && ./build.sh

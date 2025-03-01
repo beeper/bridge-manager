@@ -74,7 +74,15 @@ jobs:
           if-no-files-found: error
 
   build-docker:
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.runs-on }}
+    strategy:
+      matrix:
+        include:
+        - runs-on: ubuntu-latest
+          target: amd64
+        - runs-on: ubuntu-arm64
+          target: arm64
+    name: build-docker (${{ matrix.target }})
     steps:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -92,16 +100,18 @@ jobs:
           cache-from: ${{ env.GHCR_REGISTRY_IMAGE }}:latest
           pull: true
           file: docker/Dockerfile
-          tags: ${{ env.GHCR_REGISTRY_IMAGE }}:${{ github.sha }}
+          tags: ${{ env.GHCR_REGISTRY_IMAGE }}:${{ github.sha }}-${{ matrix.target }}
           push: true
           build-args: |
             COMMIT_HASH=${{ github.sha }}
+          # These will apparently disable making a manifest
+          provenance: false
+          sbom: false
 
   deploy-docker:
     runs-on: ubuntu-latest
     needs:
       - build-docker
-    if: github.ref == 'refs/heads/main'
     steps:
       - name: Login to registry
         uses: docker/login-action@v3
@@ -110,6 +120,15 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - uses: beeper/docker-retag-push-latest@main
-        with:
-          image: ${{ env.GHCR_REGISTRY_IMAGE }}
+      - name: Create commit manifest
+        run: |
+          docker pull ${{ env.GHCR_REGISTRY_IMAGE }}:${{ github.sha }}-amd64
+          docker pull ${{ env.GHCR_REGISTRY_IMAGE }}:${{ github.sha }}-arm64
+          docker manifest create ${{ env.GHCR_REGISTRY_IMAGE }}:${{ github.sha }} ${{ env.GHCR_REGISTRY_IMAGE }}:${{ github.sha }}-amd64 ${{ env.GHCR_REGISTRY_IMAGE }}:${{ github.sha }}-arm64
+          docker manifest push ${{ env.GHCR_REGISTRY_IMAGE }}:${{ github.sha }}
+
+      - name: Create :latest manifest
+        if: github.ref == 'refs/heads/main'
+        run: |
+          docker manifest create ${{ env.GHCR_REGISTRY_IMAGE }}:latest ${{ env.GHCR_REGISTRY_IMAGE }}:${{ github.sha }}-amd64 ${{ env.GHCR_REGISTRY_IMAGE }}:${{ github.sha }}-arm64
+          docker manifest push ${{ env.GHCR_REGISTRY_IMAGE }}:latest
