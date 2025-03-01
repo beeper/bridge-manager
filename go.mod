@@ -1,8 +1,8 @@
 module github.com/beeper/bridge-manager
 
-go 1.22.0
+go 1.23.0
 
-toolchain go1.23.5
+toolchain go1.24.0
 
 require (
 	github.com/AlecAivazis/survey/v2 v2.3.7
@@ -12,9 +12,9 @@ require (
 	github.com/schollz/progressbar/v3 v3.18.0
 	github.com/tidwall/gjson v1.18.0
 	github.com/urfave/cli/v2 v2.27.5
-	go.mau.fi/util v0.8.4
-	golang.org/x/exp v0.0.0-20250128182459-e0ece0dbea4c
-	maunium.net/go/mautrix v0.23.0
+	go.mau.fi/util v0.8.5
+	golang.org/x/exp v0.0.0-20250228200357-dead58393ab7
+	maunium.net/go/mautrix v0.23.1
 )
 
 require (
@@ -32,10 +32,10 @@ require (
 	github.com/tidwall/pretty v1.2.1 // indirect
 	github.com/tidwall/sjson v1.2.5 // indirect
 	github.com/xrash/smetrics v0.0.0-20240521201337-686a1a2994c1 // indirect
-	golang.org/x/crypto v0.32.0 // indirect
-	golang.org/x/net v0.34.0 // indirect
-	golang.org/x/sys v0.29.0 // indirect
-	golang.org/x/term v0.28.0 // indirect
-	golang.org/x/text v0.21.0 // indirect
+	golang.org/x/crypto v0.33.0 // indirect
+	golang.org/x/net v0.35.0 // indirect
+	golang.org/x/sys v0.30.0 // indirect
+	golang.org/x/term v0.29.0 // indirect
+	golang.org/x/text v0.22.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
