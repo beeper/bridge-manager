@@ -124,11 +124,11 @@ jobs:
         run: |
           docker pull ${{ env.GHCR_REGISTRY_IMAGE }}:${{ github.sha }}-amd64
           docker pull ${{ env.GHCR_REGISTRY_IMAGE }}:${{ github.sha }}-arm64
-          docker manifest create ${{ env.GHCR_REGISTRY_IMAGE }}:${{ github.sha }} ${{ inputs.image }}:${{ github.sha }}-amd64 ${{ inputs.image }}:${{ github.sha }}-arm64
+          docker manifest create ${{ env.GHCR_REGISTRY_IMAGE }}:${{ github.sha }} ${{ env.GHCR_REGISTRY_IMAGE }}:${{ github.sha }}-amd64 ${{ env.GHCR_REGISTRY_IMAGE }}:${{ github.sha }}-arm64
           docker manifest push ${{ env.GHCR_REGISTRY_IMAGE }}:${{ github.sha }}
 
       - name: Create :latest manifest
         if: github.ref == 'refs/heads/main'
         run: |
-          docker manifest create ${{ env.GHCR_REGISTRY_IMAGE }}:latest ${{ inputs.image }}:${{ github.sha }}-amd64 ${{ inputs.image }}:${{ github.sha }}-arm64
+          docker manifest create ${{ env.GHCR_REGISTRY_IMAGE }}:latest ${{ env.GHCR_REGISTRY_IMAGE }}:${{ github.sha }}-amd64 ${{ env.GHCR_REGISTRY_IMAGE }}:${{ github.sha }}-arm64
           docker manifest push ${{ env.GHCR_REGISTRY_IMAGE }}:latest
