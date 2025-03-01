@@ -104,6 +104,9 @@ jobs:
           push: true
           build-args: |
             COMMIT_HASH=${{ github.sha }}
+          # These will apparently disable making a manifest
+          provenance: false
+          sbom: false
 
   deploy-docker:
     runs-on: ubuntu-latest
