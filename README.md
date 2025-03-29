@@ -94,7 +94,7 @@ used with the `--type` flag.
 | [mautrix-slack]      | slack                                |
 | [mautrix-gmessages]  | gmessages,  googlemessages, rcs, sms |
 | [mautrix-gvoice]     | gvoice, googlevoice                  |
-| [mautrix-meta]       | meta, instagram, facebook            |
+| [mautrix-meta]       | meta, instagram, facebook, messenger |
 | [mautrix-googlechat] | googlechat, gchat                    |
 | [mautrix-twitter]    | twitter                              |
 | [mautrix-bluesky]    | bluesky, bsky                        |
