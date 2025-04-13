@@ -111,8 +111,6 @@ used with the `--type` flag.
 [mautrix-gmessages]: https://github.com/mautrix/gmessages
 [mautrix-gvoice]: https://github.com/mautrix/gvoice
 [mautrix-meta]: https://github.com/mautrix/meta
-[mautrix-facebook]: https://github.com/mautrix/facebook
-[mautrix-instagram]: https://github.com/mautrix/instagram
 [mautrix-googlechat]: https://github.com/mautrix/googlechat
 [mautrix-twitter]: https://github.com/mautrix/twitter
 [mautrix-bluesky]: https://github.com/mautrix/bluesky
