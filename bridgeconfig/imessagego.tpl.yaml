@@ -139,7 +139,7 @@ bridge:
     # If set to `default`, this will be enabled in encrypted rooms and disabled in unencrypted rooms.
     # If set to `always`, all DM rooms will have explicit names and avatars set.
     # If set to `never`, DM rooms will never have names and avatars set.
-    private_chat_portal_meta: default
+    private_chat_portal_meta: never
     # Should iMessage reply threads be mapped to Matrix threads? If false, iMessage reply threads will be bridged
     # as replies to the previous message in the thread.
     matrix_threads: false

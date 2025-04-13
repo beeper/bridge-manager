@@ -6,6 +6,40 @@ bridge:
     {{ end -}}
     # Should the bridge create a space for each login containing the rooms that account is in?
     personal_filtering_spaces: true
+    # Whether the bridge should set names and avatars explicitly for DM portals.
+    # This is only necessary when using clients that don't support MSC4171.
+    private_chat_portal_meta: false
+    # Should events be handled asynchronously within portal rooms?
+    # If true, events may end up being out of order, but slow events won't block other ones.
+    # This is not yet safe to use.
+    async_events: false
+    # Should every user have their own portals rather than sharing them?
+    # By default, users who are in the same group on the remote network will be
+    # in the same Matrix room bridged to that group. If this is set to true,
+    # every user will get their own Matrix room instead.
+    split_portals: true
+    # Should the bridge resend `m.bridge` events to all portals on startup?
+    resend_bridge_info: false
+    # Should `m.bridge` events be sent without a state key?
+    # By default, the bridge uses a unique key that won't conflict with other bridges.
+    no_bridge_info_state_key: false
+    # Should bridge connection status be sent to the management room as `m.notice` events?
+    # These contain the same data that can be posted to an external HTTP server using homeserver -> status_endpoint.
+    # Allowed values: none, errors, all
+    bridge_status_notices: none
+
+    # Should leaving Matrix rooms be bridged as leaving groups on the remote network?
+    bridge_matrix_leave: false
+    # Should `m.notice` messages be bridged?
+    bridge_notices: false
+    # Should room tags only be synced when creating the portal? Tags mean things like favorite/pin and archive/low priority.
+    # Tags currently can't be synced back to the remote network, so a continuous sync means tagging from Matrix will be undone.
+    tag_only_on_create: true
+    # List of tags to allow bridging. If empty, no tags will be bridged.
+    only_bridge_tags: [m.favourite, m.lowpriority]
+    # Should room mute status only be synced when creating the portal?
+    # Like tags, mutes can't currently be synced back to the remote network.
+    mute_only_on_create: true
 
     # What should be done to portal rooms when a user logs out or is logged out?
     # Permitted values:
@@ -158,10 +192,14 @@ matrix:
     delivery_receipts: false
     # Whether the bridge should send error notices via m.notice events when a message fails to bridge.
     message_error_notices: false
+    # Whether the bridge should update the m.direct account data event when double puppeting is enabled.
     sync_direct_chat_list: false
     # Whether created rooms should have federation enabled. If false, created portal rooms
     # will never be federated. Changing this option requires recreating rooms.
     federate_rooms: false
+    # The threshold as bytes after which the bridge should roundtrip uploads via the disk
+    # rather than keeping the whole file in memory.
+    upload_file_threshold: 5242880
 
 # Settings for provisioning API
 provisioning:

@@ -218,7 +218,7 @@ bridge:
     caption_in_message: true
     # Should the bridge explicitly set the avatar and room name for private chat portal rooms?
     # This is implicitly enabled in encrypted rooms.
-    private_chat_portal_meta: default
+    private_chat_portal_meta: never
 
     # End-to-bridge encryption support options.
     # See https://docs.mau.fi/bridges/general/end-to-bridge-encryption.html
