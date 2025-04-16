@@ -86,7 +86,7 @@ var dockerToGitRepo = map[string]string{
 	"googlechat":  "https://github.com/mautrix/googlechat/commit/%s",
 	"instagram":   "https://github.com/mautrix/instagram/commit/%s",
 	"meta":        "https://github.com/mautrix/meta/commit/%s",
-	"linkedin":    "https://github.com/beeper/linkedin/commit/%s",
+	"linkedin":    "https://github.com/mautrix/linkedin/commit/%s",
 	"signal":      "https://github.com/mautrix/signal/commit/%s",
 	"slackgo":     "https://github.com/mautrix/slack/commit/%s",
 	"telegram":    "https://github.com/mautrix/telegram/commit/%s",
