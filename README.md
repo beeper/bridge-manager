@@ -100,7 +100,7 @@ used with the `--type` flag.
 | [mautrix-bluesky]    | bluesky, bsky                        |
 | [mautrix-imessage]   | imessage                             |
 | [beeper-imessage]    | imessagego                           |
-| [linkedin-matrix]    | linkedin                             |
+| [mautrix-linkedin]   | linkedin                             |
 | [heisenbridge]       | heisenbridge, irc                    |
 
 [mautrix-telegram]: https://github.com/mautrix/telegram
@@ -116,7 +116,7 @@ used with the `--type` flag.
 [mautrix-bluesky]: https://github.com/mautrix/bluesky
 [mautrix-imessage]: https://github.com/mautrix/imessage
 [beeper-imessage]: https://github.com/beeper/imessage
-[linkedin-matrix]: https://github.com/beeper/linkedin
+[mautrix-linkedin]: https://github.com/mautrix/linkedin
 [heisenbridge]: https://github.com/hifi/heisenbridge
 
 ### 3rd party bridges
