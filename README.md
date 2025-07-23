@@ -119,11 +119,30 @@ used with the `--type` flag.
 [mautrix-linkedin]: https://github.com/mautrix/linkedin
 [heisenbridge]: https://github.com/hifi/heisenbridge
 
-### 3rd party bridges
-3. Run `bbctl register <name>` to generate an appservice registration file.
+### 3rd party bridgev2-based bridges
+If you have a 3rd party bridge that's built on top of mautrix-go's bridgev2
+framework, you can have bbctl generate a mostly-complete config file:
+
+3. Run `bbctl config --type bridgev2 <name>` to generate a bridgev2 config with
+   everything except the `network` section.
    * `<name>` is a short name for the bridge (a-z, 0-9, -). The name should
      start with `sh-`. The bridge user ID namespace will be `@<name>_.+:beeper.local`
      and the bridge bot will be `@<name>bot:beeper.local`.
+4. Add the `network` section containing the bridge-specific configuration if
+   necessary, then run the bridge normally.
+
+All bridgev2 bridges support appservice websockets, so using `bbctl proxy` is
+not necessary.
+
+#### 3rd party custom bridges
+For any 3rd party bridges that don't use bridgev2, you'll only get a registration
+file from bbctl and will have to configure the bridge yourself. Also, since such
+3rd party bridges are unlikely to support Beeper's appservice websocket protocol,
+you probably have to use `bbctl proxy` to connect to the websocket and turn
+incoming data into HTTP requests for the bridge.
+
+3. Run `bbctl register <name>` to generate an appservice registration file.
+   * `<name>` is the same as in the above section.
 4. Now you can configure and run the bridge by following the bridge's own
    documentation.
 5. Modify the registration file to point at where the bridge will listen locally
