@@ -134,7 +134,7 @@ framework, you can have bbctl generate a mostly-complete config file:
 All bridgev2 bridges support appservice websockets, so using `bbctl proxy` is
 not necessary.
 
-#### 3rd party custom bridges
+### 3rd party custom bridges
 For any 3rd party bridges that don't use bridgev2, you'll only get a registration
 file from bbctl and will have to configure the bridge yourself. Also, since such
 3rd party bridges are unlikely to support Beeper's appservice websocket protocol,
