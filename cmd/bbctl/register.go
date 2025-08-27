@@ -108,7 +108,7 @@ func doRegisterBridge(ctx *cli.Context, bridge, bridgeType string, onlyGet bool)
 	resp.Namespaces.UserIDs = resp.Namespaces.UserIDs[0:1]
 
 	state := status.StateRunning
-	if bridge == "androidsms" || bridge == "imessagecloud" || bridge == "imessage" {
+	if (bridgeType != "" && bridgeType != "heisenbridge") || bridge == "androidsms" || bridge == "imessagecloud" || bridge == "imessage" {
 		state = status.StateStarting
 	}
 
