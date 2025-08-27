@@ -10,7 +10,7 @@ import (
 	"github.com/fatih/color"
 	"github.com/urfave/cli/v2"
 	"golang.org/x/exp/maps"
-	"maunium.net/go/mautrix/bridge/status"
+	"maunium.net/go/mautrix/bridgev2/status"
 
 	"github.com/beeper/bridge-manager/api/beeperapi"
 	"github.com/beeper/bridge-manager/cli/hyper"

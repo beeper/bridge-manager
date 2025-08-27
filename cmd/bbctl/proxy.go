@@ -22,7 +22,7 @@ import (
 
 	"maunium.net/go/mautrix"
 	"maunium.net/go/mautrix/appservice"
-	"maunium.net/go/mautrix/bridge/status"
+	"maunium.net/go/mautrix/bridgev2/status"
 )
 
 var proxyCommand = &cli.Command{
@@ -50,9 +50,9 @@ func runAppserviceWebsocket(ctx context.Context, doneCallback func(), as *appser
 	reconnectBackoff := defaultReconnectBackoff
 	lastDisconnect := time.Now()
 	for {
-		err := as.StartWebsocket("", func() {
+		err := as.StartWebsocket(ctx, "", func() {
 			// TODO support states properly instead of just sending unconfigured
-			_ = as.SendWebsocket(&appservice.WebsocketRequest{
+			_ = as.SendWebsocket(ctx, &appservice.WebsocketRequest{
 				Command: "bridge_status",
 				Data:    &status.BridgeState{StateEvent: status.StateUnconfigured},
 			})
