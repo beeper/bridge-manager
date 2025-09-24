@@ -62,7 +62,10 @@ After installing relevant dependencies:
    * The bridge will be installed to `~/.local/share/bbctl`. You can change the
      directory in the config file at `~/.config/bbctl.json`.
 4. For now, you'll have to configure the bridge by sending a DM to the bridge
-   bot (`@<name>bot:beeper.local`). Configuring self-hosted bridges through the
+   bot (`@<name>bot:beeper.local`). To do this, open settings in the Beeper app and navigate to `Bridges`. There you should see your bridge, along with option to `Create a bot room`. - NOTE: it is **NOT POSSIBLE** to do this step within the **iOS** app.
+
+
+Configuring self-hosted bridges through the
    chat networks dialog will be available in the future. Spaces and starting
    chats are also not yet available, although you can start chats using the
    `pm` command with the bridge bot.
