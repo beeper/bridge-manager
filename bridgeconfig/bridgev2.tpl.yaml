@@ -285,6 +285,7 @@ backfill:
         # Interpretation of this field depends on the network connector.
         max_batches_override:
             channel: 10
+            supergroup: 10
             dm: -1
             group_dm: -1
 

@@ -124,8 +124,6 @@ func updateGoBridge(ctx context.Context, binaryPath, bridgeType string, v2, noUp
 }
 
 func compileGoBridge(ctx context.Context, buildDir, binaryPath, bridgeType string, noUpdate bool) error {
-	v2 := strings.HasSuffix(bridgeType, "v2")
-	bridgeType = strings.TrimSuffix(bridgeType, "v2")
 	buildDirParent := filepath.Dir(buildDir)
 	err := os.MkdirAll(buildDirParent, 0700)
 	if err != nil {
@@ -158,9 +156,6 @@ func compileGoBridge(ctx context.Context, buildDir, binaryPath, bridgeType strin
 		}
 	}
 	buildScript := "./build.sh"
-	if v2 {
-		buildScript = "./build-v2.sh"
-	}
 	log.Printf("Compiling bridge with %s", buildScript)
 	err = makeCmd(ctx, buildDir, buildScript).Run()
 	if err != nil {
@@ -176,8 +171,8 @@ func setupPythonVenv(ctx context.Context, bridgeDir, bridgeType string, localDev
 	switch bridgeType {
 	case "heisenbridge":
 		installPackage = "heisenbridge"
-	case "telegram", "googlechat":
-		installPackage = fmt.Sprintf("mautrix-%s[all]", bridgeType)
+	case "googlechat":
+		installPackage = "mautrix-googlechat[all]"
 		localRequirements = append(localRequirements, "-r", "optional-requirements.txt")
 	default:
 		return "", fmt.Errorf("unknown python bridge type %s", bridgeType)
@@ -313,23 +308,22 @@ func runBridge(ctx *cli.Context) error {
 	var bridgeArgs []string
 	var needsWebsocketProxy bool
 	switch cfg.BridgeType {
-	case "imessage", "imessagego", "whatsapp", "discord", "slack", "gmessages", "gvoice", "signal", "meta", "twitter", "bluesky", "linkedin":
+	case "imessage", "imessagego", "whatsapp", "discord", "slack", "gmessages", "gvoice",
+		"signal", "meta", "twitter", "bluesky", "linkedin", "telegram":
+		ciBridgeType := cfg.BridgeType
 		binaryName := fmt.Sprintf("mautrix-%s", cfg.BridgeType)
 		ciV2 := false
 		switch cfg.BridgeType {
-		case "":
+		case "telegram":
 			ciV2 = true
-		}
-		if cfg.BridgeType == "imessagego" {
+			ciBridgeType = "telegramgo"
+		case "imessagego":
 			binaryName = "beeper-imessage"
 		}
 		bridgeCmd = filepath.Join(dataDir, "binaries", binaryName)
 		if localDev && overrideBridgeCmd == "" {
 			bridgeCmd = filepath.Join(bridgeDir, binaryName)
 			buildScript := "./build.sh"
-			if ciV2 {
-				buildScript = "./build-v2.sh"
-			}
 			log.Printf("Compiling [cyan]%s[reset] with %s", binaryName, buildScript)
 			err = makeCmd(ctx.Context, bridgeDir, buildScript).Run()
 			if err != nil {
@@ -338,12 +332,12 @@ func runBridge(ctx *cli.Context) error {
 		} else if compile && overrideBridgeCmd == "" {
 			buildDir := filepath.Join(dataDir, "compile", binaryName)
 			bridgeCmd = filepath.Join(buildDir, binaryName)
-			err = compileGoBridge(ctx.Context, buildDir, bridgeCmd, cfg.BridgeType, ctx.Bool("no-update"))
+			err = compileGoBridge(ctx.Context, buildDir, bridgeCmd, ciBridgeType, ctx.Bool("no-update"))
 			if err != nil {
 				return fmt.Errorf("failed to compile bridge: %w", err)
 			}
 		} else if overrideBridgeCmd == "" {
-			err = updateGoBridge(ctx.Context, bridgeCmd, cfg.BridgeType, ciV2, ctx.Bool("no-update"))
+			err = updateGoBridge(ctx.Context, bridgeCmd, ciBridgeType, ciV2, ctx.Bool("no-update"))
 			if errors.Is(err, gitlab.ErrNotBuiltInCI) {
 				return UserError{fmt.Sprintf("Binaries for %s are not built in the CI. Use --compile to tell bbctl to build the bridge locally.", binaryName)}
 			} else if err != nil {
@@ -351,7 +345,7 @@ func runBridge(ctx *cli.Context) error {
 			}
 		}
 		bridgeArgs = []string{"-c", configFileName}
-	case "telegram", "googlechat":
+	case "googlechat":
 		if overrideBridgeCmd == "" {
 			var venvPath string
 			venvPath, err = setupPythonVenv(ctx.Context, bridgeDir, cfg.BridgeType, localDev)

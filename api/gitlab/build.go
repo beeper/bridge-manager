@@ -10,7 +10,6 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
-	"strings"
 
 	"github.com/fatih/color"
 	"github.com/schollz/progressbar/v3"
@@ -70,7 +69,8 @@ func getRefFromBridge(bridge string) (string, error) {
 	switch bridge {
 	case "imessage":
 		return "master", nil
-	case "whatsapp", "discord", "slack", "gmessages", "gvoice", "signal", "imessagego", "meta", "twitter", "bluesky", "linkedin":
+	case "whatsapp", "discord", "slack", "gmessages", "gvoice", "signal",
+		"imessagego", "meta", "twitter", "bluesky", "linkedin", "telegramgo":
 		return "main", nil
 	default:
 		return "", fmt.Errorf("unknown bridge %s", bridge)
@@ -165,7 +165,8 @@ func downloadFile(ctx context.Context, artifactURL, path string) error {
 
 func needsLibolmDylib(bridge string) bool {
 	switch bridge {
-	case "imessage", "whatsapp", "discord", "slack", "gmessages", "gvoice", "signal", "imessagego", "meta", "twitter", "bluesky", "linkedin":
+	case "imessage", "whatsapp", "discord", "slack", "gmessages", "gvoice", "signal",
+		"imessagego", "meta", "twitter", "bluesky", "linkedin", "telegram":
 		return runtime.GOOS == "darwin"
 	default:
 		return false
@@ -174,7 +175,6 @@ func needsLibolmDylib(bridge string) bool {
 
 func DownloadMautrixBridgeBinary(ctx context.Context, bridge, path string, v2, noUpdate bool, branchOverride, currentCommit string) error {
 	domain := "mau.dev"
-	bridge = strings.TrimSuffix(bridge, "v2")
 	repo := fmt.Sprintf("mautrix/%s", bridge)
 	fileName := filepath.Base(path)
 	ref, err := getRefFromBridge(bridge)

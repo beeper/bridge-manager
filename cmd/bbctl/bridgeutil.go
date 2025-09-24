@@ -53,6 +53,7 @@ var websocketBridges = map[string]bool{
 	"twitter":      true,
 	"bluesky":      true,
 	"linkedin":     true,
+	"telegram":     true,
 }
 
 func doOutputFile(ctx *cli.Context, name, data string) error {
