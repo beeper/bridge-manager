@@ -27,6 +27,9 @@ bridge:
     # These contain the same data that can be posted to an external HTTP server using homeserver -> status_endpoint.
     # Allowed values: none, errors, all
     bridge_status_notices: none
+    # How long after an unknown error should the bridge attempt a full reconnect?
+    # Must be at least 1 minute. The bridge will add an extra ±20% jitter to this value.
+    unknown_error_auto_reconnect: null
 
     # Should leaving Matrix rooms be bridged as leaving groups on the remote network?
     bridge_matrix_leave: false
@@ -40,6 +43,11 @@ bridge:
     # Should room mute status only be synced when creating the portal?
     # Like tags, mutes can't currently be synced back to the remote network.
     mute_only_on_create: true
+    # Should the bridge check the db to ensure that incoming events haven't been handled before
+    deduplicate_matrix_messages: false
+    # Should cross-room reply metadata be bridged?
+    # Most Matrix clients don't support this and servers may reject such messages too.
+    cross_room_replies: true
 
     # What should be done to portal rooms when a user logs out or is logged out?
     # Permitted values:
@@ -317,6 +325,15 @@ encryption:
     # Whether to use MSC2409/MSC3202 instead of /sync long polling for receiving encryption-related data.
     # This option is not yet compatible with standard Matrix servers like Synapse and should not be used.
     appservice: true
+    # Whether to use MSC4190 instead of appservice login to create the bridge bot device.
+    # Requires the homeserver to support MSC4190 and the device masquerading parts of MSC3202.
+    # Only relevant when using end-to-bridge encryption, required when using encryption with next-gen auth (MSC3861).
+    # Changing this option requires updating the appservice registration file.
+    msc4190: false
+    # Should the bridge bot generate a recovery key and cross-signing keys and verify itself?
+    # Note that without the latest version of MSC4190, this will fail if you reset the bridge database.
+    # The generated recovery key will be saved in the kv_store table under `recovery_key`.
+    self_sign: false
     # Enable key sharing? If enabled, key requests for rooms where users are in will be fulfilled.
     # You must use a client that supports requesting keys from other users to use this feature.
     allow_key_sharing: true
