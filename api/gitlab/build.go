@@ -231,6 +231,6 @@ func DownloadMautrixBridgeBinary(ctx context.Context, bridge, path string, v2, n
 		}
 	}
 
-	log.Printf("Successfully installed [cyan]%s[reset] commit %s", fileName, linkifyCommit(domain, build.Commit))
+	log.Printf("Successfully installed [cyan]%s[reset] commit %s", fileName, linkifyCommit(repo, build.Commit))
 	return nil
 }
