@@ -134,6 +134,8 @@ func compileGoBridge(ctx context.Context, buildDir, binaryPath, bridgeType strin
 		repo := fmt.Sprintf("https://github.com/mautrix/%s.git", bridgeType)
 		if bridgeType == "imessagego" {
 			repo = "https://github.com/beeper/imessage.git"
+		} else if bridgeType == "ai" {
+			repo = "https://github.com/beeper/ai-bridge.git"
 		}
 		log.Printf("Cloning [cyan]%s[reset] to [cyan]%s[reset]", repo, buildDir)
 		err = makeCmd(ctx, buildDirParent, "git", "clone", repo, buildDir).Run()
@@ -309,7 +311,7 @@ func runBridge(ctx *cli.Context) error {
 	var needsWebsocketProxy bool
 	switch cfg.BridgeType {
 	case "imessage", "imessagego", "whatsapp", "discord", "slack", "gmessages", "gvoice",
-		"signal", "meta", "twitter", "bluesky", "linkedin", "telegram":
+		"signal", "meta", "twitter", "bluesky", "linkedin", "telegram", "ai":
 		ciBridgeType := cfg.BridgeType
 		binaryName := fmt.Sprintf("mautrix-%s", cfg.BridgeType)
 		ciV2 := false
@@ -319,6 +321,8 @@ func runBridge(ctx *cli.Context) error {
 			ciBridgeType = "telegramgo"
 		case "imessagego":
 			binaryName = "beeper-imessage"
+		case "ai":
+			binaryName = "ai"
 		}
 		bridgeCmd = filepath.Join(dataDir, "binaries", binaryName)
 		if localDev && overrideBridgeCmd == "" {
