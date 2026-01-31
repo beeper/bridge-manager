@@ -311,7 +311,7 @@ func runBridge(ctx *cli.Context) error {
 	var needsWebsocketProxy bool
 	switch cfg.BridgeType {
 	case "imessage", "imessagego", "whatsapp", "discord", "slack", "gmessages", "gvoice",
-		"signal", "meta", "twitter", "bluesky", "linkedin", "telegram", "ai":
+		"signal", "meta", "twitter", "bluesky", "linkedin", "telegram":
 		ciBridgeType := cfg.BridgeType
 		binaryName := fmt.Sprintf("mautrix-%s", cfg.BridgeType)
 		ciV2 := false
@@ -321,8 +321,6 @@ func runBridge(ctx *cli.Context) error {
 			ciBridgeType = "telegramgo"
 		case "imessagego":
 			binaryName = "beeper-imessage"
-		case "ai":
-			binaryName = "ai"
 		}
 		bridgeCmd = filepath.Join(dataDir, "binaries", binaryName)
 		if localDev && overrideBridgeCmd == "" {
@@ -371,6 +369,29 @@ func runBridge(ctx *cli.Context) error {
 		}
 		heisenHomeserverURL := strings.Replace(cfg.HomeserverURL, "https://", "wss://", 1)
 		bridgeArgs = []string{"-m", "heisenbridge", "-c", configFileName, "-o", cfg.YourUserID.String(), heisenHomeserverURL}
+	case "ai":
+		if !localDev && !compile && overrideBridgeCmd == "" {
+			return UserError{"AI bridge binaries are not available in CI. Use --local-dev or --compile mode."}
+		}
+		binaryName := "ai"
+		bridgeCmd = filepath.Join(dataDir, "binaries", binaryName)
+		if localDev && overrideBridgeCmd == "" {
+			bridgeCmd = filepath.Join(bridgeDir, binaryName)
+			buildScript := "./build.sh"
+			log.Printf("Compiling [cyan]%s[reset] with %s", binaryName, buildScript)
+			err = makeCmd(ctx.Context, bridgeDir, buildScript).Run()
+			if err != nil {
+				return fmt.Errorf("failed to compile bridge: %w", err)
+			}
+		} else if compile && overrideBridgeCmd == "" {
+			buildDir := filepath.Join(dataDir, "compile", binaryName)
+			bridgeCmd = filepath.Join(buildDir, binaryName)
+			err = compileGoBridge(ctx.Context, buildDir, bridgeCmd, "ai", ctx.Bool("no-update"))
+			if err != nil {
+				return fmt.Errorf("failed to compile bridge: %w", err)
+			}
+		}
+		bridgeArgs = []string{"-c", configFileName}
 	default:
 		if overrideBridgeCmd == "" {
 			return UserError{"Unsupported bridge type for bbctl run"}
