@@ -49,6 +49,7 @@ var websocketBridges = map[string]bool{
 	"imessagego":   true,
 	"signal":       true,
 	"bridgev2":     true,
+	"beeper-ai":    true,
 	"meta":         true,
 	"twitter":      true,
 	"bluesky":      true,

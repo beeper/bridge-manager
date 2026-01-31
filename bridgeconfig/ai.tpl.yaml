@@ -1,0 +1,32 @@
+# AI Bridge network configuration
+network:
+    # Per-provider default models
+    providers:
+        openai:
+            default_model: "gpt-5-nano"
+        gemini:
+            default_model: "gemini-2.0-flash"
+        anthropic:
+            default_model: "claude-sonnet-4-5-20250929"
+        openrouter:
+            default_model: "openai/gpt-4o-mini"
+
+    # Global settings
+    default_system_prompt: |
+        You are a helpful AI assistant.
+    model_cache_duration: 6h
+
+    bridge:
+        command_prefix: "!ai"
+
+    beeper:
+        base_url: {{ .HungryAddress }}
+        token: {{ .ProvisioningSecret }}
+
+{{ setfield . "CommandPrefix" "!ai" -}}
+{{ setfield . "DatabaseFileName" "ai" -}}
+{{ setfield . "BridgeName" "ai" -}}
+{{ setfield . "BridgeTypeName" "AI" -}}
+{{ setfield . "BridgeTypeIcon" "mxc://maunium.net/HPiAFz2uVH54camzatoorkWY" -}}
+{{ setfield . "DefaultPickleKey" "go.beeper.ai" -}}
+{{ template "bridgev2.tpl.yaml" . }}
