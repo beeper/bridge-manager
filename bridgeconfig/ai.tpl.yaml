@@ -20,7 +20,6 @@ network:
 
 {{ setfield . "CommandPrefix" "!ai" -}}
 {{ setfield . "DatabaseFileName" "ai" -}}
-{{ setfield . "BridgeName" "ai" -}}
 {{ setfield . "BridgeTypeName" "AI" -}}
 {{ setfield . "BridgeTypeIcon" "mxc://maunium.net/HPiAFz2uVH54camzatoorkWY" -}}
 {{ setfield . "DefaultPickleKey" "go.beeper.ai" -}}
