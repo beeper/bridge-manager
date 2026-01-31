@@ -168,15 +168,11 @@ bridge config, database and python virtualenv (if applicable).
 
 Note that deleting a bridge through the Beeper client settings will
 *not* delete the bridge database that is stored locally; you must
-delete that yourself, or use `bbctl delete` instead. The bridge
-databases are stored in `~/.local/share/bbctl/prod` by default.
-However, note that if you use any option that causes the bridge
-database to be stored in a separate location, such as `-l` which
-stores it in the current working directory, then `bbctl delete` will
-*not* delete the bridge database, and you will again have to delete it
-manually.
+delete that yourself, or use `bbctl delete` instead. (If you created
+the bridge database with `bbctl run -l`, then run `bbctl delete -l`
+from the same working directory to delete it.)
 
-If you later re-add a self-hosted bridge after deleting it but not
-deleting the local database, you should expect errors, as the bridge
-will have been removed from Matrix rooms that it thinks it is a member
-of.
+If you later re-add a self-hosted bridge after deleting it from the
+Beeper servers but not deleting the local database, you should expect
+errors, as the bridge will have been removed from Matrix rooms that it
+thinks it is a member of.

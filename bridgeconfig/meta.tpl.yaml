@@ -6,6 +6,7 @@ network:
     # * facebook-tor - connect to FB Messenger via facebookwkhpilnemxj7asaniu7vnjjbiltxjqhye3mhbshg7kx5tfyd.onion
     #                  (note: does not currently proxy media downloads)
     # * messenger - connect to FB Messenger via messenger.com (can be used with the facebook side deactivated)
+    # * messenger-lite - connect to FB Messenger via Messenger iOS API
     # * instagram - connect to Instagram DMs via instagram.com
     #
     # Remember to change the appservice id, bot profile info, bridge username_template and management_room_text too.
@@ -38,7 +39,7 @@ network:
 
 {{ setfield . "DatabaseFileName" "mautrix-meta" -}}
 {{ setfield . "DefaultPickleKey" "mautrix.bridge.e2ee" -}}
-{{ if eq .Params.meta_platform "facebook" "facebook-tor" "messenger" -}}
+{{ if eq .Params.meta_platform "facebook" "facebook-tor" "messenger" "messenger-lite" -}}
     {{ setfield . "CommandPrefix" "!fb" -}}
     {{ setfield . "BridgeTypeName" "Facebook" -}}
     {{ setfield . "BridgeTypeIcon" "mxc://maunium.net/ygtkteZsXnGJLJHRchUwYWak" -}}

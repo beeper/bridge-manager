@@ -84,7 +84,7 @@ var askParams = map[string]func(string, map[string]string) (bool, error){
 				return false, nil
 			}
 			extraParams["meta_platform"] = metaPlatform
-		} else if metaPlatform != "instagram" && metaPlatform != "facebook" && metaPlatform != "facebook-tor" && metaPlatform != "messenger" {
+		} else if metaPlatform != "instagram" && metaPlatform != "facebook" && metaPlatform != "facebook-tor" && metaPlatform != "messenger" && metaPlatform != "messenger-lite" {
 			return false, UserError{"Invalid Meta platform specified"}
 		}
 		if metaPlatform == "facebook-tor" {

@@ -5,7 +5,9 @@ import (
 	"fmt"
 	"io/fs"
 	"os"
+	"path"
 	"path/filepath"
+	"strings"
 
 	"github.com/AlecAivazis/survey/v2"
 	"github.com/fatih/color"
@@ -23,6 +25,12 @@ var deleteCommand = &cli.Command{
 	Action:    deleteBridge,
 	Before:    RequiresAuth,
 	Flags: []cli.Flag{
+		&cli.BoolFlag{
+			Name:    "local-dev",
+			Aliases: []string{"l"},
+			Usage:   "Delete the bridge database and config from your current working directory. Useful for developing bridges.",
+			EnvVars: []string{"BEEPER_BRIDGE_LOCAL"},
+		},
 		&cli.BoolFlag{
 			Name:    "force",
 			Aliases: []string{"f"},
@@ -43,6 +51,18 @@ func deleteBridge(ctx *cli.Context) error {
 	} else if bridge == "hungryserv" {
 		return UserError{"You really shouldn't do that"}
 	}
+	var err error
+	dataDir := GetEnvConfig(ctx).BridgeDataDir
+	var bridgeDir string
+	localDev := ctx.Bool("local-dev")
+	if localDev {
+		bridgeDir, err = os.Getwd()
+		if err != nil {
+			return fmt.Errorf("failed to get working directory: %w", err)
+		}
+	} else {
+		bridgeDir = filepath.Join(dataDir, bridge)
+	}
 	homeserver := ctx.String("homeserver")
 	accessToken := GetEnvConfig(ctx).AccessToken
 	if !ctx.Bool("force") {
@@ -60,7 +80,7 @@ func deleteBridge(ctx *cli.Context) error {
 	}
 
 	var confirmation bool
-	err := survey.AskOne(&survey.Confirm{Message: fmt.Sprintf("Are you sure you want to permanently delete %s?", bridge)}, &confirmation)
+	err = survey.AskOne(&survey.Confirm{Message: fmt.Sprintf("Are you sure you want to permanently delete %s?", bridge)}, &confirmation)
 	if err != nil {
 		return err
 	} else if !confirmation {
@@ -71,12 +91,46 @@ func deleteBridge(ctx *cli.Context) error {
 		return fmt.Errorf("error deleting bridge: %w", err)
 	}
 	fmt.Println("Started deleting bridge")
-	bridgeDir := filepath.Join(GetEnvConfig(ctx).BridgeDataDir, bridge)
-	err = os.RemoveAll(bridgeDir)
+	err = deleteLocalBridgeData(bridgeDir, !localDev)
 	if err != nil && !errors.Is(err, fs.ErrNotExist) {
 		log.Printf("Failed to delete [magenta]%s[reset]: [red]%v[reset]", bridgeDir, err)
 	} else {
 		log.Printf("Deleted local bridge data from [magenta]%s[reset]", bridgeDir)
+	}
+	return nil
+}
+
+func isLocalBridgeFile(name string) bool {
+	if name == "config.yaml" {
+		return true
+	}
+	if strings.HasSuffix(name, ".db") {
+		return true
+	}
+	if strings.HasSuffix(name, ".db-shm") {
+		return true
+	}
+	if strings.HasSuffix(name, ".db-wal") {
+		return true
+	}
+	return false
+}
+
+func deleteLocalBridgeData(bridgeDir string, deleteWholeDir bool) error {
+	if deleteWholeDir {
+		return os.RemoveAll(bridgeDir)
+	}
+	items, err := os.ReadDir(bridgeDir)
+	if err != nil {
+		return err
+	}
+	for _, item := range items {
+		if isLocalBridgeFile(item.Name()) {
+			err := os.Remove(path.Join(bridgeDir, item.Name()))
+			if err != nil {
+				return err
+			}
+		}
 	}
 	return nil
 }
