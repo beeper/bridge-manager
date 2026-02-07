@@ -1,0 +1,23 @@
+# Network-specific config options for iMessage (rustpush / bridgev2)
+network:
+    # Displayname template for iMessage users.
+    displayname_template: '{{`{{if .FirstName}}{{.FirstName}}{{if .LastName}} {{.LastName}}{{end}}{{else if .Nickname}}{{.Nickname}}{{else if .Phone}}{{.Phone}}{{else if .Email}}{{.Email}}{{else}}{{.ID}}{{end}}`}}'
+    # Should SMS chats always be in the same room as iMessage chats with the same phone number?
+    disable_sms_portals: false
+    # Send captions in the same message as images using MSC2530?
+    caption_in_message: true
+    # Should we convert heif images to jpeg before re-uploading?
+    convert_heif: false
+    # Should we convert tiff images to jpeg before re-uploading?
+    convert_tiff: true
+    # How many days back to look for chats during initial sync (default: 365)
+    initial_sync_days: 365
+
+{{ setfield . "CommandPrefix" "!im" -}}
+{{ setfield . "DatabaseFileName" "mautrix-imessage" -}}
+{{ setfield . "BridgeTypeName" "iMessage" -}}
+{{ setfield . "BridgeTypeIcon" "mxc://maunium.net/tManJEpANASZvDVzvRvhILdX" -}}
+{{ setfield . "DefaultPickleKey" "mautrix.bridge.e2ee" -}}
+{{ setfield . "MaxInitialMessages" 100 -}}
+{{ setfield . "MaxBackwardMessages" 100 -}}
+{{ template "bridgev2.tpl.yaml" . }}

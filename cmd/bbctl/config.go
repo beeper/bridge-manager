@@ -118,6 +118,10 @@ var askParams = map[string]func(string, map[string]string) (bool, error){
 		}
 		return didAddParams, nil
 	},
+	"imessage-v2": func(bridgeName string, extraParams map[string]string) (bool, error) {
+		// imessage-v2 is a bridgev2 bridge with rustpush, no connector selection needed
+		return false, nil
+	},
 	"imessage": func(bridgeName string, extraParams map[string]string) (bool, error) {
 		platform := extraParams["imessage_platform"]
 		barcelonaPath := extraParams["barcelona_path"]
@@ -346,6 +350,9 @@ func generateBridgeConfig(ctx *cli.Context) error {
 	}
 	var startupCommand, installInstructions string
 	switch cfg.BridgeType {
+	case "imessage-v2":
+		startupCommand = "mautrix-imessage-v2 -c " + outputPath
+		installInstructions = "https://github.com/lrhodin/imessage"
 	case "imessage", "whatsapp", "discord", "slack", "gmessages", "gvoice", "signal", "meta", "twitter", "bluesky", "linkedin":
 		startupCommand = fmt.Sprintf("mautrix-%s", cfg.BridgeType)
 		if outputPath != "config.yaml" && outputPath != "<config file>" {

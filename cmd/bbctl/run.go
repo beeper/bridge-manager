@@ -134,6 +134,8 @@ func compileGoBridge(ctx context.Context, buildDir, binaryPath, bridgeType strin
 		repo := fmt.Sprintf("https://github.com/mautrix/%s.git", bridgeType)
 		if bridgeType == "imessagego" {
 			repo = "https://github.com/beeper/imessage.git"
+		} else if bridgeType == "imessage-v2" {
+			repo = "https://github.com/lrhodin/imessage.git"
 		}
 		log.Printf("Cloning [cyan]%s[reset] to [cyan]%s[reset]", repo, buildDir)
 		err = makeCmd(ctx, buildDirParent, "git", "clone", repo, buildDir).Run()
@@ -308,7 +310,7 @@ func runBridge(ctx *cli.Context) error {
 	var bridgeArgs []string
 	var needsWebsocketProxy bool
 	switch cfg.BridgeType {
-	case "imessage", "imessagego", "whatsapp", "discord", "slack", "gmessages", "gvoice",
+	case "imessage", "imessagego", "imessage-v2", "whatsapp", "discord", "slack", "gmessages", "gvoice",
 		"signal", "meta", "twitter", "bluesky", "linkedin", "telegram":
 		ciBridgeType := cfg.BridgeType
 		binaryName := fmt.Sprintf("mautrix-%s", cfg.BridgeType)
@@ -337,6 +339,9 @@ func runBridge(ctx *cli.Context) error {
 				return fmt.Errorf("failed to compile bridge: %w", err)
 			}
 		} else if overrideBridgeCmd == "" {
+			if cfg.BridgeType == "imessage-v2" {
+				return UserError{"imessage-v2 does not have prebuilt binaries. Use --compile to build locally, or see https://github.com/lrhodin/imessage"}
+			}
 			err = updateGoBridge(ctx.Context, bridgeCmd, ciBridgeType, ciV2, ctx.Bool("no-update"))
 			if errors.Is(err, gitlab.ErrNotBuiltInCI) {
 				return UserError{fmt.Sprintf("Binaries for %s are not built in the CI. Use --compile to tell bbctl to build the bridge locally.", binaryName)}
