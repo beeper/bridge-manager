@@ -135,13 +135,14 @@ var askParams = map[string]func(string, map[string]string) (bool, error){
 		if platform == "" {
 			err := survey.AskOne(&survey.Select{
 				Message: "Select iMessage connector:",
-				Options: []string{"mac", "mac-nosip", "bluebubbles"},
+				Options: []string{"rustpush", "mac", "mac-nosip", "bluebubbles"},
 				Description: simpleDescriptions(map[string]string{
+					"rustpush":    "Connect directly to Apple's iMessage servers via rustpush (macOS 14.2+, recommended)",
 					"mac":         "Use AppleScript to send messages and read chat.db for incoming data - only requires Full Disk Access (from system settings)",
 					"mac-nosip":   "Use Barcelona to interact with private APIs - requires disabling SIP and AMFI",
 					"bluebubbles": "Connect to a BlueBubbles instance",
 				}),
-				Default: "mac",
+				Default: "rustpush",
 			}, &platform)
 			if err != nil {
 				return didAddParams, err
@@ -281,13 +282,18 @@ func doGenerateBridgeConfig(ctx *cli.Context, bridge string) (*generatedBridgeCo
 	if dbPrefix != "" {
 		dbPrefix = filepath.Join(dbPrefix, bridge+"-")
 	}
-	websocket := websocketBridges[bridgeType]
+	// When rustpush is selected under the imessage type, use the imessage-v2 template.
+	configTemplate := bridgeType
+	if bridgeType == "imessage" && extraParams["imessage_platform"] == "rustpush" {
+		configTemplate = "imessage-v2"
+	}
+	websocket := websocketBridges[bridgeType] || configTemplate == "imessage-v2"
 	var listenAddress string
 	var listenPort uint16
 	if !websocket {
 		listenAddress, listenPort, reg.Registration.URL = getBridgeWebsocketProxyConfig(bridge, bridgeType)
 	}
-	cfg, err := bridgeconfig.Generate(bridgeType, bridgeconfig.Params{
+	cfg, err := bridgeconfig.Generate(configTemplate, bridgeconfig.Params{
 		HungryAddress:  reg.HomeserverURL,
 		BeeperDomain:   ctx.String("homeserver"),
 		Websocket:      websocket,
@@ -306,7 +312,7 @@ func doGenerateBridgeConfig(ctx *cli.Context, bridge string) (*generatedBridgeCo
 		ProvisioningSecret: whoami.User.AsmuxData.LoginToken,
 	})
 	return &generatedBridgeConfig{
-		BridgeType:   bridgeType,
+		BridgeType:   configTemplate,
 		Config:       cfg,
 		RegisterJSON: reg,
 	}, err

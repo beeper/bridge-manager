@@ -112,12 +112,18 @@ func doRegisterBridge(ctx *cli.Context, bridge, bridgeType string, onlyGet bool)
 		state = status.StateStarting
 	}
 
+	// Beeper's UI recognizes "imessage" — map imessage-v2 so it displays correctly.
+	displayBridgeType := bridgeType
+	if bridgeType == "imessage-v2" {
+		displayBridgeType = "imessage"
+	}
+
 	if !ctx.Bool("no-state") {
 		err = beeperapi.PostBridgeState(ctx.String("homeserver"), GetEnvConfig(ctx).Username, bridge, resp.AppToken, beeperapi.ReqPostBridgeState{
 			StateEvent:   state,
 			Reason:       "SELF_HOST_REGISTERED",
 			IsSelfHosted: true,
-			BridgeType:   bridgeType,
+			BridgeType:   displayBridgeType,
 		})
 		if err != nil {
 			return nil, fmt.Errorf("failed to mark bridge as RUNNING: %w", err)
