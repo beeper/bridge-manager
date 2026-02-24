@@ -1,3 +1,12 @@
+# v0.14.0 (2026-02-24)
+
+* Switched LinkedIn and Telegram to v2.
+* Fixed bugs in the Docker image and added arm64 builds.
+* Changed private chat portal meta flag to be disabled by default.
+* Added `--local-dev` flag for `bbctl delete` to delete the database in the
+  current directory.
+* Added messenger-lite mode as an option for the Meta bridge.
+
 # v0.13.0 (2024-12-15)
 
 * Added support for Bluesky DM bridge.
