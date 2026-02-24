@@ -3,7 +3,7 @@ name: Go
 on: [push, pull_request]
 
 env:
-  GO_VERSION: "1.25"
+  GO_VERSION: "1.26"
   GHCR_REGISTRY: ghcr.io
   GHCR_REGISTRY_IMAGE: "ghcr.io/${{ github.repository }}"
   GOTOOLCHAIN: local
@@ -12,10 +12,10 @@ jobs:
   lint:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
 
       - name: Set up Go ${{ env.GO_VERSION }}
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@v6
         with:
           go-version: ${{ env.GO_VERSION }}
           cache: true
@@ -34,10 +34,10 @@ jobs:
     env:
       CGO_ENABLED: "0"
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
 
       - name: Set up Go ${{ env.GO_VERSION }}
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@v6
         with:
           go-version: ${{ env.GO_VERSION }}
           cache: true
@@ -46,28 +46,28 @@ jobs:
         run: ./ci-build-all.sh
 
       - name: Upload linux/amd64 artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: bbctl-linux-amd64
           path: bbctl-linux-amd64
           if-no-files-found: error
 
       - name: Upload linux/arm64 artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: bbctl-linux-arm64
           path: bbctl-linux-arm64
           if-no-files-found: error
 
       - name: Upload macos/amd64 artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: bbctl-macos-amd64
           path: bbctl-macos-amd64
           if-no-files-found: error
 
       - name: Upload macos/arm64 artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: bbctl-macos-arm64
           path: bbctl-macos-arm64
@@ -95,7 +95,7 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Docker Build
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v6
         with:
           cache-from: ${{ env.GHCR_REGISTRY_IMAGE }}:latest
           pull: true

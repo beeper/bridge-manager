@@ -124,7 +124,7 @@ func formatBridgeRemotes(name string, bridge beeperapi.WhoamiBridge) string {
 		return color.YellowString("not logged in")
 	case len(bridge.RemoteState) == 1:
 		remoteState := maps.Values(bridge.RemoteState)[0]
-		return fmt.Sprintf("remote: %s (%s / %s)", coloredBridgeState(remoteState.StateEvent), color.CyanString(remoteState.RemoteName), color.CyanString(remoteState.RemoteID))
+		return fmt.Sprintf("remote: %s (%s / %s)", coloredBridgeState(remoteState.StateEvent), color.CyanString(remoteState.RemoteName), color.CyanString(string(remoteState.RemoteID)))
 	case len(bridge.RemoteState) > 1:
 		return "multiple remotes"
 	}
