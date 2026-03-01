@@ -60,7 +60,7 @@ After installing relevant dependencies:
      Otherwise pass the type with `--type <type>`.
    * See the table below for supported official bridges.
    * The bridge will be installed to `~/.local/share/bbctl`. You can change the
-     directory in the config file at `~/.config/bbctl.json`.
+     directory in the config file at `~/.config/bbctl/config.json`.
 4. For now, you'll have to configure the bridge by sending a DM to the bridge
    bot (`@<name>bot:beeper.local`). Configuring self-hosted bridges through the
    chat networks dialog will be available in the future. Spaces and starting
