@@ -15,13 +15,17 @@ type RespStartLogin struct {
 }
 
 type ReqSendLoginEmail struct {
-	RequestID string `json:"request"`
-	Email     string `json:"email"`
+	RequestID            string `json:"request"`
+	Email                string `json:"email"`
+	AppType              string `json:"app_type"`
+	OnlyExistingAccounts bool   `json:"only_existing_accounts"`
 }
 
 type ReqSendLoginCode struct {
-	RequestID string `json:"request"`
-	Code      string `json:"response"`
+	RequestID            string `json:"request"`
+	Code                 string `json:"response"`
+	AppType              string `json:"app_type"`
+	OnlyExistingAccounts bool   `json:"only_existing_accounts"`
 }
 
 type RespSendLoginCode struct {
@@ -43,8 +47,10 @@ func StartLogin(baseDomain string) (resp *RespStartLogin, err error) {
 func SendLoginEmail(baseDomain, request, email string) error {
 	req := newRequest(baseDomain, loginAuth, http.MethodPost, "/user/login/email")
 	reqData := &ReqSendLoginEmail{
-		RequestID: request,
-		Email:     email,
+		RequestID:            request,
+		Email:                email,
+		AppType:              "bbctl",
+		OnlyExistingAccounts: true,
 	}
 	return doRequest(req, reqData, nil)
 }
@@ -52,8 +58,10 @@ func SendLoginEmail(baseDomain, request, email string) error {
 func SendLoginCode(baseDomain, request, code string) (resp *RespSendLoginCode, err error) {
 	req := newRequest(baseDomain, loginAuth, http.MethodPost, "/user/login/response")
 	reqData := &ReqSendLoginCode{
-		RequestID: request,
-		Code:      code,
+		RequestID:            request,
+		Code:                 code,
+		AppType:              "bbctl",
+		OnlyExistingAccounts: true,
 	}
 	err = doRequest(req, reqData, &resp)
 	return
