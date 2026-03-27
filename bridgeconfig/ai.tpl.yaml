@@ -1,0 +1,26 @@
+network:
+    beeper:
+        base_url: {{ .HungryAddress }}
+        token: {{ .ProvisioningSecret }}
+
+    providers:
+        beeper:
+            default_model: "openai/gpt-5.2"
+        openai:
+            default_model: "openai/gpt-4o-mini"
+        openrouter:
+            default_model: "openrouter/openai/gpt-4o-mini"
+
+    default_system_prompt: |
+        You are a helpful assistant.
+    model_cache_duration: 6h
+
+    bridge:
+        command_prefix: "!ai"
+
+{{ setfield . "CommandPrefix" "!ai" -}}
+{{ setfield . "DatabaseFileName" "ai" -}}
+{{ setfield . "BridgeTypeName" "AI" -}}
+{{ setfield . "BridgeTypeIcon" "mxc://maunium.net/HPiAFz2uVH54camzatoorkWY" -}}
+{{ setfield . "DefaultPickleKey" "go.beeper.ai" -}}
+{{ template "bridgev2.tpl.yaml" . }}
