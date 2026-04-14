@@ -90,7 +90,6 @@ var dockerToGitRepo = map[string]string{
 	"signal":      "https://github.com/mautrix/signal/commit/%s",
 	"slackgo":     "https://github.com/mautrix/slack/commit/%s",
 	"telegram":    "https://github.com/mautrix/telegram/commit/%s",
-	"telegramgo":  "https://github.com/mautrix/telegramgo/commit/%s",
 	"twitter":     "https://github.com/mautrix/twitter/commit/%s",
 	"bluesky":     "https://github.com/mautrix/bluesky/commit/%s",
 	"whatsapp":    "https://github.com/mautrix/whatsapp/commit/%s",

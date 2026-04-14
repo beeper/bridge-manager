@@ -70,7 +70,7 @@ func getRefFromBridge(bridge string) (string, error) {
 	case "imessage":
 		return "master", nil
 	case "whatsapp", "discord", "slack", "gmessages", "gvoice", "signal",
-		"imessagego", "meta", "twitter", "bluesky", "linkedin", "telegramgo":
+		"imessagego", "meta", "twitter", "bluesky", "linkedin", "telegram":
 		return "main", nil
 	default:
 		return "", fmt.Errorf("unknown bridge %s", bridge)

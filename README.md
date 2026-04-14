@@ -103,7 +103,7 @@ used with the `--type` flag.
 | [mautrix-linkedin]   | linkedin                             |
 | [heisenbridge]       | heisenbridge, irc                    |
 
-[mautrix-telegram]: https://github.com/mautrix/telegramgo
+[mautrix-telegram]: https://github.com/mautrix/telegram
 [mautrix-whatsapp]: https://github.com/mautrix/whatsapp
 [mautrix-signal]: https://github.com/mautrix/signal
 [mautrix-discord]: https://github.com/mautrix/discord

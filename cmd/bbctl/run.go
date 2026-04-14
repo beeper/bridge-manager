@@ -314,9 +314,6 @@ func runBridge(ctx *cli.Context) error {
 		binaryName := fmt.Sprintf("mautrix-%s", cfg.BridgeType)
 		ciV2 := false
 		switch cfg.BridgeType {
-		case "telegram":
-			ciV2 = true
-			ciBridgeType = "telegramgo"
 		case "imessagego":
 			binaryName = "beeper-imessage"
 		}
