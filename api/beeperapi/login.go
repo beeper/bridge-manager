@@ -17,15 +17,15 @@ type RespStartLogin struct {
 type ReqSendLoginEmail struct {
 	RequestID            string `json:"request"`
 	Email                string `json:"email"`
-	AppType              string `json:"app_type"`
-	OnlyExistingAccounts bool   `json:"only_existing_accounts"`
+	AppType              string `json:"appType"`
+	OnlyExistingAccounts bool   `json:"onlyExistingAccounts"`
 }
 
 type ReqSendLoginCode struct {
 	RequestID            string `json:"request"`
 	Code                 string `json:"response"`
-	AppType              string `json:"app_type"`
-	OnlyExistingAccounts bool   `json:"only_existing_accounts"`
+	AppType              string `json:"appType"`
+	OnlyExistingAccounts bool   `json:"onlyExistingAccounts"`
 }
 
 type RespSendLoginCode struct {
