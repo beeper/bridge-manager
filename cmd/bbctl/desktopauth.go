@@ -13,7 +13,6 @@ import (
 
 	"github.com/urfave/cli/v2"
 	"go.mau.fi/util/dbutil"
-	"maunium.net/go/mautrix/id"
 
 	"github.com/beeper/bridge-manager/api/beeperapi"
 
@@ -43,21 +42,16 @@ func desktopLoginFlags() []cli.Flag {
 }
 
 type DesktopAccount struct {
-	UserID      id.UserID
-	DeviceID    id.DeviceID
+	UserID      string
 	AccessToken string
 	Homeserver  string
 }
 
-func getDesktopDataDir(ctx *cli.Context) (string, bool, error) {
+func getDesktopDataDir(ctx *cli.Context) (string, error) {
 	if dataDir := ctx.String("desktop-data-dir"); dataDir != "" {
-		return dataDir, true, nil
+		return dataDir, nil
 	}
-	dataDir, err := resolveDesktopDataDir(ctx.String("profile"))
-	if err != nil {
-		return "", false, err
-	}
-	return dataDir, false, nil
+	return resolveDesktopDataDir(ctx.String("profile"))
 }
 
 func resolveDesktopDataDir(profile string) (string, error) {
@@ -95,7 +89,7 @@ func resolveDesktopDataDir(profile string) (string, error) {
 }
 
 func getLoginDesktopAccountDBPath(ctx *cli.Context) (string, error) {
-	dataDir, _, err := getDesktopDataDir(ctx)
+	dataDir, err := getDesktopDataDir(ctx)
 	if err != nil {
 		return "", fmt.Errorf("failed to resolve desktop data directory: %w", err)
 	}
@@ -123,8 +117,8 @@ func readDesktopAccount(ctx context.Context, dbPath string) (account *DesktopAcc
 	}()
 
 	var desktopAccount DesktopAccount
-	err = db.QueryRow(ctx, "SELECT user_id, device_id, access_token, homeserver FROM account LIMIT 1").
-		Scan(&desktopAccount.UserID, &desktopAccount.DeviceID, &desktopAccount.AccessToken, &desktopAccount.Homeserver)
+	err = db.QueryRow(ctx, "SELECT user_id, access_token, homeserver FROM account LIMIT 1").
+		Scan(&desktopAccount.UserID, &desktopAccount.AccessToken, &desktopAccount.Homeserver)
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, fmt.Errorf("desktop account database has no logged-in account")
 	} else if err != nil {
@@ -179,7 +173,7 @@ func configureDesktopLogin(ctx *cli.Context, account *DesktopAccount) (string, s
 	envCfg.Username = whoami.UserInfo.Username
 	envCfg.AccessToken = account.AccessToken
 	envCfg.BridgeDataDir = filepath.Join(UserDataDir, "bbctl", env)
-	dataDir, _, err := getDesktopDataDir(ctx)
+	dataDir, err := getDesktopDataDir(ctx)
 	if err != nil {
 		return "", "", fmt.Errorf("failed to resolve desktop data directory: %w", err)
 	}
