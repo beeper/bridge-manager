@@ -11,23 +11,19 @@ import (
 	"maunium.net/go/mautrix"
 
 	"github.com/beeper/bridge-manager/api/beeperapi"
-	"github.com/beeper/bridge-manager/cli/interactive"
 )
 
 var loginCommand = &cli.Command{
 	Name:    "login",
 	Aliases: []string{"l"},
 	Usage:   "Log into the Beeper server",
-	Before:  interactive.Ask,
 	Action:  beeperLogin,
 	Flags: []cli.Flag{
-		interactive.Flag{Flag: &cli.StringFlag{
+		&cli.StringFlag{
 			Name:    "email",
 			EnvVars: []string{"BEEPER_EMAIL"},
 			Usage:   "The Beeper account email to log in with",
-		}, Survey: &survey.Input{
-			Message: "Email:",
-		}},
+		},
 		&cli.BoolFlag{
 			Name:    "no-desktop",
 			EnvVars: []string{"BBCTL_NO_DESKTOP_LOGIN"},
@@ -86,6 +82,14 @@ func beeperLogin(ctx *cli.Context) error {
 
 	homeserver := ctx.String("homeserver")
 	email := ctx.String("email")
+	if email == "" {
+		err = survey.AskOne(&survey.Input{
+			Message: "Email:",
+		}, &email)
+		if err != nil {
+			return err
+		}
+	}
 
 	startLogin, err := beeperapi.StartLogin(homeserver)
 	if err != nil {
