@@ -140,6 +140,7 @@ var app = &cli.App{
 	Before: prepareApp,
 	Commands: []*cli.Command{
 		loginCommand,
+		loginDesktopCommand,
 		loginPasswordCommand,
 		logoutCommand,
 		registerCommand,

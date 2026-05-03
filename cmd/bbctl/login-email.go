@@ -11,29 +11,85 @@ import (
 	"maunium.net/go/mautrix"
 
 	"github.com/beeper/bridge-manager/api/beeperapi"
-	"github.com/beeper/bridge-manager/cli/interactive"
 )
 
 var loginCommand = &cli.Command{
 	Name:    "login",
 	Aliases: []string{"l"},
 	Usage:   "Log into the Beeper server",
-	Before:  interactive.Ask,
 	Action:  beeperLogin,
 	Flags: []cli.Flag{
-		interactive.Flag{Flag: &cli.StringFlag{
+		&cli.StringFlag{
 			Name:    "email",
 			EnvVars: []string{"BEEPER_EMAIL"},
 			Usage:   "The Beeper account email to log in with",
-		}, Survey: &survey.Input{
-			Message: "Email:",
-		}},
+		},
+		&cli.BoolFlag{
+			Name:    "no-desktop",
+			EnvVars: []string{"BBCTL_NO_DESKTOP_LOGIN"},
+			Usage:   "Skip checking for an existing Beeper Desktop login",
+		},
 	},
 }
 
+func init() {
+	loginCommand.Flags = append(loginCommand.Flags, desktopLoginFlags()...)
+}
+
+func maybeUseDesktopLogin(ctx *cli.Context) (bool, error) {
+	if ctx.Bool("no-desktop") {
+		return false, nil
+	}
+	dbPath, err := getLoginDesktopAccountDBPath(ctx)
+	if err != nil {
+		return false, err
+	}
+	account, err := readDesktopAccount(ctx.Context, dbPath)
+	if err != nil {
+		if ctx.IsSet("desktop-account-db") || ctx.IsSet("desktop-data-dir") {
+			return false, err
+		}
+		return false, nil
+	}
+
+	useDesktop := false
+	err = survey.AskOne(&survey.Confirm{
+		Message: fmt.Sprintf("Use Beeper Desktop login for %s?", account.UserID),
+		Default: true,
+	}, &useDesktop)
+	if err != nil {
+		return false, err
+	}
+	if !useDesktop {
+		return false, nil
+	}
+
+	env, homeserver, err := saveDesktopLogin(ctx, account)
+	if err != nil {
+		return false, err
+	}
+	fmt.Printf("Imported Desktop login for %s into bbctl env %q (%s)\n", account.UserID, env, homeserver)
+	return true, nil
+}
+
 func beeperLogin(ctx *cli.Context) error {
+	didLogin, err := maybeUseDesktopLogin(ctx)
+	if err != nil {
+		return err
+	} else if didLogin {
+		return nil
+	}
+
 	homeserver := ctx.String("homeserver")
 	email := ctx.String("email")
+	if email == "" {
+		err = survey.AskOne(&survey.Input{
+			Message: "Email:",
+		}, &email)
+		if err != nil {
+			return err
+		}
+	}
 
 	startLogin, err := beeperapi.StartLogin(homeserver)
 	if err != nil {
