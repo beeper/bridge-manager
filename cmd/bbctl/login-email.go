@@ -11,40 +11,40 @@ import (
 	"maunium.net/go/mautrix"
 
 	"github.com/beeper/bridge-manager/api/beeperapi"
+	"github.com/beeper/bridge-manager/cli/interactive"
 )
 
 var loginCommand = &cli.Command{
 	Name:    "login",
 	Aliases: []string{"l"},
 	Usage:   "Log into the Beeper server",
+	Before:  interactive.Ask,
 	Action:  beeperLogin,
-	Flags: []cli.Flag{
-		&cli.StringFlag{
+	Flags: append([]cli.Flag{
+		interactive.Flag{Flag: &cli.StringFlag{
 			Name:    "email",
 			EnvVars: []string{"BEEPER_EMAIL"},
 			Usage:   "The Beeper account email to log in with",
-		},
+		}, Survey: &survey.Input{
+			Message: "Email:",
+		}},
 		&cli.BoolFlag{
 			Name:    "no-desktop",
 			EnvVars: []string{"BBCTL_NO_DESKTOP_LOGIN"},
 			Usage:   "Skip checking for an existing Beeper Desktop login",
 		},
-	},
-}
-
-func init() {
-	loginCommand.Flags = append(loginCommand.Flags, desktopLoginFlags()...)
+	}, desktopLoginFlags()...),
 }
 
 func maybeUseDesktopLogin(ctx *cli.Context) (bool, error) {
 	if ctx.Bool("no-desktop") {
 		return false, nil
 	}
-	dbPath, err := getLoginDesktopAccountDBPath(ctx)
+	dataDir, err := getDesktopDataDir(ctx)
 	if err != nil {
-		return false, err
+		return false, fmt.Errorf("failed to resolve desktop data directory: %w", err)
 	}
-	account, err := readDesktopAccount(ctx.Context, dbPath)
+	account, err := readDesktopAccount(ctx.Context, dataDir)
 	if err != nil {
 		if ctx.IsSet("desktop-data-dir") {
 			return false, err
@@ -64,7 +64,7 @@ func maybeUseDesktopLogin(ctx *cli.Context) (bool, error) {
 		return false, nil
 	}
 
-	env, homeserver, err := configureDesktopLogin(ctx, account)
+	env, homeserver, err := configureDesktopLogin(ctx, account, dataDir)
 	if err != nil {
 		return false, err
 	}
@@ -82,14 +82,6 @@ func beeperLogin(ctx *cli.Context) error {
 
 	homeserver := ctx.String("homeserver")
 	email := ctx.String("email")
-	if email == "" {
-		err = survey.AskOne(&survey.Input{
-			Message: "Email:",
-		}, &email)
-		if err != nil {
-			return err
-		}
-	}
 
 	startLogin, err := beeperapi.StartLogin(homeserver)
 	if err != nil {

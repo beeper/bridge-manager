@@ -177,7 +177,7 @@ func configureDesktopLogin(ctx *cli.Context, account *DesktopAccount) (string, s
 	envCfg := cfg.Environments.Get(env)
 	envCfg.ClusterID = whoami.UserInfo.BridgeClusterID
 	envCfg.Username = whoami.UserInfo.Username
-	envCfg.AccessToken = ""
+	envCfg.AccessToken = account.AccessToken
 	envCfg.BridgeDataDir = filepath.Join(UserDataDir, "bbctl", env)
 	dataDir, _, err := getDesktopDataDir(ctx)
 	if err != nil {

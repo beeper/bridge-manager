@@ -170,9 +170,6 @@ func (cfg *Config) Save() error {
 				continue
 			}
 			envCopy := *env
-			if envCopy.UsesDesktopLogin() {
-				envCopy.AccessToken = ""
-			}
 			saveCfg.Environments[key] = &envCopy
 		}
 	}
