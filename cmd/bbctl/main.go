@@ -81,6 +81,12 @@ func prepareApp(ctx *cli.Context) error {
 	envConfig := cfg.Environments.Get(env)
 	ctx.Context = context.WithValue(ctx.Context, contextKeyConfig, cfg)
 	ctx.Context = context.WithValue(ctx.Context, contextKeyEnvConfig, envConfig)
+	if envConfig.UsesDesktopLogin() && !isLoginCommand(ctx) {
+		err = loadDesktopLogin(ctx, envConfig)
+		if err != nil {
+			return fmt.Errorf("failed to use Beeper Desktop login: %w", err)
+		}
+	}
 	if envConfig.HasCredentials() {
 		if envConfig.Username == "" {
 			log.Printf("Fetching whoami to fill missing env config details")
@@ -93,6 +99,15 @@ func prepareApp(ctx *cli.Context) error {
 		ctx.Context = context.WithValue(ctx.Context, contextKeyHungryClient, hungryapi.NewClient(homeserver, envConfig.Username, envConfig.AccessToken))
 	}
 	return nil
+}
+
+func isLoginCommand(ctx *cli.Context) bool {
+	switch ctx.Args().First() {
+	case "login", "l", "login-desktop", "login-password", "p":
+		return true
+	default:
+		return false
+	}
 }
 
 var app = &cli.App{

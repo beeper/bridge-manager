@@ -22,7 +22,7 @@ import (
 
 var loginDesktopCommand = &cli.Command{
 	Name:   "login-desktop",
-	Usage:  "Import Beeper Desktop's Matrix credentials into bbctl config",
+	Usage:  "Use Beeper Desktop's credentials for bbctl",
 	Action: loginDesktop,
 	Flags:  desktopLoginFlags(),
 }
@@ -37,12 +37,7 @@ func desktopLoginFlags() []cli.Flag {
 		&cli.StringFlag{
 			Name:    "desktop-data-dir",
 			EnvVars: []string{"BBCTL_DESKTOP_DATA_DIR"},
-			Usage:   "Read Matrix credentials from this Beeper Desktop user data directory",
-		},
-		&cli.StringFlag{
-			Name:    "desktop-account-db",
-			EnvVars: []string{"BBCTL_DESKTOP_ACCOUNT_DB"},
-			Usage:   "Read Matrix credentials from this Beeper Desktop account.db",
+			Usage:   "Read credentials from this Beeper Desktop user data directory",
 		},
 	}
 }
@@ -54,14 +49,15 @@ type DesktopAccount struct {
 	Homeserver  string
 }
 
-func getDesktopAccountDBPath(ctx *cli.Context) (string, bool) {
-	if dbPath := ctx.String("desktop-account-db"); dbPath != "" {
-		return dbPath, true
-	}
+func getDesktopDataDir(ctx *cli.Context) (string, bool, error) {
 	if dataDir := ctx.String("desktop-data-dir"); dataDir != "" {
-		return filepath.Join(dataDir, "account.db"), true
+		return dataDir, true, nil
 	}
-	return "", false
+	dataDir, err := resolveDesktopDataDir(ctx.String("profile"))
+	if err != nil {
+		return "", false, err
+	}
+	return dataDir, false, nil
 }
 
 func resolveDesktopDataDir(profile string) (string, error) {
@@ -99,17 +95,14 @@ func resolveDesktopDataDir(profile string) (string, error) {
 }
 
 func getLoginDesktopAccountDBPath(ctx *cli.Context) (string, error) {
-	if dbPath, ok := getDesktopAccountDBPath(ctx); ok {
-		return dbPath, nil
-	}
-	dataDir, err := resolveDesktopDataDir(ctx.String("profile"))
+	dataDir, _, err := getDesktopDataDir(ctx)
 	if err != nil {
 		return "", fmt.Errorf("failed to resolve desktop data directory: %w", err)
 	}
 	return filepath.Join(dataDir, "account.db"), nil
 }
 
-func readDesktopAccount(ctx context.Context, dbPath string) (*DesktopAccount, error) {
+func readDesktopAccount(ctx context.Context, dbPath string) (account *DesktopAccount, err error) {
 	dbURI := (&url.URL{
 		Scheme:   "file",
 		Path:     dbPath,
@@ -119,19 +112,27 @@ func readDesktopAccount(ctx context.Context, dbPath string) (*DesktopAccount, er
 	if err != nil {
 		return nil, fmt.Errorf("failed to open desktop account database: %w", err)
 	}
-	defer db.Close()
+	defer func() {
+		if closeErr := db.Close(); closeErr != nil {
+			if err != nil {
+				err = fmt.Errorf("%w; failed to close desktop account database: %v", err, closeErr)
+			} else {
+				err = fmt.Errorf("failed to close desktop account database: %w", closeErr)
+			}
+		}
+	}()
 
-	var account DesktopAccount
+	var desktopAccount DesktopAccount
 	err = db.QueryRow(ctx, "SELECT user_id, device_id, access_token, homeserver FROM account LIMIT 1").
-		Scan(&account.UserID, &account.DeviceID, &account.AccessToken, &account.Homeserver)
+		Scan(&desktopAccount.UserID, &desktopAccount.DeviceID, &desktopAccount.AccessToken, &desktopAccount.Homeserver)
 	if errors.Is(err, sql.ErrNoRows) {
 		return nil, fmt.Errorf("desktop account database has no logged-in account")
 	} else if err != nil {
 		return nil, fmt.Errorf("failed to read desktop account database: %w", err)
-	} else if account.UserID == "" || account.AccessToken == "" {
+	} else if desktopAccount.UserID == "" || desktopAccount.AccessToken == "" {
 		return nil, fmt.Errorf("desktop account database has incomplete credentials")
 	}
-	return &account, nil
+	return &desktopAccount, nil
 }
 
 func desktopAccountHomeserverDomain(account *DesktopAccount) (string, error) {
@@ -154,7 +155,7 @@ func envForHomeserverDomain(domain string) string {
 	return ""
 }
 
-func saveDesktopLogin(ctx *cli.Context, account *DesktopAccount) (string, string, error) {
+func configureDesktopLogin(ctx *cli.Context, account *DesktopAccount) (string, string, error) {
 	homeserver, err := desktopAccountHomeserverDomain(account)
 	if err != nil {
 		return "", "", err
@@ -176,14 +177,48 @@ func saveDesktopLogin(ctx *cli.Context, account *DesktopAccount) (string, string
 	envCfg := cfg.Environments.Get(env)
 	envCfg.ClusterID = whoami.UserInfo.BridgeClusterID
 	envCfg.Username = whoami.UserInfo.Username
-	envCfg.AccessToken = account.AccessToken
+	envCfg.AccessToken = ""
 	envCfg.BridgeDataDir = filepath.Join(UserDataDir, "bbctl", env)
+	dataDir, _, err := getDesktopDataDir(ctx)
+	if err != nil {
+		return "", "", fmt.Errorf("failed to resolve desktop data directory: %w", err)
+	}
+	envCfg.DesktopDataDir = dataDir
 	err = cfg.Save()
 	if err != nil {
 		return "", "", fmt.Errorf("failed to save config: %w", err)
 	}
 
 	return env, homeserver, nil
+}
+
+func loadDesktopLogin(ctx *cli.Context, envConfig *EnvConfig) error {
+	if envConfig.DesktopDataDir == "" {
+		return nil
+	}
+	dbPath := filepath.Join(envConfig.DesktopDataDir, "account.db")
+	account, err := readDesktopAccount(ctx.Context, dbPath)
+	if err != nil {
+		return err
+	}
+	homeserver, err := desktopAccountHomeserverDomain(account)
+	if err != nil {
+		return err
+	}
+	if homeserver == "" {
+		homeserver = ctx.String("homeserver")
+	}
+	whoami, err := beeperapi.Whoami(homeserver, account.AccessToken)
+	if err != nil {
+		return fmt.Errorf("failed to verify desktop credentials with whoami: %w", err)
+	}
+	envConfig.ClusterID = whoami.UserInfo.BridgeClusterID
+	envConfig.Username = whoami.UserInfo.Username
+	envConfig.AccessToken = account.AccessToken
+	if envConfig.BridgeDataDir == "" {
+		envConfig.BridgeDataDir = filepath.Join(UserDataDir, "bbctl", ctx.String("env"))
+	}
+	return nil
 }
 
 func loginDesktop(ctx *cli.Context) error {
@@ -197,11 +232,11 @@ func loginDesktop(ctx *cli.Context) error {
 		return err
 	}
 
-	env, homeserver, err := saveDesktopLogin(ctx, account)
+	env, homeserver, err := configureDesktopLogin(ctx, account)
 	if err != nil {
 		return err
 	}
 
-	fmt.Printf("Imported Desktop login for %s into bbctl env %q (%s)\n", account.UserID, env, homeserver)
+	fmt.Printf("Using Beeper Desktop login for %s in bbctl env %q (%s)\n", account.UserID, env, homeserver)
 	return nil
 }

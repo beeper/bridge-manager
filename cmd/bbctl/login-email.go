@@ -46,7 +46,7 @@ func maybeUseDesktopLogin(ctx *cli.Context) (bool, error) {
 	}
 	account, err := readDesktopAccount(ctx.Context, dbPath)
 	if err != nil {
-		if ctx.IsSet("desktop-account-db") || ctx.IsSet("desktop-data-dir") {
+		if ctx.IsSet("desktop-data-dir") {
 			return false, err
 		}
 		return false, nil
@@ -64,11 +64,11 @@ func maybeUseDesktopLogin(ctx *cli.Context) (bool, error) {
 		return false, nil
 	}
 
-	env, homeserver, err := saveDesktopLogin(ctx, account)
+	env, homeserver, err := configureDesktopLogin(ctx, account)
 	if err != nil {
 		return false, err
 	}
-	fmt.Printf("Imported Desktop login for %s into bbctl env %q (%s)\n", account.UserID, env, homeserver)
+	fmt.Printf("Using Beeper Desktop login for %s in bbctl env %q (%s)\n", account.UserID, env, homeserver)
 	return true, nil
 }
 
@@ -147,6 +147,7 @@ func doMatrixLogin(ctx *cli.Context, req *mautrix.ReqLogin, whoami *beeperapi.Re
 	envCfg.ClusterID = whoami.UserInfo.BridgeClusterID
 	envCfg.Username = whoami.UserInfo.Username
 	envCfg.AccessToken = resp.AccessToken
+	envCfg.DesktopDataDir = ""
 	envCfg.BridgeDataDir = filepath.Join(UserDataDir, "bbctl", ctx.String("env"))
 	err = cfg.Save()
 	if err != nil {

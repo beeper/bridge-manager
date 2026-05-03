@@ -24,15 +24,20 @@ var envs = map[string]string{
 }
 
 type EnvConfig struct {
-	ClusterID     string `json:"cluster_id"`
-	Username      string `json:"username"`
-	AccessToken   string `json:"access_token"`
-	BridgeDataDir string `json:"bridge_data_dir"`
-	DatabaseDir   string `json:"database_dir,omitempty"`
+	ClusterID      string `json:"cluster_id"`
+	Username       string `json:"username"`
+	AccessToken    string `json:"access_token,omitempty"`
+	BridgeDataDir  string `json:"bridge_data_dir"`
+	DatabaseDir    string `json:"database_dir,omitempty"`
+	DesktopDataDir string `json:"desktop_data_dir,omitempty"`
 }
 
 func (ec *EnvConfig) HasCredentials() bool {
 	return strings.HasPrefix(ec.AccessToken, "syt_") || strings.HasPrefix(ec.AccessToken, "bat_")
+}
+
+func (ec *EnvConfig) UsesDesktopLogin() bool {
+	return ec.DesktopDataDir != ""
 }
 
 type EnvConfigs map[string]*EnvConfig
@@ -157,7 +162,21 @@ func (cfg *Config) Save() error {
 	if err != nil {
 		return fmt.Errorf("failed to open config at %s for writing: %v", cfg.Path, err)
 	}
-	err = json.NewEncoder(file).Encode(cfg)
+	saveCfg := *cfg
+	if cfg.Environments != nil {
+		saveCfg.Environments = make(EnvConfigs, len(cfg.Environments))
+		for key, env := range cfg.Environments {
+			if env == nil {
+				continue
+			}
+			envCopy := *env
+			if envCopy.UsesDesktopLogin() {
+				envCopy.AccessToken = ""
+			}
+			saveCfg.Environments[key] = &envCopy
+		}
+	}
+	err = json.NewEncoder(file).Encode(&saveCfg)
 	if err != nil {
 		return fmt.Errorf("failed to write config to %s: %v", cfg.Path, err)
 	}
