@@ -20,7 +20,7 @@ var loginCommand = &cli.Command{
 	Usage:   "Log into the Beeper server",
 	Before:  interactive.Ask,
 	Action:  beeperLogin,
-	Flags: append([]cli.Flag{
+	Flags: []cli.Flag{
 		interactive.Flag{Flag: &cli.StringFlag{
 			Name:    "email",
 			EnvVars: []string{"BEEPER_EMAIL"},
@@ -33,18 +33,22 @@ var loginCommand = &cli.Command{
 			EnvVars: []string{"BBCTL_NO_DESKTOP_LOGIN"},
 			Usage:   "Skip checking for an existing Beeper Desktop login",
 		},
-	}, desktopLoginFlags()...),
+	},
+}
+
+func init() {
+	loginCommand.Flags = append(loginCommand.Flags, desktopLoginFlags()...)
 }
 
 func maybeUseDesktopLogin(ctx *cli.Context) (bool, error) {
 	if ctx.Bool("no-desktop") {
 		return false, nil
 	}
-	dataDir, err := getDesktopDataDir(ctx)
+	dbPath, err := getLoginDesktopAccountDBPath(ctx)
 	if err != nil {
-		return false, fmt.Errorf("failed to resolve desktop data directory: %w", err)
+		return false, err
 	}
-	account, err := readDesktopAccount(ctx.Context, dataDir)
+	account, err := readDesktopAccount(ctx.Context, dbPath)
 	if err != nil {
 		if ctx.IsSet("desktop-data-dir") {
 			return false, err
@@ -64,7 +68,7 @@ func maybeUseDesktopLogin(ctx *cli.Context) (bool, error) {
 		return false, nil
 	}
 
-	env, homeserver, err := configureDesktopLogin(ctx, account, dataDir)
+	env, homeserver, err := configureDesktopLogin(ctx, account)
 	if err != nil {
 		return false, err
 	}
