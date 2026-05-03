@@ -26,7 +26,7 @@ var envs = map[string]string{
 type EnvConfig struct {
 	ClusterID      string `json:"cluster_id"`
 	Username       string `json:"username"`
-	AccessToken    string `json:"access_token,omitempty"`
+	AccessToken    string `json:"access_token"`
 	BridgeDataDir  string `json:"bridge_data_dir"`
 	DatabaseDir    string `json:"database_dir,omitempty"`
 	DesktopDataDir string `json:"desktop_data_dir,omitempty"`
@@ -162,18 +162,7 @@ func (cfg *Config) Save() error {
 	if err != nil {
 		return fmt.Errorf("failed to open config at %s for writing: %v", cfg.Path, err)
 	}
-	saveCfg := *cfg
-	if cfg.Environments != nil {
-		saveCfg.Environments = make(EnvConfigs, len(cfg.Environments))
-		for key, env := range cfg.Environments {
-			if env == nil {
-				continue
-			}
-			envCopy := *env
-			saveCfg.Environments[key] = &envCopy
-		}
-	}
-	err = json.NewEncoder(file).Encode(&saveCfg)
+	err = json.NewEncoder(file).Encode(cfg)
 	if err != nil {
 		return fmt.Errorf("failed to write config to %s: %v", cfg.Path, err)
 	}
