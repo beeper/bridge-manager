@@ -59,33 +59,11 @@ func resolveDesktopDataDir(profile string) (string, error) {
 	if profile != "" {
 		appName += "-" + profile
 	}
-	switch runtime.GOOS {
-	case "darwin":
-		home, err := os.UserHomeDir()
-		if err != nil {
-			return "", err
-		}
-		return filepath.Join(home, "Library", "Application Support", appName), nil
-	case "windows":
-		if appData := os.Getenv("APPDATA"); appData != "" {
-			return filepath.Join(appData, appName), nil
-		}
-		home, err := os.UserHomeDir()
-		if err != nil {
-			return "", err
-		}
-		return filepath.Join(home, appName), nil
-	default:
-		configHome := os.Getenv("XDG_CONFIG_HOME")
-		if configHome == "" {
-			home, err := os.UserHomeDir()
-			if err != nil {
-				return "", err
-			}
-			configHome = filepath.Join(home, ".config")
-		}
-		return filepath.Join(configHome, appName), nil
+	dataDir, err := os.UserConfigDir()
+	if err != nil {
+		return "", err
 	}
+	return filepath.Join(dataDir, appName), nil
 }
 
 func getLoginDesktopAccountDBPath(ctx *cli.Context) (string, error) {
