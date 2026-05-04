@@ -81,7 +81,7 @@ func prepareApp(ctx *cli.Context) error {
 	envConfig := cfg.Environments.Get(env)
 	ctx.Context = context.WithValue(ctx.Context, contextKeyConfig, cfg)
 	ctx.Context = context.WithValue(ctx.Context, contextKeyEnvConfig, envConfig)
-	if envConfig.UsesDesktopLogin() && !isLoginCommand(ctx) {
+	if envConfig.UsesDesktopLogin() && !isRecoveryCommand(ctx) {
 		err = loadDesktopLogin(ctx, envConfig)
 		if err != nil {
 			return fmt.Errorf("failed to use Beeper Desktop login: %w", err)
@@ -101,9 +101,9 @@ func prepareApp(ctx *cli.Context) error {
 	return nil
 }
 
-func isLoginCommand(ctx *cli.Context) bool {
+func isRecoveryCommand(ctx *cli.Context) bool {
 	switch ctx.Args().First() {
-	case "login", "l", "login-desktop", "login-password", "p":
+	case "login", "l", "login-password", "p", "logout":
 		return true
 	default:
 		return false
@@ -155,7 +155,6 @@ var app = &cli.App{
 	Before: prepareApp,
 	Commands: []*cli.Command{
 		loginCommand,
-		loginDesktopCommand,
 		loginPasswordCommand,
 		logoutCommand,
 		registerCommand,

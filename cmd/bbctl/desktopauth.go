@@ -8,7 +8,6 @@ import (
 	"net/url"
 	"os"
 	"path/filepath"
-	"runtime"
 	"strings"
 
 	"github.com/urfave/cli/v2"
@@ -18,13 +17,6 @@ import (
 
 	_ "go.mau.fi/util/dbutil/litestream"
 )
-
-var loginDesktopCommand = &cli.Command{
-	Name:   "login-desktop",
-	Usage:  "Use Beeper Desktop's credentials for bbctl",
-	Action: loginDesktop,
-	Flags:  desktopLoginFlags(),
-}
 
 func desktopLoginFlags() []cli.Flag {
 	return []cli.Flag{
@@ -190,25 +182,5 @@ func loadDesktopLogin(ctx *cli.Context, envConfig *EnvConfig) error {
 	if envConfig.BridgeDataDir == "" {
 		envConfig.BridgeDataDir = filepath.Join(UserDataDir, "bbctl", ctx.String("env"))
 	}
-	return nil
-}
-
-func loginDesktop(ctx *cli.Context) error {
-	dbPath, err := getLoginDesktopAccountDBPath(ctx)
-	if err != nil {
-		return err
-	}
-
-	account, err := readDesktopAccount(ctx.Context, dbPath)
-	if err != nil {
-		return err
-	}
-
-	env, homeserver, err := configureDesktopLogin(ctx, account)
-	if err != nil {
-		return err
-	}
-
-	fmt.Printf("Using Beeper Desktop login for %s in bbctl env %q (%s)\n", account.UserID, env, homeserver)
 	return nil
 }
