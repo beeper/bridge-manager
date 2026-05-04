@@ -69,7 +69,7 @@ func getLoginDesktopAccountDBPath(ctx *cli.Context) (string, error) {
 func readDesktopAccount(ctx context.Context, dbPath string) (account *DesktopAccount, err error) {
 	dbURI := (&url.URL{
 		Scheme:   "file",
-		Path:     dbPath,
+		Path:     filepath.ToSlash(dbPath),
 		RawQuery: "mode=ro",
 	}).String()
 	db, err := dbutil.NewWithDialect(dbURI, "sqlite3-fk-wal")
