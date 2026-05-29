@@ -1,0 +1,24 @@
+# Network-specific config options
+network:
+    default_provider:
+        provider: openai
+        api: openai-responses
+        default_model: gpt-5.5
+        allowed_models: []
+    providers: {}
+    default_system_prompt: You are a helpful assistant inside Beeper.
+    default_reasoning_level: "off"
+    fetch:
+        timeout_ms: 10000
+        max_bytes: 2097152
+        max_chars: 20000
+    search:
+        enabled: false
+        endpoint: ""
+        api_key: ""
+
+{{ setfield . "CommandPrefix" "!ai" -}}
+{{ setfield . "DatabaseFileName" "ai" -}}
+{{ setfield . "BridgeTypeName" "AI Chats" -}}
+{{ setfield . "BridgeTypeIcon" "mxc://beeper.com/51a668657dd9e0132cc823ad9402c6c2d0fc3321" -}}
+{{ template "bridgev2.tpl.yaml" . }}
