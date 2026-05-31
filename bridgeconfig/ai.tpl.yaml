@@ -1,21 +1,22 @@
-# Network-specific config options
-network:
-    default_provider:
-        provider: openai
-        api: openai-responses
-        default_model: gpt-5.5
-        allowed_models: []
-    providers: {}
-    default_system_prompt: You are a helpful assistant inside Beeper.
-    default_reasoning_level: "off"
-    fetch:
-        timeout_ms: 10000
-        max_bytes: 2097152
-        max_chars: 20000
-    search:
-        enabled: false
-        endpoint: ""
-        api_key: ""
+# Network-specific config options.
+#
+# ai-bridge owns the defaults for this section. Keep these commented unless
+# this generated config intentionally needs to override bridge defaults.
+#
+# Supported override fields:
+#
+# network:
+#     default_system_prompt: |
+#         Custom system prompt.
+#     default_reasoning_level: "off"
+#     fetch:
+#         timeout_ms: 10000
+#         max_bytes: 2097152
+#         max_chars: 20000
+#     compaction:
+#         enabled: true
+#         reserve_tokens: 16384
+#         keep_recent_tokens: 20000
 
 {{ setfield . "CommandPrefix" "!ai" -}}
 {{ setfield . "DatabaseFileName" "ai" -}}
