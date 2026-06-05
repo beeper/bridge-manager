@@ -30,10 +30,11 @@ documentation of the various projects
 [#self-hosting:beeper.com]: https://matrix.to/#/#self-hosting:beeper.com
 
 ## Usage
-1. Download the latest binary from [GitHub releases](https://github.com/beeper/bridge-manager/releases)
-   or [actions](https://nightly.link/beeper/bridge-manager/workflows/go.yaml/main).
-   * Alternatively, you can build it yourself by cloning the repo and running
-     `./build.sh`. Building requires Go 1.25 or higher.
+1. Install bbctl with Homebrew: `brew install beeper/tap/bbctl`.
+   * Alternatively, you can download the latest binary from [GitHub releases](https://github.com/beeper/bridge-manager/releases)
+     or [actions](https://nightly.link/beeper/bridge-manager/workflows/go.yaml/main).
+   * You can also build it yourself by cloning the repo and running `./build.sh`.
+     Building requires Go 1.25 or higher.
    * bbctl supports amd64 and arm64 on Linux and macOS.
      Windows is not supported natively, please use WSL.
 2. Log into your Beeper account with `bbctl login`.
