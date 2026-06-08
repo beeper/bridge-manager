@@ -3,9 +3,9 @@
 # Sourced before `buildkite-agent pipeline upload` so the values land in the rendered pipeline.
 
 # bbctl is a Go CLI; the macOS image is only needed for the signing toolchain
-# (codesign / notarytool) and the WWDR intermediates baked into the Xcode image,
-# so it just tracks the latest available image via `.xcode-version`.
-XCODE_VERSION=$(sed -E 's/^~> ?//' .xcode-version)
+# (codesign / notarytool) and the WWDR intermediates baked into the Xcode image.
+# The version comes from `.xcode-version` — first non-comment line, optional `~>`.
+XCODE_VERSION=$(grep -Ev '^[[:space:]]*(#|$)' .xcode-version | head -n1 | sed -E 's/^[[:space:]]*//; s/^~> ?//; s/[[:space:]]*$//')
 export IMAGE_ID="xcode-$XCODE_VERSION"
 
 # TEMPORARY: pinned to the branch adding the macOS `sign_and_notarize` command.

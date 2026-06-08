@@ -1,1 +1,5 @@
-26.5
+# Pinned, not latest. nokogiri 1.19.3 fails to compile from source on the Xcode
+# 26.5 image's clang (gumbo.c: 'nokogiri_gumbo.h' file not found); fastlane pulls
+# nokogiri in transitively via wpmreleasetoolkit. 26.3 builds it. Bump once a
+# newer image compiles nokogiri, or the lockfile moves to precompiled darwin gems.
+26.3
