@@ -214,27 +214,15 @@ GEM
     logger (1.7.0)
     mini_magick (4.13.2)
     mini_mime (1.1.5)
+    mini_portile2 (2.8.9)
     multi_json (1.21.1)
     multipart-post (2.4.1)
     mutex_m (0.3.0)
     nanaimo (0.4.0)
     naturally (2.3.0)
     nkf (0.2.0)
-    nokogiri (1.19.3-aarch64-linux-gnu)
-      racc (~> 1.4)
-    nokogiri (1.19.3-aarch64-linux-musl)
-      racc (~> 1.4)
-    nokogiri (1.19.3-arm-linux-gnu)
-      racc (~> 1.4)
-    nokogiri (1.19.3-arm-linux-musl)
-      racc (~> 1.4)
-    nokogiri (1.19.3-arm64-darwin)
-      racc (~> 1.4)
-    nokogiri (1.19.3-x86_64-darwin)
-      racc (~> 1.4)
-    nokogiri (1.19.3-x86_64-linux-gnu)
-      racc (~> 1.4)
-    nokogiri (1.19.3-x86_64-linux-musl)
+    nokogiri (1.19.3)
+      mini_portile2 (~> 2.8.2)
       racc (~> 1.4)
     octokit (6.1.1)
       faraday (>= 1, < 3)
@@ -304,14 +292,7 @@ GEM
       xcpretty (~> 0.2, >= 0.0.7)
 
 PLATFORMS
-  aarch64-linux-gnu
-  aarch64-linux-musl
-  arm-linux-gnu
-  arm-linux-musl
-  arm64-darwin
-  x86_64-darwin
-  x86_64-linux-gnu
-  x86_64-linux-musl
+  ruby
 
 DEPENDENCIES
   fastlane (~> 2.233)
