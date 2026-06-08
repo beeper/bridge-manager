@@ -24,8 +24,6 @@ ASC_API_KEY_ENV_VARS = %w[
 
 require 'fastlane/plugin/wpmreleasetoolkit'
 
-# wpmreleasetoolkit 14.4+ namespaces this under Fastlane::Wpmreleasetoolkit and
-# exposes no top-level shortcut.
 EnvManager = Fastlane::Wpmreleasetoolkit::EnvManager
 
 before_all do
