@@ -295,8 +295,8 @@ PLATFORMS
   ruby
 
 DEPENDENCIES
-  fastlane (~> 2.233)
-  fastlane-plugin-wpmreleasetoolkit (~> 14.4)
+  fastlane (~> 2.235)
+  fastlane-plugin-wpmreleasetoolkit (~> 14.6)
   multi_json
 
 BUNDLED WITH
