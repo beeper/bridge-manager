@@ -1,0 +1,12 @@
+#!/bin/sh
+
+# Sourced before `buildkite-agent pipeline upload` so the values land in the rendered pipeline.
+
+# bbctl is a Go CLI; the macOS image is only needed for the signing toolchain
+# (codesign / notarytool) and the WWDR intermediates baked into the Xcode image.
+export IMAGE_ID='xcode-26.3'
+
+# TEMPORARY: pinned to the branch adding the macOS `sign_and_notarize` command.
+# Revert to a released tag (>= the version that ships it) before merging.
+CI_TOOLKIT_PLUGIN_VERSION='mokagio/macos-sign-and-notarize'
+export CI_TOOLKIT_PLUGIN="automattic/a8c-ci-toolkit#$CI_TOOLKIT_PLUGIN_VERSION"
