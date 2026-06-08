@@ -59,20 +59,6 @@ jobs:
           path: bbctl-linux-arm64
           if-no-files-found: error
 
-      - name: Upload macos/amd64 artifact
-        uses: actions/upload-artifact@v6
-        with:
-          name: bbctl-macos-amd64
-          path: bbctl-macos-amd64
-          if-no-files-found: error
-
-      - name: Upload macos/arm64 artifact
-        uses: actions/upload-artifact@v6
-        with:
-          name: bbctl-macos-arm64
-          path: bbctl-macos-arm64
-          if-no-files-found: error
-
   build-docker:
     runs-on: ${{ matrix.runs-on }}
     strategy:
