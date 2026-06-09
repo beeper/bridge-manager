@@ -19,7 +19,7 @@ install_gems
 bundle exec fastlane set_up_signing
 
 echo "--- :apple: sign + notarize"
-# sing_and_notarize comes from the CI toolkit plugin
+# sign_and_notarize comes from the CI toolkit plugin
 sign_and_notarize bbctl-macos-amd64 bbctl-macos-arm64
 
 echo "--- :lock: checksums"
