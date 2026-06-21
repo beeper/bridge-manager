@@ -1,0 +1,12 @@
+#!/bin/sh
+
+# Sourced before `buildkite-agent pipeline upload` so the values land in the rendered pipeline.
+
+XCODE_VERSION=$(grep -Ev '^[[:space:]]*(#|$)' .xcode-version | head -n1 | sed -E 's/^[[:space:]]*//; s/^~> ?//; s/[[:space:]]*$//')
+export IMAGE_ID="xcode-$XCODE_VERSION"
+
+# TEMPORARY: pinned to a commit on the `mokagio/macos-sign-and-notarize` branch
+# adding the macOS `sign_and_notarize` command. Revert to a released tag
+# (>= the version that ships it) before merging.
+CI_TOOLKIT_PLUGIN_VERSION='8a67edfc19a7fd04de7033d790bd1a7a4f0f8b4d'
+export CI_TOOLKIT_PLUGIN="automattic/a8c-ci-toolkit#$CI_TOOLKIT_PLUGIN_VERSION"

@@ -1,0 +1,4 @@
+# Pinned: nokogiri 1.19.3 won't compile from source on the Xcode 26.5 image
+# (its clang breaks the bundled gumbo build). 26.3 builds it. Bump once a newer
+# image compiles nokogiri from source (we force the Ruby platform via .bundle/config).
+26.3

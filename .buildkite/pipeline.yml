@@ -1,0 +1,21 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/buildkite/pipeline-schema/main/schema.json
+---
+
+agents:
+  queue: mac
+
+env:
+  IMAGE_ID: $IMAGE_ID
+
+steps:
+  - label: ":apple: Build, sign, notarize macOS binaries"
+    key: sign-macos
+    command: .buildkite/commands/sign-macos-binaries.sh
+    plugins: [$CI_TOOLKIT_PLUGIN]
+    artifact_paths:
+      - bbctl-macos-amd64
+      - bbctl-macos-arm64
+      - sha256sums.txt
+    notify:
+      - github_commit_status:
+          context: Sign & Notarize macOS
