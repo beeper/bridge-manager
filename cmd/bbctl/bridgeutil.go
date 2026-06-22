@@ -21,6 +21,7 @@ type bridgeTypeToNames struct {
 }
 
 var officialBridges = []bridgeTypeToNames{
+	{"ai", []string{"ai", "aichats", "openai"}},
 	{"discord", []string{"discord"}},
 	{"meta", []string{"meta", "instagram", "facebook"}},
 	{"googlechat", []string{"googlechat", "gchat"}},
@@ -54,6 +55,7 @@ var websocketBridges = map[string]bool{
 	"bluesky":      true,
 	"linkedin":     true,
 	"telegram":     true,
+	"ai":           true,
 }
 
 func doOutputFile(ctx *cli.Context, name, data string) error {

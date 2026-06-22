@@ -207,6 +207,7 @@ type generatedBridgeConfig struct {
 
 // These should match the last 2 digits of https://mau.fi/ports
 var bridgeIPSuffix = map[string]string{
+	"ai":         "44",
 	"telegram":   "17",
 	"whatsapp":   "18",
 	"meta":       "19",
@@ -352,6 +353,11 @@ func generateBridgeConfig(ctx *cli.Context) error {
 			startupCommand += " -c " + outputPath
 		}
 		installInstructions = fmt.Sprintf("https://docs.mau.fi/bridges/go/setup.html?bridge=%s#installation", cfg.BridgeType)
+	case "ai":
+		startupCommand = "ai"
+		if outputPath != "config.yaml" && outputPath != "<config file>" {
+			startupCommand += " -c " + outputPath
+		}
 	case "imessagego":
 		startupCommand = "beeper-imessage"
 		if outputPath != "config.yaml" && outputPath != "<config file>" {
