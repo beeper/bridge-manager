@@ -1,6 +1,7 @@
 package main
 
 import (
+	"cmp"
 	"encoding/json"
 	"fmt"
 	"os"
@@ -69,6 +70,29 @@ type RegisterJSON struct {
 	YourUserID       id.UserID                `json:"your_user_id"`
 }
 
+var registerBridgeTypeMap = map[string]string{
+	"slack":     "slackgo",
+	"discord":   "discordgo",
+	"instagram": "instagramgo",
+	"facebook":  "facebookgo",
+}
+
+var reverseRegisterBridgeTypeMap = make(map[string]string, len(registerBridgeTypeMap))
+
+func init() {
+	for k, v := range registerBridgeTypeMap {
+		reverseRegisterBridgeTypeMap[v] = k
+	}
+}
+
+func toInternalBridgeType(typeName string) string {
+	return cmp.Or(reverseRegisterBridgeTypeMap[typeName], typeName)
+}
+
+func toCloudBridgeType(typeName string) string {
+	return cmp.Or(registerBridgeTypeMap[typeName], typeName)
+}
+
 func doRegisterBridge(ctx *cli.Context, bridge, bridgeType string, onlyGet bool) (*RegisterJSON, error) {
 	whoami, err := getCachedWhoami(ctx)
 	if err != nil {
@@ -107,6 +131,7 @@ func doRegisterBridge(ctx *cli.Context, bridge, bridgeType string, onlyGet bool)
 	// Remove the explicit bot user namespace (same as sender_localpart)
 	resp.Namespaces.UserIDs = resp.Namespaces.UserIDs[0:1]
 
+	bridgeType = toCloudBridgeType(bridgeType)
 	state := status.StateRunning
 	if (bridgeType != "" && bridgeType != "heisenbridge") || bridge == "androidsms" || bridge == "imessagecloud" || bridge == "imessage" {
 		state = status.StateStarting

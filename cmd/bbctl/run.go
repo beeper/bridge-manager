@@ -270,13 +270,13 @@ func runBridge(ctx *cli.Context) error {
 		if !ok || existingBridge.BridgeState.BridgeType == "" {
 			log.Printf("Existing bridge type not found, falling back to generating new config")
 			doWriteConfig = true
-		} else if reg, err := doRegisterBridge(ctx, bridgeName, existingBridge.BridgeState.BridgeType, true); err != nil {
+		} else if reg, err := doRegisterBridge(ctx, bridgeName, toInternalBridgeType(existingBridge.BridgeState.BridgeType), true); err != nil {
 			log.Printf("Failed to get existing bridge registration: %v", err)
 			log.Printf("Falling back to generating new config")
 			doWriteConfig = true
 		} else {
 			cfg = &generatedBridgeConfig{
-				BridgeType:   existingBridge.BridgeState.BridgeType,
+				BridgeType:   toInternalBridgeType(existingBridge.BridgeState.BridgeType),
 				RegisterJSON: reg,
 			}
 		}
