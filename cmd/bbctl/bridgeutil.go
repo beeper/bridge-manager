@@ -22,7 +22,8 @@ type bridgeTypeToNames struct {
 
 var officialBridges = []bridgeTypeToNames{
 	{"discord", []string{"discord"}},
-	{"meta", []string{"meta", "instagram", "facebook"}},
+	{"meta", []string{"meta", "facebook"}},
+	{"instagram", []string{"instagram"}},
 	{"googlechat", []string{"googlechat", "gchat"}},
 	{"imessagego", []string{"imessagego"}},
 	{"imessage", []string{"imessage"}},
@@ -50,6 +51,7 @@ var websocketBridges = map[string]bool{
 	"signal":       true,
 	"bridgev2":     true,
 	"meta":         true,
+	"instagram":    true,
 	"twitter":      true,
 	"bluesky":      true,
 	"linkedin":     true,

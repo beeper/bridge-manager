@@ -76,15 +76,13 @@ func coloredBridgeState(state status.BridgeStateEvent) string {
 	}
 }
 
-var bridgeImageRegex = regexp.MustCompile(`^docker\.beeper-tools\.com/(?:bridge/)?([a-z]+):(v2-)?([0-9a-f]{40})(?:-amd64)?$`)
+var bridgeImageRegex = regexp.MustCompile(`^docker\.beeper-tools\.com/(?:bridge/)?([a-z]+):(v2-|ig-)?([0-9a-f]{40})(?:-amd64)?$`)
 
 var dockerToGitRepo = map[string]string{
 	"hungryserv":  "https://github.com/beeper/hungryserv/commit/%s",
 	"discordgo":   "https://github.com/mautrix/discord/commit/%s",
 	"dummybridge": "https://github.com/beeper/dummybridge/commit/%s",
-	"facebook":    "https://github.com/mautrix/facebook/commit/%s",
 	"googlechat":  "https://github.com/mautrix/googlechat/commit/%s",
-	"instagram":   "https://github.com/mautrix/instagram/commit/%s",
 	"meta":        "https://github.com/mautrix/meta/commit/%s",
 	"linkedin":    "https://github.com/mautrix/linkedin/commit/%s",
 	"signal":      "https://github.com/mautrix/signal/commit/%s",

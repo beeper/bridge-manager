@@ -213,6 +213,7 @@ var bridgeIPSuffix = map[string]string{
 	"googlechat": "20",
 	"twitter":    "27",
 	"signal":     "28",
+	"instagram":  "30",
 	"discord":    "34",
 	"slack":      "35",
 	"gmessages":  "36",
@@ -346,7 +347,7 @@ func generateBridgeConfig(ctx *cli.Context) error {
 	}
 	var startupCommand, installInstructions string
 	switch cfg.BridgeType {
-	case "imessage", "whatsapp", "discord", "slack", "gmessages", "gvoice", "signal", "meta", "twitter", "bluesky", "linkedin":
+	case "imessage", "whatsapp", "discord", "slack", "gmessages", "gvoice", "signal", "meta", "instagram", "twitter", "bluesky", "linkedin":
 		startupCommand = fmt.Sprintf("mautrix-%s", cfg.BridgeType)
 		if outputPath != "config.yaml" && outputPath != "<config file>" {
 			startupCommand += " -c " + outputPath

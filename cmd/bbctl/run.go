@@ -309,13 +309,15 @@ func runBridge(ctx *cli.Context) error {
 	var needsWebsocketProxy bool
 	switch cfg.BridgeType {
 	case "imessage", "imessagego", "whatsapp", "discord", "slack", "gmessages", "gvoice",
-		"signal", "meta", "twitter", "bluesky", "linkedin", "telegram":
+		"signal", "meta", "instagram", "twitter", "bluesky", "linkedin", "telegram":
 		ciBridgeType := cfg.BridgeType
 		binaryName := fmt.Sprintf("mautrix-%s", cfg.BridgeType)
 		ciV2 := false
 		switch cfg.BridgeType {
 		case "imessagego":
 			binaryName = "beeper-imessage"
+		case "instagram":
+			ciBridgeType = "meta"
 		}
 		bridgeCmd = filepath.Join(dataDir, "binaries", binaryName)
 		if localDev && overrideBridgeCmd == "" {
