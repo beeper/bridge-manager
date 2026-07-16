@@ -1,3 +1,10 @@
+# v0.15.0 (2026-07-16)
+
+* Switched Telegram bridge back to main repo.
+* Switched to new Instagram bridge.
+* Improved error message when logging into non-existent accounts.
+* Added notarization for macOS binary.
+
 # v0.14.0 (2026-02-24)
 
 * Switched LinkedIn and Telegram to v2.
