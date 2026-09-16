@@ -45,17 +45,25 @@ const defaultReconnectBackoff = 2 * time.Second
 const maxReconnectBackoff = 2 * time.Minute
 const reconnectBackoffReset = 5 * time.Minute
 
-func runAppserviceWebsocket(ctx context.Context, doneCallback func(), as *appservice.AppService) {
+func runAppserviceWebsocket(ctx context.Context, doneCallback func(), as *appservice.AppService, stateProxy *bridgeStateProxy) {
 	defer doneCallback()
 	reconnectBackoff := defaultReconnectBackoff
 	lastDisconnect := time.Now()
 	for {
 		err := as.StartWebsocket(ctx, "", func() {
-			// TODO support states properly instead of just sending unconfigured
-			_ = as.SendWebsocket(ctx, &appservice.WebsocketRequest{
-				Command: "bridge_status",
-				Data:    &status.BridgeState{StateEvent: status.StateUnconfigured},
-			})
+			if stateProxy != nil {
+				// Python bridges report state via the HTTP status_endpoint, which
+				// the bridge state proxy caches and forwards over this websocket.
+				// Replay the cached per-remote states on (re)connect so Beeper
+				// retains the correct Space/Account across transient disconnects.
+				stateProxy.replayStates(ctx, as)
+			} else {
+				// TODO support states properly instead of just sending unconfigured
+				_ = as.SendWebsocket(ctx, &appservice.WebsocketRequest{
+					Command: "bridge_status",
+					Data:    &status.BridgeState{StateEvent: status.StateUnconfigured},
+				})
+			}
 		})
 		if errors.Is(err, appservice.ErrWebsocketManualStop) {
 			return
@@ -255,7 +263,7 @@ func proxyAppserviceWebsocket(ctx *cli.Context) error {
 	wsCtx, cancel := context.WithCancel(ctx.Context)
 	var wg sync.WaitGroup
 	wg.Add(2)
-	go runAppserviceWebsocket(wsCtx, wg.Done, as)
+	go runAppserviceWebsocket(wsCtx, wg.Done, as, nil)
 	go keepaliveAppserviceWebsocket(wsCtx, wg.Done, as)
 
 	<-c

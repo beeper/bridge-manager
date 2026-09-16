@@ -15,7 +15,10 @@ homeserver:
     # The URL to push real-time bridge status to.
     # If set, the bridge will make POST requests to this URL whenever a user's Google Chat connection state changes.
     # The bridge will use the appservice as_token to authorize requests.
-    status_endpoint: null
+    # When run via bbctl, this points at bbctl's local state receiver, which
+    # forwards the state over the appservice websocket so Beeper can show the
+    # account in the app.
+    status_endpoint: {{ .StatusEndpoint }}
     # Endpoint for reporting per-message status.
     message_send_checkpoint_endpoint: null
     # Whether asynchronous uploads via MSC2246 should be enabled for media.

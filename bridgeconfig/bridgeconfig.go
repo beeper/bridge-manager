@@ -29,6 +29,11 @@ type Params struct {
 	ListenAddr string
 	ListenPort uint16
 
+	// StatusEndpoint, when non-empty, is written to the bridge config's
+	// status_endpoint so a Python bridge reports per-remote state to bbctl's
+	// local state receiver instead of to Beeper (which rejects it).
+	StatusEndpoint string
+
 	AppserviceID string
 	ASToken      string
 	HSToken      string

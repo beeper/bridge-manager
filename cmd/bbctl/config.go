@@ -245,8 +245,16 @@ func doGenerateBridgeConfig(ctx *cli.Context, bridge string) (*generatedBridgeCo
 	websocket := websocketBridges[bridgeType]
 	var listenAddress string
 	var listenPort uint16
+	var statusEndpoint string
 	if !websocket {
 		listenAddress, listenPort, reg.Registration.URL = getBridgeWebsocketProxyConfig(bridge, bridgeType)
+		// Python bridges (e.g. googlechat) report per-remote state over HTTP.
+		// Point their status_endpoint at bbctl's local state receiver
+		// (appservice port + 1), which forwards it over the appservice
+		// websocket so Beeper Desktop can build the Space/Account.
+		if bridgeType == "googlechat" {
+			statusEndpoint = fmt.Sprintf("http://%s:%d/bridge_state", listenAddress, listenPort+1)
+		}
 	}
 	cfg, err := bridgeconfig.Generate(bridgeType, bridgeconfig.Params{
 		HungryAddress:  reg.HomeserverURL,
@@ -261,8 +269,9 @@ func doGenerateBridgeConfig(ctx *cli.Context, bridge string) (*generatedBridgeCo
 		Params:         extraParams,
 		DatabasePrefix: dbPrefix,
 
-		ListenAddr: listenAddress,
-		ListenPort: listenPort,
+		ListenAddr:     listenAddress,
+		ListenPort:     listenPort,
+		StatusEndpoint: statusEndpoint,
 
 		ProvisioningSecret: whoami.User.AsmuxData.LoginToken,
 	})

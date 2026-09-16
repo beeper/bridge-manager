@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"io/fs"
+	"net"
 	"os"
 	"os/exec"
 	"os/signal"
@@ -394,24 +395,43 @@ func runBridge(ctx *cli.Context) error {
 	var as *appservice.AppService
 	var wg sync.WaitGroup
 	var cancelWS context.CancelFunc
+	var stateListener net.Listener
 	wsProxyClosed := make(chan struct{})
 	if needsWebsocketProxy {
 		if cfg.Registration.URL == "" || cfg.Registration.URL == "websocket" {
 			_, _, cfg.Registration.URL = getBridgeWebsocketProxyConfig(bridgeName, cfg.BridgeType)
 		}
-		wg.Add(2)
-		log.Printf("Starting websocket proxy")
 		as = appservice.Create()
 		as.Registration = cfg.Registration
 		as.HomeserverDomain = "beeper.local"
 		prepareAppserviceWebsocketProxy(ctx, as)
+
+		// Python bridges (e.g. googlechat) report per-remote state over HTTP
+		// (their status_endpoint) rather than the appservice websocket, so
+		// Beeper never sees their Space/Account. Start a state proxy on
+		// appservice-port+1 that receives those POSTs and forwards them over
+		// the websocket. Bind synchronously before the bridge starts so the
+		// initial CONNECTED state is not missed.
+		stateProxy := newBridgeStateProxy(as)
+		stateListener, err = listenBridgeStateReceiver(cfg.Registration.URL)
+		if err != nil {
+			return fmt.Errorf("failed to start bridge state receiver: %w", err)
+		}
+		log.Printf("Starting bridge state receiver on %s", stateListener.Addr())
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			stateProxy.serveBridgeStateReceiver(stateListener)
+		}()
+
 		var wsCtx context.Context
 		wsCtx, cancelWS = context.WithCancel(ctx.Context)
 		defer cancelWS()
+		wg.Add(2)
 		go runAppserviceWebsocket(wsCtx, func() {
 			wg.Done()
 			close(wsProxyClosed)
-		}, as)
+		}, as, stateProxy)
 		go keepaliveAppserviceWebsocket(wsCtx, wg.Done, as)
 	}
 
@@ -459,6 +479,9 @@ func runBridge(ctx *cli.Context) error {
 	}
 	if cancelWS != nil {
 		cancelWS()
+	}
+	if stateListener != nil {
+		_ = stateListener.Close()
 	}
 	if err != nil {
 		return err
