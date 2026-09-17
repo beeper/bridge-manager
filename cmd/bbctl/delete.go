@@ -34,7 +34,7 @@ var deleteCommand = &cli.Command{
 		&cli.BoolFlag{
 			Name:    "force",
 			Aliases: []string{"f"},
-			Usage:   "Force delete the bridge, even if it's not self-hosted or doesn't seem to exist.",
+			Usage:   "Force delete the bridge without confirmation, even if it's not self-hosted or doesn't seem to exist.",
 		},
 	},
 }
@@ -79,12 +79,14 @@ func deleteBridge(ctx *cli.Context) error {
 		}
 	}
 
-	var confirmation bool
-	err = survey.AskOne(&survey.Confirm{Message: fmt.Sprintf("Are you sure you want to permanently delete %s?", bridge)}, &confirmation)
-	if err != nil {
-		return err
-	} else if !confirmation {
-		return fmt.Errorf("bridge delete cancelled")
+	if !ctx.Bool("force") {
+		var confirmation bool
+		err = survey.AskOne(&survey.Confirm{Message: fmt.Sprintf("Are you sure you want to permanently delete %s?", bridge)}, &confirmation)
+		if err != nil {
+			return err
+		} else if !confirmation {
+			return fmt.Errorf("bridge delete cancelled")
+		}
 	}
 	err = beeperapi.DeleteBridge(homeserver, bridge, accessToken)
 	if err != nil {
