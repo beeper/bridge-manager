@@ -300,4 +300,4 @@ DEPENDENCIES
   fastlane-plugin-wpmreleasetoolkit (~> 14.6)
 
 BUNDLED WITH
-   2.5.11
+   4.0.22
