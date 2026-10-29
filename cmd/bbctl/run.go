@@ -213,6 +213,19 @@ func setupPythonVenv(ctx context.Context, bridgeDir, bridgeType string, localDev
 	return venvPath, nil
 }
 
+func hasLocalDatabase(bridgeDir string) bool {
+	items, err := os.ReadDir(bridgeDir)
+	if err != nil {
+		return false
+	}
+	for _, item := range items {
+		if strings.HasSuffix(item.Name(), ".db") {
+			return true
+		}
+	}
+	return false
+}
+
 func makeCmd(ctx context.Context, pwd, path string, args ...string) *exec.Cmd {
 	cmd := exec.CommandContext(ctx, path, args...)
 	cmd.Dir = pwd
@@ -254,6 +267,19 @@ func runBridge(ctx *cli.Context) error {
 	err = os.MkdirAll(filepath.Join(bridgeDir, "logs"), 0700)
 	if err != nil {
 		return err
+	}
+
+	if !localDev && hasLocalDatabase(bridgeDir) {
+		whoami, err := getCachedWhoami(ctx)
+		if err != nil {
+			return fmt.Errorf("failed to get whoami: %w", err)
+		}
+		if existing, ok := whoami.User.Bridges[bridgeName]; !ok || existing.BridgeState.StateEvent == "DELETED" {
+			return UserError{fmt.Sprintf(
+				"%s was deleted from your Beeper account, but its old database is still in %s. Run `bbctl delete %s` (or remove that directory) to clear it, then run the bridge again.",
+				bridgeName, bridgeDir, bridgeName,
+			)}
+		}
 	}
 
 	configFileName := ctx.String("config-file")
