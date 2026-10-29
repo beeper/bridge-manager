@@ -269,7 +269,7 @@ func runBridge(ctx *cli.Context) error {
 		return err
 	}
 
-	if !localDev && hasLocalDatabase(bridgeDir) {
+	if !localDev && !ctx.Bool("no-state") && hasLocalDatabase(bridgeDir) {
 		whoami, err := getCachedWhoami(ctx)
 		if err != nil {
 			return fmt.Errorf("failed to get whoami: %w", err)
