@@ -276,8 +276,8 @@ func runBridge(ctx *cli.Context) error {
 		}
 		if existing, ok := whoami.User.Bridges[bridgeName]; !ok || existing.BridgeState.StateEvent == "DELETED" {
 			return UserError{fmt.Sprintf(
-				"%s was deleted from your Beeper account, but its old database is still in %s. Run `bbctl delete %s` (or remove that directory) to clear it, then run the bridge again.",
-				bridgeName, bridgeDir, bridgeName,
+				"%s was deleted from your Beeper account, but its old database is still in %s. Delete that directory to start fresh, then run the bridge again.",
+				bridgeName, bridgeDir,
 			)}
 		}
 	}
