@@ -25,12 +25,17 @@ import (
 const getLastSuccessfulJobQuery = `
 query($repo: ID!, $ref: String!, $job: String!, $updatedBefore: Time) {
   project(fullPath: $repo) {
-    pipelines(status: SUCCESS, ref: $ref, first: 1, updatedBefore: $updatedBefore) {
+    pipelines(status: SUCCESS, ref: $ref, first: 20, updatedBefore: $updatedBefore) {
       nodes {
         sha
         updatedAt
         job(name: $job) {
           webPath
+          artifacts {
+            nodes {
+              fileType
+            }
+          }
         }
       }
     }
@@ -78,8 +83,17 @@ func GetLastBuild(domain, repo, mainBranch, job string, updatedBefore time.Time)
 	return lastBuildFromResponse(resp)
 }
 
+// lastBuildFromResponse picks the newest pipeline whose job still has its artifact archive.
+// mau.dev expires artifacts after 30 days, so with a minimum age the newest old enough
+// pipeline may no longer be downloadable.
 func lastBuildFromResponse(resp json.RawMessage) (*LastBuild, error) {
-	res := gjson.GetBytes(resp, "project.pipelines.nodes.0")
+	var res gjson.Result
+	for _, node := range gjson.GetBytes(resp, "project.pipelines.nodes").Array() {
+		if node.Get("job.webPath").Str != "" && hasArtifactArchive(node) {
+			res = node
+			break
+		}
+	}
 	if !res.Exists() {
 		return nil, ErrNoBuild
 	}
@@ -290,6 +304,15 @@ func DownloadMautrixBridgeBinary(ctx context.Context, bridge, path string, v2, n
 	log.Printf("Successfully installed [cyan]%s[reset] commit %s", fileName, linkifyCommit(repo, build.Commit))
 	logUsingBuild(fileName, repo, build.Commit, build.UpdatedAt, "pipeline finished", minAge)
 	return nil
+}
+
+func hasArtifactArchive(pipeline gjson.Result) bool {
+	for _, artifact := range pipeline.Get("job.artifacts.nodes").Array() {
+		if artifact.Get("fileType").Str == "ARCHIVE" {
+			return true
+		}
+	}
+	return false
 }
 
 // logUsingBuild logs which build will run, so the effect of --min-age is visible in the logs.
