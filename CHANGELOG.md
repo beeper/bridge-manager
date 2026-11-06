@@ -1,3 +1,7 @@
+# unreleased
+
+* Added `--min-age` / `BEEPER_BRIDGE_MIN_AGE` to delay installing new bridge builds.
+
 # v0.15.0 (2026-07-16)
 
 * Switched Telegram bridge back to main repo.

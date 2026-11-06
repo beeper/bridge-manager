@@ -2,6 +2,7 @@ package gitlab
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
@@ -10,6 +11,7 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
+	"time"
 
 	"github.com/fatih/color"
 	"github.com/schollz/progressbar/v3"
@@ -21,13 +23,19 @@ import (
 
 // language=graphql
 const getLastSuccessfulJobQuery = `
-query($repo: ID!, $ref: String!, $job: String!) {
+query($repo: ID!, $ref: String!, $job: String!, $updatedBefore: Time) {
   project(fullPath: $repo) {
-    pipelines(status: SUCCESS, ref: $ref, first: 1) {
+    pipelines(status: SUCCESS, ref: $ref, first: 20, updatedBefore: $updatedBefore) {
       nodes {
         sha
+        updatedAt
         job(name: $job) {
           webPath
+          artifacts {
+            nodes {
+              fileType
+            }
+          }
         }
       }
     }
@@ -36,33 +44,71 @@ query($repo: ID!, $ref: String!, $job: String!) {
 `
 
 type lastSuccessfulJobQueryVariables struct {
-	Repo string `json:"repo"`
-	Ref  string `json:"ref"`
-	Job  string `json:"job"`
+	Repo          string     `json:"repo"`
+	Ref           string     `json:"ref"`
+	Job           string     `json:"job"`
+	UpdatedBefore *time.Time `json:"updatedBefore,omitempty"`
 }
+
+func newLastSuccessfulJobQueryVariables(repo, ref, job string, updatedBefore time.Time) lastSuccessfulJobQueryVariables {
+	vars := lastSuccessfulJobQueryVariables{
+		Repo: repo,
+		Ref:  ref,
+		Job:  job,
+	}
+	if !updatedBefore.IsZero() {
+		utc := updatedBefore.UTC()
+		vars.UpdatedBefore = &utc
+	}
+	return vars
+}
+
+// ErrNoBuild is returned by GetLastBuild when no successful pipeline matches the query.
+var ErrNoBuild = errors.New("no successful build found")
 
 type LastBuild struct {
 	Commit string
 	JobURL string
+	// UpdatedAt is when the pipeline was last updated, which is when it finished for a successful pipeline.
+	UpdatedAt time.Time
 }
 
-func GetLastBuild(domain, repo, mainBranch, job string) (*LastBuild, error) {
-	resp, err := graphqlQuery(domain, getLastSuccessfulJobQuery, lastSuccessfulJobQueryVariables{
-		Repo: repo,
-		Ref:  mainBranch,
-		Job:  job,
-	})
+// GetLastBuild finds the newest successful pipeline on the given branch.
+// If updatedBefore is not zero, only pipelines last updated before that time are considered.
+func GetLastBuild(domain, repo, mainBranch, job string, updatedBefore time.Time) (*LastBuild, error) {
+	resp, err := graphqlQuery(domain, getLastSuccessfulJobQuery, newLastSuccessfulJobQueryVariables(repo, mainBranch, job, updatedBefore))
 	if err != nil {
 		return nil, err
 	}
-	res := gjson.GetBytes(resp, "project.pipelines.nodes.0")
-	if !res.Exists() {
-		return nil, fmt.Errorf("didn't get pipeline info in response")
+	return lastBuildFromResponse(resp)
+}
+
+// lastBuildFromResponse picks the newest pipeline whose job still has its artifact archive.
+// mau.dev expires artifacts after 30 days, so with a minimum age the newest old enough
+// pipeline may no longer be downloadable.
+func lastBuildFromResponse(resp json.RawMessage) (*LastBuild, error) {
+	var res gjson.Result
+	for _, node := range gjson.GetBytes(resp, "project.pipelines.nodes").Array() {
+		if node.Get("job.webPath").Str != "" && hasArtifactArchive(node) {
+			res = node
+			break
+		}
 	}
-	return &LastBuild{
+	if !res.Exists() {
+		return nil, ErrNoBuild
+	}
+	build := &LastBuild{
 		Commit: gjson.Get(res.Raw, "sha").Str,
 		JobURL: gjson.Get(res.Raw, "job.webPath").Str,
-	}, nil
+	}
+	if updatedAt := gjson.Get(res.Raw, "updatedAt").Str; updatedAt != "" {
+		parsed, err := time.Parse(time.RFC3339, updatedAt)
+		if err != nil {
+			return nil, fmt.Errorf("failed to parse pipeline update time: %w", err)
+		}
+		build.UpdatedAt = parsed
+	}
+	return build, nil
 }
 
 func getRefFromBridge(bridge string) (string, error) {
@@ -173,7 +219,12 @@ func needsLibolmDylib(bridge string) bool {
 	}
 }
 
-func DownloadMautrixBridgeBinary(ctx context.Context, bridge, path string, v2, noUpdate bool, branchOverride, currentCommit string) error {
+// DownloadMautrixBridgeBinary installs or updates a mautrix bridge binary from the mau.dev CI.
+//
+// If minAge is greater than zero, only builds whose pipeline finished at least
+// minAge ago are considered, and the installed binary is never replaced by an
+// older build. See DecideUpdate for the exact rules.
+func DownloadMautrixBridgeBinary(ctx context.Context, bridge, path string, v2, noUpdate bool, branchOverride string, installed InstalledBuild, minAge time.Duration) error {
 	domain := "mau.dev"
 	repo := fmt.Sprintf("mautrix/%s", bridge)
 	fileName := filepath.Base(path)
@@ -192,28 +243,47 @@ func DownloadMautrixBridgeBinary(ctx context.Context, bridge, path string, v2, n
 		job += " v2"
 	}
 
-	if currentCommit == "" {
+	if !installed.exists() {
 		log.Printf("Finding latest version of [cyan]%s[reset] from [cyan]%s[reset]", fileName, domain)
 	} else {
 		log.Printf("Checking for updates to [cyan]%s[reset] from [cyan]%s[reset]", fileName, domain)
 	}
-	build, err := GetLastBuild(domain, repo, ref, job)
-	if err != nil {
-		return fmt.Errorf("failed to get last build info: %w", err)
+	var updatedBefore time.Time
+	if minAge > 0 {
+		updatedBefore = time.Now().Add(-minAge)
+		log.Printf("Only considering builds that finished before [cyan]%s[reset] (min age %s)", updatedBefore.UTC().Format(time.RFC3339), minAge)
 	}
-	if build.Commit == currentCommit {
-		log.Printf("[cyan]%s[reset] is up to date (commit: %s)", fileName, linkifyCommit(repo, currentCommit))
+	build, lookupErr := GetLastBuild(domain, repo, ref, job, updatedBefore)
+	action, reason := DecideUpdate(installed, build, lookupErr, minAge)
+	switch action {
+	case ActionFail:
+		if minAge <= 0 {
+			return fmt.Errorf("failed to get last build info: %w", lookupErr)
+		}
+		return errors.New(reason)
+	case ActionKeep:
+		if lookupErr != nil {
+			log.Printf("[cyan]%s[reset] [yellow]%s[reset]", fileName, reason)
+		} else if build.Commit == installed.Commit {
+			log.Printf("[cyan]%s[reset] is up to date (commit: %s)", fileName, linkifyCommit(repo, installed.Commit))
+		} else {
+			log.Printf("[cyan]%s[reset] [yellow]%s (installed: %s, candidate: %s)[reset]", fileName, reason, linkifyCommit(repo, installed.Commit), linkifyCommit(repo, build.Commit))
+		}
+		logUsingBuild(fileName, repo, installed.Commit, installed.BuildTime, "built", minAge)
 		return nil
-	} else if currentCommit != "" && noUpdate {
-		log.Printf("[cyan]%s[reset] [yellow]is out of date, latest commit is %s (diff: %s)[reset]", fileName, linkifyCommit(repo, build.Commit), linkifyDiff(repo, currentCommit, build.Commit))
+	}
+
+	if installed.exists() && noUpdate {
+		log.Printf("[cyan]%s[reset] [yellow]is out of date, latest commit is %s (diff: %s)[reset]", fileName, linkifyCommit(repo, build.Commit), linkifyDiff(repo, installed.Commit, build.Commit))
+		logUsingBuild(fileName, repo, installed.Commit, installed.BuildTime, "built", minAge)
 		return nil
 	} else if build.JobURL == "" {
 		return fmt.Errorf("failed to find URL for job %q on branch %s of %s", job, ref, repo)
 	}
-	if currentCommit == "" {
+	if !installed.exists() {
 		log.Printf("Installing [cyan]%s[reset] (commit: %s)", fileName, linkifyCommit(repo, build.Commit))
 	} else {
-		log.Printf("Updating [cyan]%s[reset] (diff: %s)", fileName, linkifyDiff(repo, currentCommit, build.Commit))
+		log.Printf("Updating [cyan]%s[reset] (diff: %s)", fileName, linkifyDiff(repo, installed.Commit, build.Commit))
 	}
 	artifactURL := makeArtifactURL(domain, build.JobURL, fileName)
 	err = downloadFile(ctx, artifactURL, path)
@@ -232,5 +302,24 @@ func DownloadMautrixBridgeBinary(ctx context.Context, bridge, path string, v2, n
 	}
 
 	log.Printf("Successfully installed [cyan]%s[reset] commit %s", fileName, linkifyCommit(repo, build.Commit))
+	logUsingBuild(fileName, repo, build.Commit, build.UpdatedAt, "pipeline finished", minAge)
 	return nil
+}
+
+func hasArtifactArchive(pipeline gjson.Result) bool {
+	for _, artifact := range pipeline.Get("job.artifacts.nodes").Array() {
+		if artifact.Get("fileType").Str == "ARCHIVE" {
+			return true
+		}
+	}
+	return false
+}
+
+// logUsingBuild logs which build will run, so the effect of --min-age is visible in the logs.
+func logUsingBuild(fileName, repo, commit string, at time.Time, atLabel string, minAge time.Duration) {
+	when := "unknown"
+	if !at.IsZero() {
+		when = at.UTC().Format(time.RFC3339)
+	}
+	log.Printf("Using [cyan]%s[reset] commit %s (%s %s, min age %s)", fileName, linkifyCommit(repo, commit), atLabel, when, minAge)
 }
