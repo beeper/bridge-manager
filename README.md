@@ -103,6 +103,7 @@ used with the `--type` flag.
 | [beeper-imessage]    | imessagego                           |
 | [mautrix-linkedin]   | linkedin                             |
 | [heisenbridge]       | heisenbridge, irc                    |
+| [ai]                 | ai, aichats, openai                  |
 
 [mautrix-telegram]: https://github.com/mautrix/telegram
 [mautrix-whatsapp]: https://github.com/mautrix/whatsapp
@@ -119,6 +120,7 @@ used with the `--type` flag.
 [beeper-imessage]: https://github.com/beeper/imessage
 [mautrix-linkedin]: https://github.com/mautrix/linkedin
 [heisenbridge]: https://github.com/hifi/heisenbridge
+[ai]: https://github.com/beeper/ai-bridge
 
 ### 3rd party bridgev2-based bridges
 If you have a 3rd party bridge that's built on top of mautrix-go's bridgev2
