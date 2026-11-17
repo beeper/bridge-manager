@@ -2,7 +2,12 @@
 
 UI.user_error!('Please run fastlane via `bundle exec`') unless FastlaneCore::Helper.bundler?
 
+require 'fileutils'
+
+PROJECT_ROOT_FOLDER = File.dirname(File.expand_path(__dir__))
+
 APPLE_TEAM_ID = 'PZYM8XX95Q'
+SIGNING_IDENTITY = "Developer ID Application: Automattic, Inc. (#{APPLE_TEAM_ID})"
 
 CODE_SIGNING_STORAGE_OPTIONS = {
   storage_mode: 's3',
@@ -49,4 +54,32 @@ lane :set_up_signing do |readonly: true|
     readonly: readonly,
     **CODE_SIGNING_STORAGE_OPTIONS
   )
+end
+
+desc 'Sign macOS binaries with the Developer ID certificate, verify them, and notarize them. Run `set_up_signing` first'
+lane :sign_and_notarize do |binaries:|
+  ASC_API_KEY_ENV_VARS.each { |k| EnvManager.get_required_env!(k) }
+
+  paths = binaries.split(',').map { |binary| File.absolute_path(binary, PROJECT_ROOT_FOLDER) }
+
+  paths.each do |path|
+    sh('codesign', '--sign', SIGNING_IDENTITY, '--options', 'runtime', '--timestamp', '--force', path)
+  end
+
+  # A bare binary can't be stapled, and Gatekeeper's online lookup lags a fresh submission.
+  macos_verify_code_signing(
+    artifact_path: paths,
+    expected_authority: SIGNING_IDENTITY,
+    verify_hardened_runtime: true,
+    verify_notarization: false
+  )
+
+  api_key = app_store_connect_api_key
+  paths.each do |path|
+    # `notarytool` only takes archives, and `notarize` only archives `.app` bundles itself.
+    archive = "#{path}.zip"
+    sh('ditto', '-c', '-k', '--keepParent', path, archive)
+    notarize(package: archive, skip_stapling: true, api_key: api_key, print_log: true)
+    FileUtils.rm_f(archive)
+  end
 end
