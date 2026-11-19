@@ -224,10 +224,7 @@ func DownloadMautrixBridgeBinary(ctx context.Context, bridge, path string, v2, n
 		libolmPath := filepath.Join(filepath.Dir(path), "libolm.3.dylib")
 		// TODO redownload libolm if it's outdated?
 		if _, err = os.Stat(libolmPath); err != nil {
-			err = downloadFile(ctx, makeArtifactURL(domain, build.JobURL, "libolm.3.dylib"), libolmPath)
-			if err != nil {
-				return fmt.Errorf("failed to download libolm: %w", err)
-			}
+			_ = downloadFile(ctx, makeArtifactURL(domain, build.JobURL, "libolm.3.dylib"), libolmPath)
 		}
 	}
 
