@@ -5,5 +5,5 @@
 XCODE_VERSION=$(grep -Ev '^[[:space:]]*(#|$)' .xcode-version | head -n1 | sed -E 's/^[[:space:]]*//; s/^~> ?//; s/[[:space:]]*$//')
 export IMAGE_ID="xcode-$XCODE_VERSION"
 
-CI_TOOLKIT_PLUGIN_VERSION='7.2.0'
+CI_TOOLKIT_PLUGIN_VERSION='8.0.1'
 export CI_TOOLKIT_PLUGIN="automattic/a8c-ci-toolkit#$CI_TOOLKIT_PLUGIN_VERSION"
