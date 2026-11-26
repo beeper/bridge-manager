@@ -46,6 +46,12 @@ var runCommand = &cli.Command{
 			Usage:   "Don't update the bridge even if it is out of date.",
 			EnvVars: []string{"BEEPER_BRIDGE_NO_UPDATE"},
 		},
+		&cli.StringFlag{
+			Name:    "min-age",
+			EnvVars: []string{"BEEPER_BRIDGE_MIN_AGE"},
+			Value:   "0",
+			Usage:   "Only install bridge builds whose CI pipeline finished at least this long ago (e.g. 7d or 168h). 0 installs the latest build.",
+		},
 		&cli.BoolFlag{
 			Name:    "local-dev",
 			Aliases: []string{"l"},
@@ -105,7 +111,7 @@ type VersionJSONOutput struct {
 	}
 }
 
-func updateGoBridge(ctx context.Context, binaryPath, bridgeType string, v2, noUpdate bool) error {
+func updateGoBridge(ctx context.Context, binaryPath, bridgeType string, v2, noUpdate bool, minAge time.Duration) error {
 	var currentVersion VersionJSONOutput
 
 	err := os.MkdirAll(filepath.Dir(binaryPath), 0700)
@@ -120,7 +126,15 @@ func updateGoBridge(ctx context.Context, binaryPath, bridgeType string, v2, noUp
 			log.Printf("Failed to get parse bridge version: [red]%v[reset] - reinstalling", err)
 		}
 	}
-	return gitlab.DownloadMautrixBridgeBinary(ctx, bridgeType, binaryPath, v2, noUpdate, "", currentVersion.Commit)
+	installed := gitlab.InstalledBuild{Commit: currentVersion.Commit}
+	if currentVersion.BuildTime != "" {
+		if buildTime, err := time.Parse(time.RFC3339, currentVersion.BuildTime); err == nil {
+			installed.BuildTime = buildTime
+		} else {
+			log.Printf("Failed to parse current bridge build time %q: [red]%v[reset]", currentVersion.BuildTime, err)
+		}
+	}
+	return gitlab.DownloadMautrixBridgeBinary(ctx, bridgeType, binaryPath, v2, noUpdate, "", installed, minAge)
 }
 
 func compileGoBridge(ctx context.Context, buildDir, binaryPath, bridgeType string, noUpdate bool) error {
@@ -370,7 +384,12 @@ func runBridge(ctx *cli.Context) error {
 				return fmt.Errorf("failed to compile bridge: %w", err)
 			}
 		} else if overrideBridgeCmd == "" {
-			err = updateGoBridge(ctx.Context, bridgeCmd, ciBridgeType, ciV2, ctx.Bool("no-update"))
+			var minAge time.Duration
+			minAge, err = ParseMinAge(ctx.String("min-age"))
+			if err != nil {
+				return UserError{err.Error()}
+			}
+			err = updateGoBridge(ctx.Context, bridgeCmd, ciBridgeType, ciV2, ctx.Bool("no-update"), minAge)
 			if errors.Is(err, gitlab.ErrNotBuiltInCI) {
 				return UserError{fmt.Sprintf("Binaries for %s are not built in the CI. Use --compile to tell bbctl to build the bridge locally.", binaryName)}
 			} else if err != nil {

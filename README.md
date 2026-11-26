@@ -79,6 +79,14 @@ active somewhere (tmux is a good option). In the future, a service mode will be
 added where the bridge is registered as a systemd or launchd service to be
 started automatically by the OS.
 
+By default, `bbctl run` installs the latest successful CI build of the bridge
+every time it starts. To wait before new builds are installed, pass
+`--min-age <duration>` (or set `BEEPER_BRIDGE_MIN_AGE`), e.g. `--min-age 7d`
+or `--min-age 168h`. Only builds whose CI pipeline finished at least that long
+ago are installed, and an installed build is never replaced with an older one.
+If no build is old enough or the CI can't be reached, the installed build keeps
+running. Use `--min-age 0` (the default) to install the latest build.
+
 #### Official bridge list
 When using `bbctl run` or `bbctl config` and the provided `<name>` contains one
 of the identifiers (second column) listed below, bbctl will automatically guess
