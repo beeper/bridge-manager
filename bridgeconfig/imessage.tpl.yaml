@@ -171,7 +171,7 @@ bridge:
     # Used to send media viewer links instead of full files for attachments that are too big for MMS.
     media_viewer:
         # The address to the media viewer. If null, media viewer links will not be used.
-        url: https://media.beeper.com
+        url: null
         # The homeserver domain to pass to the media viewer to use for downloading media.
         # If null, will use the server name configured in the homeserver section.
         homeserver: {{ .BeeperDomain }}
